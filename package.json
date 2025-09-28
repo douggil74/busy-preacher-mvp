@@ -8,10 +8,11 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "jspdf": "^2.5.1",
     "next": "15.5.4",
+    "openai": "^5.13.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "openai": "^5.13.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

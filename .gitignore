@@ -8,3 +8,4 @@ dist
 npm-debug.log*
 yarn.lock
 pnpm-lock.yaml
+.vercel

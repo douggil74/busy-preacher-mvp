@@ -11,19 +11,71 @@ html, body, #__next {
 }
 
 body {
-  @apply bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100;
+  body.light-mode {
+  }}
+
+/* Light mode cards */
+body.light-mode .card,
+body.light-mode section {
+  @apply bg-white/90 text-slate-900 border-slate-200;
 }
 
+body.light-mode .card input,
+body.light-mode section input {
+  @apply text-slate-900 placeholder:text-slate-500 border-yellow-500;
+}
+
+body.light-mode .card button,
+body.light-mode section button {
+  @apply text-slate-900;
+}
+
+body.light-mode .card .text-white\/70,
+body.light-mode section .text-white\/70,
+body.light-mode .card .text-white\/80,
+body.light-mode section .text-white\/80,
+body.light-mode .card .text-white\/60,
+body.light-mode section .text-white\/60 {
+  @apply text-slate-700;
+}
+
+body.light-mode .card .opacity-70,
+body.light-mode section .opacity-70 {
+  @apply opacity-100;
+}
+
+/* Light mode popover */
+body.light-mode .hover-popover {
+  @apply bg-white/95 text-slate-900 border-slate-300;
+}
+
+body.light-mode .hover-popover .text-white\/60 {
+  @apply text-slate-600;
+}
+
+/* Better wrapping for long headings on mobile */
+h1, h2, h3 {
+  text-wrap: balance;
+  hyphens: auto;
+}
+
+/* INPUTS */
 .input {
-  @apply w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-base outline-none placeholder:text-white/40 focus:ring-2 focus:ring-white/20 focus:border-white/20 transition;
+  @apply w-full rounded-2xl border-2 border-[#FFD966] bg-transparent px-4 py-3 text-base outline-none text-white placeholder:text-white/40 focus:ring-2 focus:ring-[#FFD966]/50 focus:border-[#FFD966] transition;
 }
 
+/* BUTTONS */
 .btn {
   @apply inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/10 px-5 py-3 font-medium backdrop-blur hover:bg-white/15 active:scale-[0.99] transition;
 }
 
 .card {
-  @apply w-full max-w-2xl rounded-3xl border border-white/10 bg-card/60 p-6 shadow-soft backdrop-blur-xl;
+  /* Full width on phones, comfy max on larger screens */
+  @apply w-full max-w-none sm:max-w-2xl
+         rounded-none sm:rounded-3xl
+         border border-white/10 bg-card/60
+         p-4 sm:p-6
+         shadow-soft backdrop-blur-xl;
 }
 
 .badge {
@@ -52,4 +104,12 @@ body {
   border-radius: 9999px;
   background: rgba(255,255,255,0.45);
   animation: bp-indeterminate 1.4s ease-in-out infinite;
+}
+
+@layer utilities {
+  /* Use safe-area on notched iPhones, fallback to small padding */
+  .px-safe {
+    padding-left: max(0.75rem, env(safe-area-inset-left));
+    padding-right: max(0.75rem, env(safe-area-inset-right));
+  }
 }

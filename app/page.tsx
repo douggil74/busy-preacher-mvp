@@ -1,376 +1,1210 @@
+// app/page.tsx
 "use client";
 
-import { useMemo, useState } from "react";
-import { jsPDF } from "jspdf";
+import type { JSX } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import jsPDF from "jspdf";
+import { Playfair_Display } from "next/font/google";
+import Image from "next/image";
+import Link from "next/link";
 
-type Outline = {
-  title: string;
-  bigIdea: string;
-  passageSummary: string;
-  points: { heading: string; explanation: string; references: string[] }[];
-  historicalContext: string;
-  modernApplication: string;
-};
+const playfair = Playfair_Display({
+  weight: ["600", "700"],
+  subsets: ["latin"],
+  display: "swap",
+});
 
-const DISCLAIMER =
-  "This tool is not meant to replace diligent study and listening to the Holy Spirit.";
+const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? "2.1";
+const DISCLAIMER = "This app relies heavely on artificial inteligence";
+const ESV_NOTICE =
+  "Scripture quotations are from The Holy Bible, English Standard Version (ESV)®. " +
+  "Copyright © 2001 by Crossway, a publishing ministry of Good News Publishers. " +
+  "Used by permission. All rights reserved. ESV® is a registered trademark of Good News Publishers.";
 
-function looksLikeHTML(text: string) {
-  const t = text.trim().toLowerCase();
-  return t.startsWith("<!doctype") || t.startsWith("<html") || t.includes("<body");
+interface SavedStudy {
+  reference: string;
+  timestamp: number;
+  type: 'passage' | 'theme' | 'combined';
 }
 
-// Title -> safe file slug
-function slugify(s: string) {
-  return s
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "")
-    .substring(0, 80);
+interface StudyNote {
+  reference: string;
+  note: string;
+  timestamp: number;
 }
 
-// Title case for nice headings
-function toTitleCase(s: string) {
-  return s.replace(/\w\S*/g, (w) => w[0].toUpperCase() + w.slice(1).toLowerCase());
+async function esvFetch(passage: string) {
+  const res = await fetch("/api/esv", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ passage }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.error || "Failed to fetch ESV.");
+  return data as { passage: string; text: string };
 }
 
-export default function Page() {
-  const [scripture, setScripture] = useState("");
+async function outlineFetch(input: { mode: "passage" | "theme"; passage?: string; theme?: string }) {
+  const res = await fetch("/api/outline", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.error || "Failed to generate outline.");
+  return data as
+    | {
+        title: string;
+        source: "passage";
+        reference: string;
+        points: { point: string; why: string; illustration: string; crossRefs: string[] }[];
+        application: string;
+      }
+    | {
+        title: string;
+        source: "theme";
+        topic: string;
+        points: { point: string; why: string; illustration: string; crossRefs: string[] }[];
+        application: string;
+      };
+}
+
+async function outlineFetchCombined(input: { passage: string; theme: string }) {
+  const res = await fetch("/api/outline", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mode: "combined", passage: input.passage, theme: input.theme }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.error || "Combined outline not available.");
+  return data as {
+    title: string;
+    source: "combined";
+    reference: string;
+    topic: string;
+    points: { point: string; why: string; illustration: string; crossRefs: string[] }[];
+    application: string;
+  };
+}
+
+function mergeOutlines(passageO: any, themeO: any): any {
+  const title =
+    themeO?.title ||
+    (themeO?.topic ? `The Importance of ${themeO.topic}` : passageO?.title || "Combined Study");
+  const reference = passageO?.reference || "";
+  const topic = themeO?.topic || "";
+
+  const pPoints = Array.isArray(passageO?.points) ? passageO.points : [];
+  const tPoints = Array.isArray(themeO?.points) ? themeO.points : [];
+
+  const max = Math.max(pPoints.length, tPoints.length, 3);
+  const points = Array.from({ length: Math.min(max, 5) }).map((_, i) => {
+    const p = pPoints[i];
+    const t = tPoints[i];
+    const point = p && t ? `${p.point} – ${t.point}` : (p?.point ?? t?.point ?? "Key Point");
+    const why = p && t ? `${p.why} ${t.why}` : (p?.why ?? t?.why ?? "Why this matters.");
+    const illustration = p?.illustration ?? t?.illustration ?? "—";
+    const crossRefs = Array.from(new Set([...(p?.crossRefs ?? []), ...(t?.crossRefs ?? [])]));
+    return { point, why, illustration, crossRefs };
+  });
+
+  const application =
+    themeO?.application && passageO?.application
+      ? `${passageO.application} ${themeO.application}`
+      : (passageO?.application ?? themeO?.application ?? "Live this truth today.");
+
+  return { title, source: "combined", reference, topic, points, application };
+}
+
+async function lexplainFetch(surface: string) {
+  const res = await fetch("/api/lexplain", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ surface }),
+  });
+  const data = await res.json();
+  return (res.ok ? data : { lemma: "—", strongs: "—", plain: data?.error || "No explanation." }) as {
+    lemma: string;
+    strongs: string;
+    plain: string;
+  };
+}
+
+function copyToClipboard(text: string) {
+  navigator.clipboard.writeText(text).then(() => {});
+}
+
+function exportOutlinePDF(args: { outlines: any[] }) {
+  const doc = new jsPDF({ unit: "pt", format: "letter" });
+  const margin = 56;
+  const width = 612 - margin * 2;
+  let y = margin;
+
+  const write = (text: string, opts?: { bold?: boolean; italic?: boolean; size?: number }) => {
+    const size = opts?.size ?? 12;
+    const font = opts?.bold ? "Bold" : opts?.italic ? "Italic" : "Normal";
+    doc.setFont("Times", font as any);
+    doc.setFontSize(size);
+    const lines = wrap(text, width);
+    lines.forEach((ln) => {
+      if (y > 742 - 64) {
+        doc.addPage();
+        y = margin;
+      }
+      doc.text(ln, margin, y);
+      y += size + 4;
+    });
+  };
+
+  const wrap = (text: string, maxWidth: number) => {
+    const words = text.split(/\s+/);
+    const lines: string[] = [];
+    let line = "";
+    const measure = (t: string) => doc.getTextWidth(t);
+    for (const w of words) {
+      const test = line ? `${line} ${w}` : w;
+      if (measure(test) > maxWidth) {
+        if (line) lines.push(line);
+        line = w;
+      } else {
+        line = test;
+      }
+    }
+    if (line) lines.push(line);
+    return lines;
+  };
+
+  write(DISCLAIMER, { italic: true, size: 10 });
+  y += 10;
+
+  args.outlines.forEach((o, idx) => {
+    if (idx > 0) {
+      y += 6;
+      write("—", { italic: true, size: 10 });
+      y += 6;
+    }
+    const title = o.title || (o.source === "passage" ? o.reference : o.topic) || "Outline";
+    write(title, { bold: true, size: 14 });
+
+    if (o.source === "passage" && o.reference) write(`Text: ${o.reference}`, { italic: true, size: 12 });
+    if (o.source === "theme" && o.topic) write(`Theme: ${o.topic}`, { italic: true, size: 12 });
+
+    y += 4;
+    o.points.forEach((p: any, i: number) => {
+      write(`${i + 1}. ${p.point}`, { bold: true });
+      write(`Why it matters: ${p.why}`);
+      y += 6;
+      write(`Illustration: ${p.illustration}`);
+      if (p.crossRefs?.length) write(`Cross-refs: ${p.crossRefs.join("; ")}`);
+      y += 10;
+    });
+
+    write(`Modern Application: ${o.application}`);
+  });
+
+  y += 10;
+  write(DISCLAIMER, { italic: true, size: 10 });
+  y += 6;
+  write(ESV_NOTICE, { italic: true, size: 8 });
+
+  doc.setFont("Times", "Italic");
+  doc.setFontSize(9);
+  const footer = `© Douglas M. Gilford – The Busy Christian • v${APP_VERSION}`;
+  doc.text(footer, 612 - margin, 742, { align: "right" as any });
+
+  const first = args.outlines[0];
+  const nameBase =
+    first?.source === "passage"
+      ? first.reference || first.title || "Outline"
+      : first?.topic || first?.title || "Outline";
+  const fileSafe = String(nameBase).replace(/[^\w\-]+/g, "_");
+  doc.save(`${fileSafe}_Outline_ESV.pdf`);
+}
+
+export default function Page(): JSX.Element {
+  const [lightMode, setLightMode] = useState(true);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("bc-theme");
+    if (savedTheme === "dark") {
+      setLightMode(false);
+    } else {
+      setLightMode(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (lightMode) {
+      document.body.classList.add("light-mode");
+      localStorage.setItem("bc-theme", "light");
+    } else {
+      document.body.classList.remove("light-mode");
+      localStorage.setItem("bc-theme", "dark");
+    }
+  }, [lightMode]);
+
+  const [savedStudies, setSavedStudies] = useState<SavedStudy[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("bc-saved-studies");
+    if (saved) {
+      try {
+        setSavedStudies(JSON.parse(saved));
+      } catch (e) {
+        setSavedStudies([]);
+      }
+    }
+  }, []);
+
+  const saveCurrentStudy = () => {
+    const study: SavedStudy = {
+      reference: passageRef.trim() || theme.trim(),
+      timestamp: Date.now(),
+      type: passageRef && theme ? 'combined' : passageRef ? 'passage' : 'theme'
+    };
+    
+    const updated = [study, ...savedStudies.filter(s => s.reference !== study.reference)].slice(0, 20);
+    setSavedStudies(updated);
+    localStorage.setItem("bc-saved-studies", JSON.stringify(updated));
+  };
+
+  const loadSavedStudy = (study: SavedStudy) => {
+    if (study.type === 'passage' || study.type === 'combined') {
+      setPassageRef(study.reference);
+    }
+    if (study.type === 'theme') {
+      setTheme(study.reference);
+    }
+    setShowHistory(false);
+  };
+
+  const deleteSavedStudy = (timestamp: number) => {
+    const updated = savedStudies.filter(s => s.timestamp !== timestamp);
+    setSavedStudies(updated);
+    localStorage.setItem("bc-saved-studies", JSON.stringify(updated));
+  };
+
+  const [notes, setNotes] = useState<StudyNote[]>([]);
+  const [currentNote, setCurrentNote] = useState("");
+  const [showNotes, setShowNotes] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("bc-notes");
+    if (saved) {
+      try {
+        setNotes(JSON.parse(saved));
+      } catch (e) {
+        setNotes([]);
+      }
+    }
+  }, []);
+
+  const saveNote = () => {
+    if (!currentNote.trim()) return;
+    
+    const note: StudyNote = {
+      reference: passageRef.trim() || theme.trim() || "General Note",
+      note: currentNote.trim(),
+      timestamp: Date.now()
+    };
+    
+    const updated = [note, ...notes].slice(0, 100);
+    setNotes(updated);
+    localStorage.setItem("bc-notes", JSON.stringify(updated));
+    setCurrentNote("");
+  };
+
+  const deleteNote = (timestamp: number) => {
+    const updated = notes.filter(n => n.timestamp !== timestamp);
+    setNotes(updated);
+    localStorage.setItem("bc-notes", JSON.stringify(updated));
+  };
+
+  const [topLoading, setTopLoading] = useState(false);
+  const [esvLoading, setEsvLoading] = useState(false);
+  const [hoverLoading, setHoverLoading] = useState(false);
+
+  const [progress, setProgress] = useState(0);
+  const [statusWord, setStatusWord] = useState("");
+  const statusWords = ["Fetching…", "Researching…", "Synthesizing…", "Formatting…", "Ready"];
+
+  useEffect(() => {
+    if (!topLoading) {
+      setProgress(0);
+      setStatusWord("");
+      return;
+    }
+    let i = 0;
+    setProgress(8);
+    setStatusWord(statusWords[0]);
+    const inc = setInterval(() => setProgress((p) => (p < 92 ? p + 2 : p)), 200);
+    const talk = setInterval(() => {
+      i = (i + 1) % statusWords.length;
+      setStatusWord(statusWords[i]);
+    }, 1000);
+    return () => {
+      clearInterval(inc);
+      clearInterval(talk);
+      setProgress(100);
+      setTimeout(() => setProgress(0), 400);
+      setStatusWord("");
+    };
+  }, [topLoading]);
+
+  const [passageRef, setPassageRef] = useState("");
   const [theme, setTheme] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [data, setData] = useState<Outline | null>(null);
+  
+  const currentRefNotes = useMemo(() => {
+    const ref = passageRef.trim() || theme.trim();
+    return notes.filter(n => n.reference === ref);
+  }, [notes, passageRef, theme]);
 
-  const canSubmit = scripture.trim().length > 0 || theme.trim().length > 0;
+  const [passageOutline, setPassageOutline] = useState<any | null>(null);
+  const [themeOutline, setThemeOutline] = useState<any | null>(null);
+  const [combinedOutline, setCombinedOutline] = useState<any | null>(null);
+  const [topError, setTopError] = useState<string | null>(null);
 
-  const headerTitle = "The Busy Preacher";
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (!menuRef.current) return;
+      if (!menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
+    const onEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    document.addEventListener("click", onClick);
+    document.addEventListener("keydown", onEsc);
+    return () => {
+      document.removeEventListener("click", onClick);
+      document.removeEventListener("keydown", onEsc);
+    };
+  }, []);
 
-  const filename = useMemo(() => {
-    const parts = [
-      data?.title ? slugify(data.title) : "",
-      scripture ? slugify(scripture) : "",
-      theme ? slugify(theme) : "",
-    ].filter(Boolean);
-    const base = parts.join("-") || "outline";
-    const stamp = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-    return `${base}-${stamp}.pdf`;
-  }, [data?.title, scripture, theme]);
+  const onSubmit = async () => {
+    setTopError(null);
+    setCombinedOutline(null);
 
-  async function onGenerate(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setData(null);
-
-    const s = scripture.trim();
-    const t = theme.trim();
-    if (!s && !t) {
-      setError("Enter a Scripture, a Theme, or both.");
+    const wantsPassage = !!passageRef.trim();
+    const wantsTheme = !!theme.trim();
+    if (!wantsPassage && !wantsTheme) {
+      setTopError("Enter a Passage and/or a Theme.");
       return;
     }
 
+    setTopLoading(true);
     try {
-      setLoading(true);
-      const res = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ scripture: s, theme: t }),
-      });
+      if (wantsPassage && wantsTheme) {
+        const esvTask = esvFetch(passageRef.trim()).then((r) => {
+          setBpRef(passageRef.trim());
+          setBpText(r.text);
+        });
 
-      if (!res.ok) {
-        const text = await res.text();
-        setError(
-          looksLikeHTML(text)
-            ? "The server returned an error page. Most likely your OPENAI_API_KEY is missing/invalid. Add it to .env.local and restart."
-            : text || `Request failed: ${res.status}`
-        );
+        try {
+          const combined = await outlineFetchCombined({
+            passage: passageRef.trim(),
+            theme: theme.trim(),
+          });
+          setCombinedOutline(combined);
+          await esvTask;
+        } catch {
+          const [po, to] = await Promise.all([
+            outlineFetch({ mode: "passage", passage: passageRef.trim() }),
+            outlineFetch({ mode: "theme", theme: theme.trim() }),
+            esvTask,
+          ]);
+          setCombinedOutline(mergeOutlines(po, to));
+        }
+
+        setPassageOutline(null);
+        setThemeOutline(null);
         return;
       }
 
-      const json = (await res.json()) as { outline: Outline };
-      setData(json.outline);
-    } catch (err: any) {
-      setError(err?.message || "Something went wrong.");
+      const nextOutlines: { passage?: any; theme?: any } = {};
+      const tasks: Promise<any>[] = [];
+
+      if (wantsPassage) {
+        tasks.push(
+          outlineFetch({ mode: "passage", passage: passageRef.trim() }).then((o) => {
+            nextOutlines.passage = o;
+          })
+        );
+        tasks.push(
+          esvFetch(passageRef.trim()).then((r) => {
+            setBpRef(passageRef.trim());
+            setBpText(r.text);
+          })
+        );
+      }
+      if (wantsTheme) {
+        tasks.push(
+          outlineFetch({ mode: "theme", theme: theme.trim() }).then((o) => {
+            nextOutlines.theme = o;
+          })
+        );
+      }
+
+      await Promise.all(tasks);
+      setPassageOutline(nextOutlines.passage ?? null);
+      setThemeOutline(nextOutlines.theme ?? null);
+    } catch (e: any) {
+      setTopError(e?.message ?? "Failed to generate outline.");
     } finally {
-      setLoading(false);
+      setTopLoading(false);
     }
-  }
+  };
 
-  function onClear() {
-    setScripture("");
-    setTheme("");
-    setError(null);
-    setData(null);
-  }
+  const onExportPDFTop = () => {
+    const outlines = combinedOutline
+      ? [combinedOutline]
+      : ([passageOutline, themeOutline].filter(Boolean) as any[]);
+    if (!outlines.length) return;
+    exportOutlinePDF({ outlines });
+  };
 
-  /** Clean PDF with margins, consistent fonts, section spacing & page breaks */
-  function exportPdf() {
-    if (!data) return;
-
-    const doc = new jsPDF({ unit: "pt", format: "letter" });
-    const M = { x: 56, y: 60, w: 500 }; // left margin & text width
-    const L = 16; // line height
-    let y = M.y;
-
-    // Helpers
-    const line = () => {
-      doc.setDrawColor(220);
-      doc.line(M.x, y + 6, M.x + M.w, y + 6);
-      y += 16;
-    };
-    const ensure = (extra = 0) => {
-      if (y + extra > 760) {
-        doc.addPage();
-        y = M.y;
-      }
-    };
-    const writeBlock = (text: string, font = "normal", size = 11, indent = 0) => {
-      doc.setFont("helvetica", font as any);
-      doc.setFontSize(size);
-      const lines = doc.splitTextToSize(text, M.w - indent);
-      for (const ln of lines) {
-        ensure(L);
-        doc.text(ln, M.x + indent, y);
-        y += L;
-      }
-    };
-    const labelValue = (label: string, value: string) => {
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(11);
-      const labelText = `${label}: `;
-      const labelWidth = doc.getTextWidth(labelText);
-      ensure(L);
-      doc.text(labelText, M.x, y);
-      doc.setFont("helvetica", "normal");
-      const lines = doc.splitTextToSize(value, M.w - labelWidth);
-      if (lines.length) {
-        doc.text(lines[0], M.x + labelWidth, y);
-        y += L;
-        for (let i = 1; i < lines.length; i++) {
-          ensure(L);
-          doc.text(lines[i], M.x, y);
-          y += L;
-        }
-      }
-      y += 6;
-    };
-
-    // Header
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(18);
-    doc.text(`${headerTitle} — Outline`, M.x, y); y += 24;
-
-    // Disclaimer (top)
-    doc.setFont("helvetica", "italic");
-    doc.setFontSize(10);
-    writeBlock(DISCLAIMER);
-    y += 6;
-    line();
-
-    // Title
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(14);
-    writeBlock(data.title ? toTitleCase(data.title) : "Untitled");
-    y += 2;
-
-    // Scripture/Theme summary row (if provided)
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    const metaBits = [
-      scripture ? `Scripture: ${scripture}` : "",
-      theme ? `Theme: ${theme}` : "",
-      `Generated: ${new Date().toLocaleString()}`,
-    ].filter(Boolean);
-    if (metaBits.length) {
-      writeBlock(metaBits.join("  •  "));
-      y += 4;
-    }
-
-    // Big Idea / Passage Summary
-    labelValue("Big Idea", data.bigIdea);
-    labelValue("Passage Summary", data.passageSummary);
-    line();
-
-    // Points
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    writeBlock("Main Points");
-    y += 4;
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(11);
-
-    data.points.forEach((p, i) => {
-      ensure(L * 4);
-      writeBlock(`${i + 1}. ${p.heading}`, "bold");
-      writeBlock(p.explanation, "normal", 11, 16);
-      if (p.references?.length) {
-        writeBlock(`Refs: ${p.references.join(", ")}`, "normal", 10, 16);
-      }
-      y += 4;
+  const copyOutline = () => {
+    const outlines = combinedOutline
+      ? [combinedOutline]
+      : ([passageOutline, themeOutline].filter(Boolean) as any[]);
+    if (!outlines.length) return;
+    
+    let text = "";
+    outlines.forEach(o => {
+      text += `${o.title}\n\n`;
+      if (o.reference) text += `Text: ${o.reference}\n`;
+      if (o.topic) text += `Topic: ${o.topic}\n`;
+      text += "\n";
+      
+      o.points.forEach((p: any, i: number) => {
+        text += `${i + 1}. ${p.point}\n`;
+        text += `Why: ${p.why}\n`;
+        text += `Illustration: ${p.illustration}\n`;
+        if (p.crossRefs?.length) text += `Cross-refs: ${p.crossRefs.join("; ")}\n`;
+        text += "\n";
+      });
+      
+      text += `Modern Application: ${o.application}\n\n`;
     });
+    
+    copyToClipboard(text);
+  };
 
-    line();
+  const onCrossRefClick = (ref: string) => {
+    setBpRef(ref);
+    setEsvLoading(true);
+    esvFetch(ref)
+      .then((r) => {
+        setBpText(r.text);
+        document.getElementById("ol-study")?.scrollIntoView({ behavior: "smooth" });
+      })
+      .catch(() => {})
+      .finally(() => setEsvLoading(false));
+  };
 
-    // Historical Context
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    writeBlock("Historical Context");
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(11);
-    writeBlock(data.historicalContext);
+  const [bpRef, setBpRef] = useState("");
+  const [bpText, setBpText] = useState("");
+  const [bpError, setBpError] = useState<string | null>(null);
 
-    y += 6;
-    line();
+  const tokens = useMemo(() => {
+    if (!bpText) return [];
+    const rough = bpText.split(/(\s+)/);
+    return rough.flatMap((t) => t.split(/(\b)/));
+  }, [bpText]);
 
-    // Modern Application
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    writeBlock("Modern Application");
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(11);
-    writeBlock(data.modernApplication);
+  const [activeWord, setActiveWord] = useState<string | null>(null);
+  const [hoverData, setHoverData] = useState<{ lemma: string; strongs: string; plain: string } | null>(null);
+  const [popoverPinned, setPopoverPinned] = useState(false);
+  const [popoverPos, setPopoverPos] = useState<{ x: number; y: number } | null>(null);
+  const hoverTimer = useRef<NodeJS.Timeout | null>(null);
 
-    // Footer (each page)
-    const footer = "© Douglas M. Gilford — The Busy Preacher";
-    const pageCount = doc.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFont("helvetica", "italic");
-      doc.setFontSize(9);
-      doc.text(footer, M.x, 770);
-      doc.text(DISCLAIMER, M.x, 756);
+  const requestHover = (surface: string) => {
+    setHoverLoading(true);
+    lexplainFetch(surface)
+      .then((d) => setHoverData(d))
+      .finally(() => setHoverLoading(false));
+  };
+
+  const onWordEnter = (e: React.MouseEvent, w: string) => {
+    if (popoverPinned) return;
+    setActiveWord(w);
+    
+    const calculatePosition = () => {
+      const popoverWidth = 360;
+      const popoverHeight = 220;
+      const margin = 16;
+      
+      let x = e.clientX;
+      let y = e.clientY + 12;
+      
+      if (x + popoverWidth > window.innerWidth - margin) {
+        x = window.innerWidth - popoverWidth - margin;
+      }
+      
+      if (x < margin) {
+        x = margin;
+      }
+      
+      if (y + popoverHeight > window.innerHeight - margin) {
+        y = e.clientY - popoverHeight - 12;
+      }
+      
+      if (y < margin) {
+        y = margin;
+      }
+      
+      return { x, y };
+    };
+    
+    setPopoverPos(calculatePosition());
+    if (hoverTimer.current) clearTimeout(hoverTimer.current);
+    hoverTimer.current = setTimeout(() => requestHover(w), 160);
+  };
+
+  const onWordLeave = () => {
+    if (popoverPinned) return;
+    if (hoverTimer.current) clearTimeout(hoverTimer.current);
+    setActiveWord(null);
+    setHoverData(null);
+    setPopoverPos(null);
+  };
+
+  const onWordClick = (e: React.MouseEvent, w: string) => {
+    e.preventDefault();
+    if (popoverPinned && activeWord === w) {
+      setPopoverPinned(false);
+      onWordLeave();
+    } else {
+      setPopoverPinned(true);
+      setActiveWord(w);
+      
+      const calculatePosition = () => {
+        const popoverWidth = 360;
+        const popoverHeight = 220;
+        const margin = 16;
+        
+        let x = e.clientX;
+        let y = e.clientY + 12;
+        
+        if (x + popoverWidth > window.innerWidth - margin) {
+          x = window.innerWidth - popoverWidth - margin;
+        }
+        
+        if (x < margin) {
+          x = margin;
+        }
+        
+        if (y + popoverHeight > window.innerHeight - margin) {
+          y = e.clientY - popoverHeight - 12;
+        }
+        
+        if (y < margin) {
+          y = margin;
+        }
+        
+        return { x, y };
+      };
+      
+      setPopoverPos(calculatePosition());
+      requestHover(w);
     }
+  };
 
-    doc.save(filename);
-  }
+  const bpFetch = () => {
+    const cleaned = bpRef.trim();
+    if (!cleaned) return;
+    setBpError(null);
+    setEsvLoading(true);
+    esvFetch(cleaned)
+      .then((out) => setBpText(out.text))
+      .catch((e) => setBpError(e?.message ?? "Failed to fetch ESV."))
+      .finally(() => setEsvLoading(false));
+  };
+
+  const onBottomKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") bpFetch();
+  };
+
+  const [copied, setCopied] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  
+  const handleCopy = (text: string) => {
+    copyToClipboard(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleSave = () => {
+    saveCurrentStudy();
+    setSaveSuccess(true);
+    setTimeout(() => setSaveSuccess(false), 3000);
+  };
 
   return (
-    <main className="min-h-screen grid place-items-center p-6">
-      <div className="card w-full max-w-2xl">
-        {/* Header */}
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold">{headerTitle}</h1>
-            <p className="text-sm text-white/60 mt-1">
-              Enter a Scripture or a Theme. We’ll draft a quick outline with points, context, and application.
-            </p>
+    <main className="py-8">
+      <div className="mx-auto mb-6 max-w-3xl px-1">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <Image
+              src="/logo.png"
+              alt="The Busy Christian logo"
+              width={48}
+              height={48}
+              priority
+              sizes="(max-width: 640px) 32px, 48px"
+              className="h-8 w-8 sm:h-12 sm:w-12 object-contain"
+            />
+            <h1
+              className={`${playfair.className} text-balance break-words text-left text-3xl sm:text-4xl md:text-5xl font-semibold leading-tight text-white/90`}
+              title="The Busy Christian"
+            >
+              <span className="italic align-baseline text-2xl sm:text-3xl md:text-4xl">The</span>{" "}
+              Busy Christian
+            </h1>
           </div>
-          <span className="badge">MVP</span>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setLightMode((v) => !v)}
+              className="flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-white/5 hover:bg-white/10 focus:outline-none"
+              aria-label={lightMode ? "Switch to dark mode" : "Switch to light mode"}
+              title={lightMode ? "Dark mode" : "Light mode"}
+            >
+              {lightMode ? (
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                  <circle cx="12" cy="12" r="5"></circle>
+                  <line x1="12" y1="1" x2="12" y2="3"></line>
+                  <line x1="12" y1="21" x2="12" y2="23"></line>
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                  <line x1="1" y1="12" x2="3" y2="12"></line>
+                  <line x1="21" y1="12" x2="23" y2="12"></line>
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+              )}
+            </button>
+
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setMenuOpen((v) => !v)}
+                className="flex h-9 w-10 flex-col items-center justify-center rounded-md border border-white/10 bg-white/5 hover:bg-white/10 focus:outline-none"
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+                aria-label={menuOpen ? "Close menu" : "Open menu"}
+              >
+                <span aria-hidden="true" className={`block h-0.5 w-5 bg-white/85 transition-transform duration-200 ${menuOpen ? "translate-y-[6px] rotate-45" : ""}`}></span>
+                <span aria-hidden="true" className={`mt-1 block h-0.5 w-5 bg-white/85 transition-opacity duration-150 ${menuOpen ? "opacity-0" : "opacity-100"}`}></span>
+                <span aria-hidden="true" className={`mt-1 block h-0.5 w-5 bg-white/85 transition-transform duration-200 ${menuOpen ? "-translate-y-[6px] -rotate-45" : ""}`}></span>
+              </button>
+
+              {menuOpen && (
+                <div role="menu" className="absolute right-0 z-50 mt-2 w-48 overflow-hidden rounded-md border border-white/15 bg-slate-900/95 p-1 shadow-lg backdrop-blur-md">
+                  <Link href="/" role="menuitem" onClick={() => setMenuOpen(false)} className="block rounded px-3 py-2 text-sm text-white/85 hover:bg-white/5 hover:underline decoration-yellow-400 underline-offset-4 font-semibold">
+                    🏠 Home
+                  </Link>
+                  <Link href="/deep-study" role="menuitem" onClick={() => setMenuOpen(false)} className="block rounded px-3 py-2 text-sm text-white/85 hover:bg-white/5 hover:underline decoration-yellow-400 underline-offset-4">
+                    📖 Deep Study
+                  </Link>
+                  <Link href="/library" role="menuitem" onClick={() => setMenuOpen(false)} className="block rounded px-3 py-2 text-sm text-white/85 hover:bg-white/5 hover:underline decoration-yellow-400 underline-offset-4 font-semibold">
+                    📝 My Notes
+                  </Link>
+                  <div className="my-1 h-px bg-white/10"></div>
+                  <a href="/about" role="menuitem" onClick={() => setMenuOpen(false)} className="block rounded px-3 py-2 text-sm text-white/85 hover:bg-white/5 hover:underline decoration-yellow-400 underline-offset-4">
+                    About
+                  </a>
+                  <a href="/help" role="menuitem" onClick={() => setMenuOpen(false)} className="block rounded px-3 py-2 text-sm text-white/85 hover:bg-white/5 hover:underline decoration-yellow-400 underline-offset-4">
+                    Help
+                  </a>
+                  <a href="/contact" role="menuitem" onClick={() => setMenuOpen(false)} className="block rounded px-3 py-2 text-sm text-white/85 hover:bg-white/5 hover:underline decoration-yellow-400 underline-offset-4">
+                    Contact
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* Status bar when thinking */}
-        {loading && (
-          <div className="mb-4">
-            <div className="statusbar">
-              <div className="statusbar-fill" />
+        <div className="mt-3 h-px w-full bg-white/15" />
+      </div>
+
+      <section className="mx-auto max-w-3xl rounded-2xl border border-white/10 bg-white/5 p-6 shadow-sm">
+        <p className="mb-5 text-sm text-white/70">Study faster. Stay accurate. Enjoy.</p>
+
+        {savedStudies.length > 0 && (
+          <button
+            onClick={() => setShowHistory(!showHistory)}
+            className="mb-4 flex items-center gap-2 text-sm text-yellow-400 hover:text-yellow-300 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {showHistory ? "Hide" : "Show"} Recent Studies ({savedStudies.length})
+          </button>
+        )}
+
+        {showHistory && (
+          <div className="mb-4 rounded-lg border border-white/10 bg-white/5 p-4">
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {savedStudies.map((study) => (
+                <div key={study.timestamp} className="flex items-center justify-between gap-2 p-2 rounded hover:bg-white/5">
+                  <button
+                    onClick={() => loadSavedStudy(study)}
+                    className="flex-1 text-left text-sm text-white/80 hover:text-white truncate"
+                  >
+                    <span className="text-xs text-white/50 mr-2">
+                      {new Date(study.timestamp).toLocaleDateString()}
+                    </span>
+                    {study.reference}
+                  </button>
+                  <button
+                    onClick={() => deleteSavedStudy(study.timestamp)}
+                    className="text-red-400 hover:text-red-300 text-xs"
+                    aria-label="Delete"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
             </div>
-            <p className="mt-2 text-xs text-white/60">Thinking… generating outline</p>
           </div>
         )}
 
-        {/* Form */}
-        <form onSubmit={onGenerate} className="space-y-4">
+        <div className="space-y-4">
           <div>
-            <label className="block text-sm text-white/70 mb-2">Scripture (e.g., John 3:16 or Psalm 23)</label>
+            <label htmlFor="mainPassage" className="mb-2 block text-sm text-white/80">
+              Passage (ESV)
+            </label>
             <input
-              className="input"
-              placeholder="John 3:16; James 1:2–4; etc."
-              value={scripture}
-              onChange={(e) => setScripture(e.target.value)}
-              maxLength={200}
-              inputMode="text"
-              autoCapitalize="none"
+              id="mainPassage"
+              placeholder="e.g., John 11:25"
+              value={passageRef}
+              onChange={(e) => setPassageRef(e.target.value)}
+              className="w-full rounded-lg border border-yellow-400/80 bg-transparent px-3 py-2 outline-none ring-0 placeholder:text-white/40"
             />
           </div>
 
           <div>
-            <label className="block text-sm text-white/70 mb-2">Theme (e.g., God’s Love, Perseverance, Generosity)</label>
+            <label htmlFor="theme" className="mb-2 block text-sm text-white/80">
+              Topic (optional)
+            </label>
             <input
-              className="input"
-              placeholder="Grace under pressure"
+              id="theme"
+              placeholder="e.g., Can God dance?"
               value={theme}
               onChange={(e) => setTheme(e.target.value)}
-              maxLength={150}
-              inputMode="text"
-              autoCapitalize="none"
+              className="w-full rounded-lg border border-yellow-400/80 bg-transparent px-3 py-2 outline-none ring-0 placeholder:text-white/40"
             />
           </div>
 
-          <div className="flex gap-3">
-            <button disabled={!canSubmit || loading} className="btn w-full disabled:opacity-50">
-              {loading ? "Generating…" : "Generate Outline"}
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={onSubmit}
+              disabled={topLoading}
+              className="rounded-lg bg-white/10 px-4 py-2 text-sm hover:bg-white/15 disabled:opacity-50"
+            >
+              {topLoading ? "Working…" : "Submit"}
             </button>
-            <button type="button" onClick={onClear} className="btn w-36 disabled:opacity-50">
+            {(passageRef || theme) && (
+              <button
+                onClick={handleSave}
+                className="rounded-lg bg-yellow-400/20 border border-yellow-400 px-4 py-2 text-sm hover:bg-yellow-400/30 transition-colors flex items-center gap-1"
+                title="Save this study to your library"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+                {saveSuccess ? "Saved! ✓" : "Save to Library"}
+              </button>
+            )}
+            <button
+              onClick={() => {
+                setPassageRef("");
+                setTheme("");
+                setPassageOutline(null);
+                setThemeOutline(null);
+                setCombinedOutline(null);
+              }}
+              className="ml-auto rounded-lg bg-white/10 px-4 py-2 text-sm hover:bg-white/15"
+            >
               Clear
             </button>
           </div>
-        </form>
 
-        {error && <p className="mt-4 text-red-300 text-sm">{error}</p>}
-
-        {/* Results + actions */}
-        {data && (
-          <div className="mt-8 space-y-6">
-            {/* Disclaimer (top of outline) */}
-            <div className="text-xs text-white/50 italic">{DISCLAIMER}</div>
-
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <h2 className="text-xl font-semibold">{toTitleCase(data.title || "Untitled")}</h2>
-                <p className="mt-2 text-white/70">
-                  <span className="font-medium">Big Idea:</span> {data.bigIdea}
-                </p>
-                <p className="mt-2 text-white/70">
-                  <span className="font-medium">Passage Summary:</span> {data.passageSummary}
-                </p>
-                {/* Small meta row */}
-                <p className="mt-2 text-xs text-white/50">
-                  {[scripture && `Scripture: ${scripture}`, theme && `Theme: ${theme}`]
-                    .filter(Boolean)
-                    .join(" • ")}
-                </p>
-              </div>
-              <div className="shrink-0 flex gap-2">
-                <button type="button" onClick={exportPdf} className="btn">
-                  Export PDF
-                </button>
-              </div>
+          <div className="mt-2">
+            <div className="relative mb-2 h-[6px] w-full overflow-hidden rounded-full bg-white/5">
+              <div
+                className="h-full rounded-full bg-yellow-400/80 transition-[width] duration-150"
+                style={{ width: `${progress}%` }}
+              />
             </div>
+            <div className="h-4 text-center text-xs text-white/60">{progress > 0 ? statusWord : " "}</div>
+          </div>
 
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Main Points</h3>
-              <ol className="list-decimal pl-5 space-y-3">
-                {data.points.map((p, i) => (
-                  <li key={i}>
-                    <p className="font-medium">{p.heading}</p>
-                    <p className="text-white/70">{p.explanation}</p>
-                    {p.references.length > 0 && (
-                      <p className="text-white/50 text-sm mt-1">Refs: {p.references.join(", ")}</p>
+          {topError && (
+            <div className="rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">
+              {topError}
+            </div>
+          )}
+
+          {combinedOutline && (
+            <div className="mt-2 rounded-lg border border-white/10 bg-white/5 p-4">
+              <h3 className="text-lg font-semibold">{combinedOutline.title}</h3>
+              <p className="text-sm text-white/70">
+                {combinedOutline.reference ? <>Text: {combinedOutline.reference}</> : null}
+                {combinedOutline.reference && combinedOutline.topic ? " • " : null}
+                {combinedOutline.topic ? <>Topic: {combinedOutline.topic}</> : null}
+              </p>
+              <ol className="mt-3 list-decimal space-y-4 pl-5">
+                {combinedOutline.points.map((p: any, i: number) => (
+                  <li key={i} className="space-y-2">
+                    <div className="font-semibold">{p.point}</div>
+                    <div className="text-sm"><span className="opacity-70">Why:</span> {p.why}</div>
+                    <div className="mt-2 text-sm">
+                      <span className="opacity-70">Illustration:</span> {p.illustration}
+                    </div>
+                    {!!p.crossRefs?.length && (
+                      <div className="text-sm">
+                        <span className="opacity-70">Cross-refs:</span>{" "}
+                        {p.crossRefs
+                          .map((r: string, idx: number) => (
+                            <button
+                              key={idx}
+                              onClick={() => onCrossRefClick(r)}
+                              className="underline decoration-yellow-400 underline-offset-4"
+                            >
+                              {r}
+                            </button>
+                          ))
+                          .reduce((acc: any[], el: any, idx: number) => {
+                            if (idx > 0) acc.push(<span key={`sepC-${idx}`}>; </span>);
+                            acc.push(el);
+                            return acc;
+                          }, [])}
+                      </div>
                     )}
                   </li>
                 ))}
               </ol>
+              <div className="mt-4 text-sm">
+                <span className="font-semibold">Modern Application:</span>{" "}
+                {combinedOutline.application}
+              </div>
             </div>
+          )}
 
-            <div>
-              <h3 className="text-lg font-semibold">Historical Context</h3>
-              <p className="text-white/70 mt-1 whitespace-pre-line">{data.historicalContext}</p>
+          {!combinedOutline && passageOutline && (
+            <div className="mt-2 rounded-lg border border-white/10 bg-white/5 p-4">
+              <h3 className="text-lg font-semibold">
+                {passageOutline.title || passageOutline.reference}
+              </h3>
+              <p className="text-sm text-white/70">Text: {passageOutline.reference}</p>
+              <ol className="mt-3 list-decimal space-y-4 pl-5">
+                {passageOutline.points.map((p: any, i: number) => (
+                  <li key={i} className="space-y-2">
+                    <div className="font-semibold">{p.point}</div>
+                    <div className="text-sm"><span className="opacity-70">Why:</span> {p.why}</div>
+                    <div className="mt-2 text-sm">
+                      <span className="opacity-70">Illustration:</span> {p.illustration}
+                    </div>
+                    {!!p.crossRefs?.length && (
+                      <div className="text-sm">
+                        <span className="opacity-70">Cross-refs:</span>{" "}
+                        {p.crossRefs
+                          .map((r: string, idx: number) => (
+                            <button
+                              key={idx}
+                              onClick={() => onCrossRefClick(r)}
+                              className="underline decoration-yellow-400 underline-offset-4"
+                            >
+                              {r}
+                            </button>
+                          ))
+                          .reduce((acc: any[], el: any, idx: number) => {
+                            if (idx > 0) acc.push(<span key={`sep-${idx}`}>; </span>);
+                            acc.push(el);
+                            return acc;
+                          }, [])}
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ol>
+              <div className="mt-4 text-sm">
+                <span className="font-semibold">Modern Application:</span>{" "}
+                {passageOutline.application}
+              </div>
             </div>
+          )}
 
-            <div>
-              <h3 className="text-lg font-semibold">Modern Application</h3>
-              <p className="text-white/70 mt-1 whitespace-pre-line">{data.modernApplication}</p>
+          {!combinedOutline && themeOutline && (
+            <div className="mt-2 rounded-lg border border-white/10 bg-white/5 p-4">
+              <h3 className="text-lg font-semibold">{themeOutline.title || themeOutline.topic}</h3>
+              <p className="text-sm text-white/70">Topic: {themeOutline.topic}</p>
+              <ol className="mt-3 list-decimal space-y-4 pl-5">
+                {themeOutline.points.map((p: any, i: number) => (
+                  <li key={i} className="space-y-2">
+                    <div className="font-semibold">{p.point}</div>
+                    <div className="text-sm"><span className="opacity-70">Why:</span> {p.why}</div>
+                    <div className="mt-2 text-sm">
+                      <span className="opacity-70">Illustration:</span> {p.illustration}
+                    </div>
+                    {!!p.crossRefs?.length && (
+                      <div className="text-sm">
+                        <span className="opacity-70">Cross-refs:</span>{" "}
+                        {p.crossRefs
+                          .map((r: string, idx: number) => (
+                            <button
+                              key={idx}
+                              onClick={() => onCrossRefClick(r)}
+                              className="underline decoration-yellow-400 underline-offset-4"
+                            >
+                              {r}
+                            </button>
+                          ))
+                          .reduce((acc: any[], el: any, idx: number) => {
+                            if (idx > 0) acc.push(<span key={`sep2-${idx}`}>; </span>);
+                            acc.push(el);
+                            return acc;
+                          }, [])}
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ol>
+              <div className="mt-4 text-sm">
+                <span className="font-semibold">Modern Application:</span>{" "}
+                {themeOutline.application}
+              </div>
             </div>
+          )}
 
-            {/* Disclaimer (bottom of outline) */}
-            <div className="text-xs text-white/50 italic">{DISCLAIMER}</div>
+          {(combinedOutline || passageOutline || themeOutline) && (
+            <div className="mt-4 pt-4 border-t border-white/10 flex gap-2">
+              <button
+                onClick={onExportPDFTop}
+                disabled={topLoading}
+                className="rounded-lg bg-yellow-400/20 border border-yellow-400 px-4 py-2 text-sm hover:bg-yellow-400/30 disabled:opacity-50 transition-colors flex items-center gap-1"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Export PDF
+              </button>
+              <button
+                onClick={copyOutline}
+                className="rounded-lg bg-white/10 px-4 py-2 text-sm hover:bg-white/15 transition-colors flex items-center gap-1"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                {copied ? "Copied!" : "Copy"}
+              </button>
+            </div>
+          )}
+
+          {(passageRef || theme) && (
+            <div className="mt-4 pt-4 border-t border-white/10">
+              <button
+                onClick={() => setShowNotes(!showNotes)}
+                className="flex items-center gap-2 text-sm text-yellow-400 hover:text-yellow-300 transition-colors mb-3"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                {showNotes ? "Hide" : "Add"} Notes {currentRefNotes.length > 0 && `(${currentRefNotes.length})`}
+              </button>
+
+              {showNotes && (
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <textarea
+                      value={currentNote}
+                      onChange={(e) => setCurrentNote(e.target.value)}
+                      placeholder="Add your personal notes here..."
+                      className="flex-1 rounded-lg border border-yellow-400/80 bg-transparent px-3 py-2 outline-none ring-0 placeholder:text-white/40 min-h-[80px]"
+                    />
+                    <button
+                      onClick={saveNote}
+                      disabled={!currentNote.trim()}
+                      className="rounded-lg bg-yellow-400/20 border border-yellow-400 px-4 py-2 text-sm hover:bg-yellow-400/30 disabled:opacity-50 transition-colors h-fit"
+                    >
+                      Save
+                    </button>
+                  </div>
+
+                  {currentRefNotes.length > 0 && (
+                    <div className="space-y-2">
+                      {currentRefNotes.map((note) => (
+                        <div key={note.timestamp} className="rounded-lg border border-white/10 bg-white/5 p-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="text-sm text-white/80 flex-1">{note.note}</p>
+                            <button
+                              onClick={() => deleteNote(note.timestamp)}
+                              className="text-red-400 hover:text-red-300 text-xs"
+                              aria-label="Delete note"
+                            >
+                              ×
+                            </button>
+                          </div>
+                          <p className="text-xs text-white/40 mt-1">
+                            {new Date(note.timestamp).toLocaleString()}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section
+        id="ol-study"
+        className="mx-auto mt-12 max-w-3xl rounded-xl border border-white/10 bg-white/5 p-4 shadow-sm"
+      >
+        <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+          <div>
+            <label htmlFor="bpPassage" className="mb-2 block text-sm text-white/80">
+              Passage (ESV)
+            </label>
+            <input
+              id="bpPassage"
+              placeholder="e.g., John 11:25"
+              value={bpRef}
+              onChange={(e) => setBpRef(e.target.value)}
+              onKeyDown={onBottomKey}
+              className="w-full rounded-lg border border-yellow-400/80 bg-transparent px-3 py-2 outline-none ring-0 placeholder:text-white/40"
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={bpFetch}
+              disabled={esvLoading}
+              className="rounded-lg bg-white/10 px-4 py-2 text-sm hover:bg-white/15 disabled:opacity-50"
+            >
+              {esvLoading ? "Loading…" : "Get ESV"}
+            </button>
+            {bpText && (
+              <button
+                onClick={() => handleCopy(bpText)}
+                className="rounded-lg bg-white/10 px-4 py-2 text-sm hover:bg-white/15 transition-colors"
+                title="Copy text"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </button>
+            )}
+            <Link
+              href={`/deep-study?passage=${encodeURIComponent(bpRef.trim())}`}
+              className={`rounded-lg bg-yellow-400/20 border border-yellow-400 px-4 py-2 text-sm hover:bg-yellow-400/30 transition-colors ${
+                !bpRef.trim() ? 'opacity-50 pointer-events-none' : ''
+              }`}
+            >
+              Study Deeper
+            </Link>
+            <button
+              onClick={() => {
+                setBpRef("");
+                setBpText("");
+                setActiveWord(null);
+                setHoverData(null);
+              }}
+              className="rounded-lg bg-white/10 px-4 py-2 text-sm hover:bg-white/15"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+
+        {bpError && (
+          <div className="mt-3 rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">
+            {bpError}
           </div>
         )}
 
-        {/* Footer */}
-        <footer className="mt-8 text-center text-xs text-white/40">
-          © Douglas M. Gilford — The Busy Preacher
-        </footer>
-      </div>
+        <div className="mt-5">
+          {!bpText ? (
+            <p className="text-white/60 text-sm">
+              Enter a reference and click <span className="font-semibold">Get ESV</span>. Hover any
+              word for a simple, plain-English original language note; click to pin/unpin. Use{" "}
+              <span className="font-semibold">Study Deeper</span> for commentaries and cross-references.
+            </p>
+          ) : (
+            <article className="whitespace-pre-wrap text-[1.05rem] leading-7">
+              {tokens.map((t, i) => {
+                const isWord = /\w/.test(t);
+                if (!isWord) return <span key={i}>{t}</span>;
+                return (
+                  <span
+                    key={i}
+                    onMouseEnter={(e) => onWordEnter(e, t)}
+                    onMouseLeave={onWordLeave}
+                    onClick={(e) => onWordClick(e, t)}
+                    className="cursor-help rounded-sm bg-transparent px-0.5 hover:bg-white/10 transition-colors"
+                  >
+                    {t}
+                  </span>
+                );
+              })}
+            </article>
+          )}
+        </div>
+      </section>
+
+      {activeWord && popoverPos && (
+        <div
+          className="hover-popover pointer-events-none fixed z-50 w-[360px] max-w-[90vw] rounded-lg border border-white/15 bg-slate-950/95 p-3 text-sm shadow-xl backdrop-blur"
+          style={{ left: popoverPos.x, top: popoverPos.y }}
+        >
+          <div className="pointer-events-auto">
+            <div className="mb-1 flex items-center justify-between gap-2">
+              <div className="text-xs uppercase tracking-wide text-white/60">Word for Today</div>
+              <button
+                onClick={() => setPopoverPinned((p) => !p)}
+                className="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs hover:bg-white/10"
+              >
+                {popoverPinned ? "Unpin" : "Pin"}
+              </button>
+            </div>
+
+            <div className="text-base font-semibold">{activeWord}</div>
+            <div className="mt-1 grid grid-cols-[80px_1fr] gap-x-3 gap-y-1">
+              <div className="text-xs text-white/60">Lemma</div>
+              <div className="text-sm">{hoverData?.lemma ?? "…"}</div>
+              <div className="text-xs text-white/60">Strong's #</div>
+              <div className="text-sm">{hoverData?.strongs ?? "…"}</div>
+            </div>
+
+            <div className="mt-2 border-t border-white/10 pt-2 text-sm leading-6">
+              {hoverData?.plain ?? (hoverLoading ? "Thinking…" : "—")}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <p id="disclaimer" className="mt-10 text-center text-xs italic text-white/50">
+        {DISCLAIMER}
+      </p>
+
+      <p className="mt-6 px-4 text-center text-[10px] leading-4 text-white/40">
+        {ESV_NOTICE}
+      </p>
+
+      <footer className="mt-12 text-center text-xs text-white/40">
+        © Douglas M. Gilford – The Busy Christian • v{APP_VERSION}
+      </footer>
     </main>
   );
 }

@@ -1,0 +1,22 @@
+{
+    "name": "Busy Preacher",
+    "short_name": "BP",
+    "description": "Generate sermon outlines, topics, and applications with biblical accuracy.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0A2239",
+    "theme_color": "#0A2239",
+    "icons": [
+      {
+        "src": "/icons/icon-192x192.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      },
+      {
+        "src": "/icons/icon-512x512.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ]
+  }
+  

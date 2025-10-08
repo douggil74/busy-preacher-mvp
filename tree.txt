@@ -1,0 +1,52 @@
+.
+├── .env.local
+├── .gitignore
+├── app
+│   ├── about
+│   │   └── page.tsx
+│   ├── api
+│   │   ├── esv
+│   │   │   └── route.ts
+│   │   ├── generate
+│   │   │   ├── passage
+│   │   │   │   └── route.ts
+│   │   │   ├── route.ts
+│   │   │   └── sermon
+│   │   │       └── route.ts
+│   │   └── lexicon
+│   │       └── route.ts
+│   ├── contact
+│   │   └── page.tsx
+│   ├── globals.css
+│   ├── HeaderBar.tsx
+│   ├── layout.tsx
+│   ├── page.tsx
+│   └── resources
+│       └── page.tsx
+├── components
+│   ├── LexiconPopover.tsx
+│   ├── Logo.tsx
+│   ├── Popover.tsx
+│   ├── PreviewPanel.tsx
+│   └── VersePreview.tsx
+├── lib
+│   └── credits.ts
+├── next-env.d.ts
+├── next.config.ts
+├── package-lock.json
+├── package.json
+├── postcss.config.js
+├── public
+│   ├── apple-touch-icon..png
+│   ├── favicon.ico
+│   ├── icon-192.png
+│   ├── icon-512.png
+│   ├── logo.png
+│   ├── manifest.json
+│   └── site.webmanifest
+├── README.md
+├── tailwind.config.ts
+├── tree.txt
+└── tsconfig.json
+
+14 directories, 36 files

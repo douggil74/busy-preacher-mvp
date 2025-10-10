@@ -4,17 +4,65 @@
 
 :root {
   color-scheme: dark;
+  --bc-font-scale: 1;
 }
 
 html, body, #__next {
   height: 100%;
 }
 
+/* Beautiful blue gradient background - ALWAYS visible */
 body {
-  body.light-mode {
-  }}
+  @apply bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100;
+  font-family: system-ui, sans-serif;
+  transition: color 0.3s;
+}
 
-/* Light mode cards */
+/* Font scale */
+html {
+  font-size: calc(1rem * var(--bc-font-scale, 1));
+}
+
+/* Better wrapping for long headings on mobile */
+h1, h2, h3 {
+  text-wrap: balance;
+  hyphens: auto;
+}
+
+/* INPUTS – gold border */
+.input {
+  @apply w-full rounded-2xl border-2 border-[#FFD966] bg-transparent px-4 py-3 text-base outline-none text-white placeholder:text-white/40 focus:ring-2 focus:ring-[#FFD966]/50 focus:border-[#FFD966] transition;
+}
+
+/* Light mode input adjustments */
+body.light-mode .input {
+  @apply text-slate-900 placeholder:text-slate-500;
+}
+
+/* BUTTONS */
+.btn {
+  @apply inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/10 px-5 py-3 font-medium backdrop-blur hover:bg-white/15 active:scale-[0.99] transition;
+}
+
+/* CARDS - This is where light mode affects things */
+.card {
+  @apply w-full max-w-3xl mx-auto
+         rounded-2xl
+         border border-white/10 bg-white/5
+         p-6
+         shadow-soft backdrop-blur-xl;
+}
+
+/* Wider cards for deep study page */
+.deep-study-card {
+  @apply w-full max-w-5xl mx-auto
+         rounded-2xl
+         border border-white/10 bg-white/5
+         p-6
+         shadow-soft backdrop-blur-xl;
+}
+
+/* Light mode ONLY affects cards and their content */
 body.light-mode .card,
 body.light-mode section {
   @apply bg-white/90 text-slate-900 border-slate-200;
@@ -53,36 +101,16 @@ body.light-mode .hover-popover .text-white\/60 {
   @apply text-slate-600;
 }
 
-/* Better wrapping for long headings on mobile */
-h1, h2, h3 {
-  text-wrap: balance;
-  hyphens: auto;
+body.light-mode .hover-popover button {
+  @apply text-slate-900;
 }
 
-/* INPUTS */
-.input {
-  @apply w-full rounded-2xl border-2 border-[#FFD966] bg-transparent px-4 py-3 text-base outline-none text-white placeholder:text-white/40 focus:ring-2 focus:ring-[#FFD966]/50 focus:border-[#FFD966] transition;
-}
-
-/* BUTTONS */
-.btn {
-  @apply inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/10 px-5 py-3 font-medium backdrop-blur hover:bg-white/15 active:scale-[0.99] transition;
-}
-
-.card {
-  /* Full width on phones, comfy max on larger screens */
-  @apply w-full max-w-none sm:max-w-2xl
-         rounded-none sm:rounded-3xl
-         border border-white/10 bg-card/60
-         p-4 sm:p-6
-         shadow-soft backdrop-blur-xl;
-}
-
+/* BADGE */
 .badge {
   @apply inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-wide text-white/70;
 }
 
-/* === Status bar (indeterminate) === */
+/* Status bar (indeterminate) */
 @keyframes bp-indeterminate {
   0% { left: -35%; right: 100%; }
   60% { left: 100%; right: -90%; }

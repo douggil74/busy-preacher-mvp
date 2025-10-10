@@ -1,7 +1,7 @@
 // public/site.webmanifest
 {
-    "name": "The Busy Preacher",
-    "short_name": "Busy Preacher",
+    "name": "The Busy Christian",
+    "short_name": "Busy Christian",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#0b1220",

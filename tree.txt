@@ -1,27 +1,46 @@
 .
-├── .env.local
-├── .gitignore
 ├── app
 │   ├── about
 │   │   └── page.tsx
 │   ├── api
+│   │   ├── deep-study
+│   │   │   └── route.ts
 │   │   ├── esv
 │   │   │   └── route.ts
 │   │   ├── generate
 │   │   │   ├── passage
-│   │   │   │   └── route.ts
 │   │   │   ├── route.ts
 │   │   │   └── sermon
-│   │   │       └── route.ts
-│   │   └── lexicon
-│   │       └── route.ts
+│   │   ├── lexicon
+│   │   │   └── route.ts
+│   │   ├── lexplain
+│   │   │   └── route.ts
+│   │   ├── outline
+│   │   │   └── route.ts
+│   │   └── route.ts
+│   ├── config
+│   │   └── studyStyles.ts
 │   ├── contact
+│   │   └── page.tsx
+│   ├── deep-study
 │   │   └── page.tsx
 │   ├── globals.css
 │   ├── HeaderBar.tsx
+│   ├── help
+│   │   └── page.tsx
+│   ├── hooks
+│   │   └── useStudyStyle.ts
 │   ├── layout.tsx
+│   ├── library
+│   │   └── page.tsx
+│   ├── mynotes
+│   │   └── page.tsx
 │   ├── page.tsx
-│   └── resources
+│   ├── personalize
+│   │   └── page.tsx
+│   ├── privacy
+│   │   └── page.tsx
+│   └── setup
 │       └── page.tsx
 ├── components
 │   ├── LexiconPopover.tsx
@@ -35,6 +54,7 @@
 ├── next.config.ts
 ├── package-lock.json
 ├── package.json
+├── polish.sh
 ├── postcss.config.js
 ├── public
 │   ├── apple-touch-icon..png
@@ -49,4 +69,4 @@
 ├── tree.txt
 └── tsconfig.json
 
-14 directories, 36 files
+25 directories, 45 files

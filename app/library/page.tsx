@@ -1,9 +1,10 @@
+// app/library/page.tsx
 "use client";
 
-import Link from "next/link";
-import Image from "next/image";
+import { useEffect, useState } from "react";
 import { Playfair_Display } from "next/font/google";
-import { useEffect, useState, useRef } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const playfair = Playfair_Display({
   weight: ["600", "700"],
@@ -14,7 +15,7 @@ const playfair = Playfair_Display({
 interface SavedStudy {
   reference: string;
   timestamp: number;
-  type?: string;
+  type?: 'passage' | 'theme' | 'combined';
 }
 
 interface StudyNote {
@@ -24,392 +25,372 @@ interface StudyNote {
 }
 
 export default function LibraryPage() {
-  const [lightMode, setLightMode] = useState(true);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<"studies" | "notes">("studies");
   const [savedStudies, setSavedStudies] = useState<SavedStudy[]>([]);
   const [notes, setNotes] = useState<StudyNote[]>([]);
-  const [activeTab, setActiveTab] = useState<"studies" | "notes">("studies");
-  const [searchTerm, setSearchTerm] = useState("");
-  const menuRef = useRef<HTMLDivElement | null>(null);
+  const [expandedNotes, setExpandedNotes] = useState<Set<number>>(new Set());
+  const [searchQuery, setSearchQuery] = useState("");
+  const [copied, setCopied] = useState<number | null>(null);
 
+  // Load data from localStorage
   useEffect(() => {
-    const savedTheme = localStorage.getItem("bc-theme");
-    if (savedTheme === "dark") {
-      setLightMode(false);
-    } else {
-      setLightMode(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (lightMode) {
-      document.body.classList.add("light-mode");
-      localStorage.setItem("bc-theme", "light");
-    } else {
-      document.body.classList.remove("light-mode");
-      localStorage.setItem("bc-theme", "dark");
-    }
-  }, [lightMode]);
-
-  useEffect(() => {
-    const saved = localStorage.getItem("bc-saved-studies");
-    if (saved) {
+    const savedStudiesData = localStorage.getItem("bc-saved-studies");
+    if (savedStudiesData) {
       try {
-        setSavedStudies(JSON.parse(saved));
+        const parsed = JSON.parse(savedStudiesData);
+        console.log("Loaded saved studies:", parsed);
+        setSavedStudies(parsed);
       } catch (e) {
-        setSavedStudies([]);
+        console.error("Error loading saved studies:", e);
       }
     }
 
-    const savedNotes = localStorage.getItem("bc-notes");
-    if (savedNotes) {
+    const notesData = localStorage.getItem("bc-notes");
+    if (notesData) {
       try {
-        setNotes(JSON.parse(savedNotes));
+        const parsed = JSON.parse(notesData);
+        console.log("Loaded notes from localStorage:", parsed);
+        setNotes(parsed);
       } catch (e) {
-        setNotes([]);
+        console.error("Error loading notes:", e);
       }
     }
   }, []);
 
-  useEffect(() => {
-    const onClick = (e: MouseEvent) => {
-      if (!menuRef.current) return;
-      if (!menuRef.current.contains(e.target as Node)) setMenuOpen(false);
-    };
-    const onEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMenuOpen(false);
-    };
-    document.addEventListener("click", onClick);
-    document.addEventListener("keydown", onEsc);
-    return () => {
-      document.removeEventListener("click", onClick);
-      document.removeEventListener("keydown", onEsc);
-    };
-  }, []);
-
-  const deleteSavedStudy = (timestamp: number) => {
-    const updated = savedStudies.filter(s => s.timestamp !== timestamp);
-    setSavedStudies(updated);
-    localStorage.setItem("bc-saved-studies", JSON.stringify(updated));
+  const deleteStudy = (e: React.MouseEvent, timestamp: number) => {
+    e.stopPropagation(); // Prevent card click
+    if (confirm("Delete this saved study?")) {
+      const updated = savedStudies.filter(s => s.timestamp !== timestamp);
+      setSavedStudies(updated);
+      localStorage.setItem("bc-saved-studies", JSON.stringify(updated));
+    }
   };
 
-  const deleteNote = (timestamp: number) => {
-    const updated = notes.filter(n => n.timestamp !== timestamp);
-    setNotes(updated);
-    localStorage.setItem("bc-notes", JSON.stringify(updated));
+  const openStudy = (e: React.MouseEvent, reference: string) => {
+    e.stopPropagation(); // Prevent any parent clicks
+    router.push(`/?passage=${encodeURIComponent(reference)}`);
   };
 
-  const exportAllNotes = () => {
-    let text = "MY BIBLE STUDY NOTES\n";
-    text += "=".repeat(50) + "\n\n";
+  const deleteNote = (e: React.MouseEvent, timestamp: number) => {
+    e.stopPropagation(); // Prevent card click
+    if (confirm("Delete this note?")) {
+      const updated = notes.filter(n => n.timestamp !== timestamp);
+      setNotes(updated);
+      localStorage.setItem("bc-notes", JSON.stringify(updated));
+    }
+  };
+
+  const toggleNote = (timestamp: number) => {
+    const newExpanded = new Set(expandedNotes);
+    if (newExpanded.has(timestamp)) {
+      newExpanded.delete(timestamp);
+    } else {
+      newExpanded.add(timestamp);
+    }
+    setExpandedNotes(newExpanded);
+  };
+
+  const copyToClipboard = (text: string, timestamp: number) => {
+    navigator.clipboard.writeText(text);
+    setCopied(timestamp);
+    setTimeout(() => setCopied(null), 2000);
+  };
+
+  const exportNotes = () => {
+    const text = notes.map(note => 
+      `${note.reference}\n${new Date(note.timestamp).toLocaleString()}\n${'='.repeat(50)}\n${note.note}\n\n`
+    ).join('\n');
     
-    notes.forEach((note) => {
-      text += `${note.reference}\n`;
-      text += `Date: ${new Date(note.timestamp).toLocaleString()}\n`;
-      text += "-".repeat(50) + "\n";
-      text += note.note + "\n\n";
-    });
-
-    const blob = new Blob([text], { type: "text/plain" });
+    const blob = new Blob([text], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
+    const a = document.createElement('a');
     a.href = url;
-    a.download = `Bible_Study_Notes_${new Date().toISOString().split('T')[0]}.txt`;
+    a.download = `bible-notes-${new Date().toISOString().split('T')[0]}.txt`;
     a.click();
-    URL.revokeObjectURL(url);
   };
 
-  const clearAllData = () => {
-    if (confirm("Are you sure you want to delete ALL saved studies and notes? This cannot be undone.")) {
-      localStorage.removeItem("bc-saved-studies");
-      localStorage.removeItem("bc-notes");
-      setSavedStudies([]);
-      setNotes([]);
+  const printNotes = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+    
+    const content = notes.map(note => 
+      `<div style="margin-bottom: 30px; page-break-inside: avoid;">
+        <h2 style="margin: 0; color: #1e293b;">${note.reference}</h2>
+        <p style="margin: 5px 0; color: #64748b; font-size: 14px;">${new Date(note.timestamp).toLocaleString()}</p>
+        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 10px 0;">
+        <p style="white-space: pre-wrap; line-height: 1.6;">${note.note}</p>
+      </div>`
+    ).join('');
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>My Bible Study Notes</title>
+          <style>
+            body { font-family: system-ui, -apple-system, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; }
+            h1 { text-align: center; margin-bottom: 40px; }
+            @media print {
+              body { padding: 20px; }
+            }
+          </style>
+        </head>
+        <body>
+          <h1>My Bible Study Notes</h1>
+          ${content}
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+  };
+
+  const clearAll = () => {
+    if (activeTab === "studies") {
+      if (confirm("Delete all saved studies? This cannot be undone.")) {
+        setSavedStudies([]);
+        localStorage.removeItem("bc-saved-studies");
+      }
+    } else {
+      if (confirm("Delete all notes? This cannot be undone.")) {
+        setNotes([]);
+        localStorage.removeItem("bc-notes");
+      }
     }
   };
 
-  const filteredStudies = savedStudies.filter(s => 
-    s.reference.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredStudies = savedStudies.filter(study =>
+    study.reference.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredNotes = notes.filter(n => 
-    n.reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    n.note.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredNotes = notes.filter(note =>
+    note.reference.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    note.note.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
-    <main className="py-8">
-      {/* Header */}
-      <div className="mx-auto mb-6 max-w-5xl px-4">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/"
-              className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10 transition-colors"
-              aria-label="Back to Home"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-                <line x1="19" y1="12" x2="5" y2="12"></line>
-                <polyline points="12 19 5 12 12 5"></polyline>
-              </svg>
-              Back
-            </Link>
-
-            <Link href="/" className="group flex items-center gap-2">
-              <Image
-                src="/logo.png"
-                alt="The Busy Christian"
-                width={40}
-                height={40}
-                priority
-                className="h-8 w-8 object-contain transition-transform group-hover:scale-105"
-              />
-              <span className={`${playfair.className} hidden sm:inline text-xl font-semibold leading-tight text-white/90`}>
-                <span className="italic text-lg align-baseline">The</span> Busy Christian
-              </span>
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-2">
-          <button
-              onClick={() => {
-                console.log("Toggle clicked! Current lightMode:", lightMode);
-                setLightMode((v) => !v);
-              }}
-              className="flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-white/5 hover:bg-white/10 focus:outline-none"
-              aria-label={lightMode ? "Switch to dark mode" : "Switch to light mode"}
-            >
-              {lightMode ? (
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-                  <circle cx="12" cy="12" r="5"></circle>
-                  <line x1="12" y1="1" x2="12" y2="3"></line>
-                  <line x1="12" y1="21" x2="12" y2="23"></line>
-                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                  <line x1="1" y1="12" x2="3" y2="12"></line>
-                  <line x1="21" y1="12" x2="23" y2="12"></line>
-                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                </svg>
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                </svg>
-              )}
-            </button>
-            <div className="relative" ref={menuRef}>
-              <button
-                onClick={() => setMenuOpen(!menuOpen)}
-                className="flex h-9 w-10 flex-col items-center justify-center rounded-md border border-white/10 bg-white/5 hover:bg-white/10 focus:outline-none"
-                aria-haspopup="menu"
-                aria-expanded={menuOpen}
-                aria-label={menuOpen ? "Close menu" : "Open menu"}
-              >
-                <span aria-hidden="true" className={`block h-0.5 w-5 bg-white/85 transition-transform duration-200 ${menuOpen ? "translate-y-[6px] rotate-45" : ""}`}></span>
-                <span aria-hidden="true" className={`mt-1 block h-0.5 w-5 bg-white/85 transition-opacity duration-150 ${menuOpen ? "opacity-0" : "opacity-100"}`}></span>
-                <span aria-hidden="true" className={`mt-1 block h-0.5 w-5 bg-white/85 transition-transform duration-200 ${menuOpen ? "-translate-y-[6px] -rotate-45" : ""}`}></span>
-              </button>
-
-              {menuOpen && (
-                <div role="menu" className="absolute right-0 z-50 mt-2 w-48 overflow-hidden rounded-md border border-white/15 bg-slate-900/95 p-1 shadow-lg backdrop-blur-md">
-                  <Link href="/" role="menuitem" onClick={() => setMenuOpen(false)} className="block rounded px-3 py-2 text-sm text-white/85 hover:bg-white/5 hover:underline decoration-yellow-400 underline-offset-4 font-semibold">
-                    🏠 Home
-                  </Link>
-                  <Link href="/deep-study" role="menuitem" onClick={() => setMenuOpen(false)} className="block rounded px-3 py-2 text-sm text-white/85 hover:bg-white/5 hover:underline decoration-yellow-400 underline-offset-4">
-                    📖 Deep Study
-                  </Link>
-                  <Link href="/library" role="menuitem" onClick={() => setMenuOpen(false)} className="block rounded px-3 py-2 text-sm text-white/85 hover:bg-white/5 hover:underline decoration-yellow-400 underline-offset-4 font-semibold">
-                    📚 My Notes
-                  </Link>
-                  <div className="my-1 h-px bg-white/10"></div>
-                  <Link href="/about" role="menuitem" onClick={() => setMenuOpen(false)} className="block rounded px-3 py-2 text-sm text-white/85 hover:bg-white/5 hover:underline decoration-yellow-400 underline-offset-4">
-                    About
-                  </Link>
-                  <Link href="/help" role="menuitem" onClick={() => setMenuOpen(false)} className="block rounded px-3 py-2 text-sm text-white/85 hover:bg-white/5 hover:underline decoration-yellow-400 underline-offset-4">
-                    Help
-                  </Link>
-                  <Link href="/contact" role="menuitem" onClick={() => setMenuOpen(false)} className="block rounded px-3 py-2 text-sm text-white/85 hover:bg-white/5 hover:underline decoration-yellow-400 underline-offset-4">
-                    Contact
-                  </Link>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-        <div className="mt-3 h-px w-full bg-white/15" />
+    <main className="mx-auto max-w-5xl px-4 py-8">
+      <div className="mb-6">
+        <Link
+          href="/deep-study"
+          className="inline-flex items-center gap-2 text-yellow-400 hover:text-yellow-300 text-sm"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back to Deep Study
+        </Link>
       </div>
 
-      <div className="mx-auto max-w-5xl px-4">
-        <h1 className={`${playfair.className} text-3xl font-bold mb-2`}>
-          My Library
-        </h1>
-        <p className="text-white/70 mb-6">
-          Your saved studies and personal notes
-        </p>
+      <h1 className={`${playfair.className} text-4xl md:text-5xl font-bold mb-3 text-white/95 text-center`}>
+        My Library
+      </h1>
+      <p className="text-center text-white/60 mb-8">
+        Your saved studies and notes in one place
+      </p>
 
-        {/* Search and Actions */}
-        <div className="flex flex-wrap gap-3 mb-6">
-          <input
-            type="text"
-            placeholder="Search studies or notes..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1 min-w-[200px] rounded-lg border border-yellow-400/80 bg-transparent px-3 py-2 outline-none ring-0 placeholder:text-white/40"
-          />
-          {notes.length > 0 && (
+      {/* Tabs */}
+      <div className="flex gap-2 mb-6 border-b border-white/10">
+        <button
+          onClick={() => setActiveTab("studies")}
+          className={`px-6 py-3 font-medium transition ${
+            activeTab === "studies"
+              ? "text-yellow-400 border-b-2 border-yellow-400"
+              : "text-white/60 hover:text-white/80"
+          }`}
+        >
+          Saved Studies ({savedStudies.length})
+        </button>
+        <button
+          onClick={() => setActiveTab("notes")}
+          className={`px-6 py-3 font-medium transition ${
+            activeTab === "notes"
+              ? "text-yellow-400 border-b-2 border-yellow-400"
+              : "text-white/60 hover:text-white/80"
+          }`}
+        >
+          My Notes ({notes.length})
+        </button>
+      </div>
+
+      {/* Search and Actions */}
+      <div className="flex flex-wrap gap-3 mb-6">
+        <input
+          type="text"
+          placeholder={activeTab === "studies" ? "Search studies..." : "Search notes..."}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="flex-1 min-w-[200px] px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-yellow-400/50"
+        />
+        {activeTab === "notes" && notes.length > 0 && (
+          <>
             <button
-              onClick={exportAllNotes}
-              className="rounded-lg bg-yellow-400/20 border border-yellow-400 px-4 py-2 text-sm hover:bg-yellow-400/30 transition-colors flex items-center gap-2"
+              onClick={printNotes}
+              className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white/90 hover:bg-white/10 transition flex items-center gap-2"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
               </svg>
-              Export All Notes
+              Print All
             </button>
-          )}
-          {(savedStudies.length > 0 || notes.length > 0) && (
             <button
-              onClick={clearAllData}
-              className="rounded-lg bg-red-500/20 border border-red-500 px-4 py-2 text-sm hover:bg-red-500/30 transition-colors"
+              onClick={exportNotes}
+              className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white/90 hover:bg-white/10 transition flex items-center gap-2"
             >
-              Clear All
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Export All
             </button>
-          )}
-        </div>
-
-        {/* Tabs */}
-        <div className="flex gap-4 mb-6 border-b border-white/10 pb-2">
+          </>
+        )}
+        {((activeTab === "studies" && savedStudies.length > 0) || (activeTab === "notes" && notes.length > 0)) && (
           <button
-            onClick={() => setActiveTab("studies")}
-            className={`px-4 py-2 text-sm font-semibold transition-colors ${
-              activeTab === "studies"
-                ? "text-yellow-400 border-b-2 border-yellow-400"
-                : "text-white/60 hover:text-white/90"
-            }`}
+            onClick={clearAll}
+            className="px-4 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition"
           >
-            Saved Studies ({savedStudies.length})
+            Clear All
           </button>
-          <button
-            onClick={() => setActiveTab("notes")}
-            className={`px-4 py-2 text-sm font-semibold transition-colors ${
-              activeTab === "notes"
-                ? "text-yellow-400 border-b-2 border-yellow-400"
-                : "text-white/60 hover:text-white/90"
-            }`}
-          >
-            My Notes ({notes.length})
-          </button>
-        </div>
+        )}
+      </div>
 
-        {/* Saved Studies Tab */}
-        {activeTab === "studies" && (
-          <div className="space-y-3">
-            {filteredStudies.length === 0 ? (
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-12 text-center">
-                <svg className="w-16 h-16 mx-auto mb-4 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                </svg>
-                <p className="text-white/60 mb-2">
-                  {searchTerm ? "No studies match your search" : "No saved studies yet"}
-                </p>
-                <p className="text-white/40 text-sm">
-                  Click the "Save" button on any study to bookmark it
-                </p>
-              </div>
-            ) : (
-              filteredStudies.map((study) => (
-                <div
-                  key={study.timestamp}
-                  className="rounded-lg border border-white/10 bg-white/5 p-4 hover:bg-white/10 transition-colors"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <Link
-                        href={`/?ref=${encodeURIComponent(study.reference)}`}
-                        className="text-lg font-semibold text-white/90 hover:text-yellow-400 transition-colors"
-                      >
+      {/* Content */}
+      {activeTab === "studies" && (
+        <div>
+          {filteredStudies.length === 0 ? (
+            <div className="card text-center py-12">
+              <svg className="w-16 h-16 mx-auto mb-4 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+              <p className="text-white/60 mb-2">
+                {searchQuery ? "No studies match your search" : "No saved studies yet"}
+              </p>
+              <p className="text-white/40 text-sm">
+                {!searchQuery && "Click 'Save to Library' on any study to bookmark it"}
+              </p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 gap-4">
+              {filteredStudies.map((study) => (
+                <div key={study.timestamp} className="card hover:bg-white/[0.07] transition cursor-default">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-white/90 mb-1 truncate">
                         {study.reference}
-                      </Link>
-                      <p className="text-xs text-white/50 mt-1">
-                        Saved on {new Date(study.timestamp).toLocaleString()}
+                      </h3>
+                      <p className="text-xs text-white/50 mb-3">
+                        {new Date(study.timestamp).toLocaleDateString()} • {study.type || 'study'}
                       </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Link
-                        href={`/?ref=${encodeURIComponent(study.reference)}`}
-                        className="rounded-lg bg-white/10 px-3 py-1 text-sm hover:bg-white/15 transition-colors"
-                      >
-                        Open
-                      </Link>
                       <button
-                        onClick={() => deleteSavedStudy(study.timestamp)}
-                        className="text-red-400 hover:text-red-300 px-2"
-                        aria-label="Delete"
+                        onClick={(e) => openStudy(e, study.reference)}
+                        className="inline-flex items-center gap-1 text-sm text-yellow-400 hover:text-yellow-300 transition"
                       >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        Open Study
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
                       </button>
                     </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        )}
-
-        {/* Notes Tab */}
-        {activeTab === "notes" && (
-          <div className="space-y-4">
-            {filteredNotes.length === 0 ? (
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-12 text-center">
-                <svg className="w-16 h-16 mx-auto mb-4 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-                <p className="text-white/60 mb-2">
-                  {searchTerm ? "No notes match your search" : "No notes yet"}
-                </p>
-                <p className="text-white/40 text-sm">
-                  Add personal notes to any passage to remember your insights
-                </p>
-              </div>
-            ) : (
-              filteredNotes.map((note) => (
-                <div
-                  key={note.timestamp}
-                  className="rounded-lg border border-white/10 bg-white/5 p-4"
-                >
-                  <div className="flex items-start justify-between gap-4 mb-2">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Link
-                          href={`/?ref=${encodeURIComponent(note.reference)}`}
-                          className="font-semibold text-yellow-400 hover:text-yellow-300 transition-colors"
-                        >
-                          {note.reference}
-                        </Link>
-                        <span className="text-xs text-white/40">
-                          • {new Date(note.timestamp).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <p className="text-white/80 leading-relaxed">{note.note}</p>
-                    </div>
                     <button
-                      onClick={() => deleteNote(note.timestamp)}
-                      className="text-red-400 hover:text-red-300 px-2"
-                      aria-label="Delete note"
+                      onClick={(e) => deleteStudy(e, study.timestamp)}
+                      className="text-red-400 hover:text-red-300 text-xl leading-none transition"
+                      aria-label="Delete study"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
+                      ×
                     </button>
                   </div>
                 </div>
-              ))
-            )}
-          </div>
-        )}
-      </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === "notes" && (
+        <div>
+          {filteredNotes.length === 0 ? (
+            <div className="card text-center py-12">
+              <svg className="w-16 h-16 mx-auto mb-4 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              <p className="text-white/60 mb-2">
+                {searchQuery ? "No notes match your search" : "No notes yet"}
+              </p>
+              <p className="text-white/40 text-sm">
+                {!searchQuery && "Add notes to any study to save your thoughts"}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredNotes.map((note) => {
+                const isExpanded = expandedNotes.has(note.timestamp);
+                const notePreview = note.note.length > 150 ? note.note.slice(0, 150) + "..." : note.note;
+                
+                return (
+                  <div
+                    key={note.timestamp}
+                    className="card cursor-pointer hover:bg-white/[0.07] transition"
+                    onClick={() => toggleNote(note.timestamp)}
+                  >
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-white/90 mb-1">
+                          {note.reference}
+                        </h3>
+                        <p className="text-xs text-white/40">
+                          {new Date(note.timestamp).toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            copyToClipboard(note.note, note.timestamp);
+                          }}
+                          className="text-white/60 hover:text-yellow-400 transition"
+                          aria-label="Copy note"
+                        >
+                          {copied === note.timestamp ? (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          ) : (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                          )}
+                        </button>
+                        <button
+                          onClick={(e) => deleteNote(e, note.timestamp)}
+                          className="text-red-400 hover:text-red-300 text-xl leading-none transition"
+                          aria-label="Delete note"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    </div>
+                    <p className="text-white/70 whitespace-pre-wrap">
+                      {isExpanded ? note.note : notePreview}
+                    </p>
+                    {note.note.length > 150 && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleNote(note.timestamp);
+                        }}
+                        className="mt-2 text-sm text-yellow-400 hover:text-yellow-300"
+                      >
+                        {isExpanded ? "Show Less" : "Read Full Note"}
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
     </main>
   );
 }

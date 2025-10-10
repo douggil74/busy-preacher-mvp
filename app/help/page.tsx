@@ -1,9 +1,8 @@
+// app/help/page.tsx
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { Playfair_Display } from "next/font/google";
-import { useEffect, useState, useRef } from "react";
 
 const playfair = Playfair_Display({
   weight: ["600", "700"],
@@ -14,198 +13,176 @@ const playfair = Playfair_Display({
 const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? "2.1";
 
 export default function HelpPage() {
-  const [lightMode, setLightMode] = useState(true);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("bc-theme");
-    if (savedTheme === "dark") {
-      setLightMode(false);
-    } else {
-      setLightMode(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (lightMode) {
-      document.body.classList.add("light-mode");
-      localStorage.setItem("bc-theme", "light");
-    } else {
-      document.body.classList.remove("light-mode");
-      localStorage.setItem("bc-theme", "dark");
-    }
-  }, [lightMode]);
-
-  useEffect(() => {
-    const onClick = (e: MouseEvent) => {
-      if (!menuRef.current) return;
-      if (!menuRef.current.contains(e.target as Node)) setMenuOpen(false);
-    };
-    const onEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMenuOpen(false);
-    };
-    document.addEventListener("click", onClick);
-    document.addEventListener("keydown", onEsc);
-    return () => {
-      document.removeEventListener("click", onClick);
-      document.removeEventListener("keydown", onEsc);
-    };
-  }, []);
-
   return (
-    <main className="py-8">
-      <div className="mx-auto mb-6 max-w-3xl px-4">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/"
-              className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10 transition-colors"
-              aria-label="Back to Home"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-                <line x1="19" y1="12" x2="5" y2="12"></line>
-                <polyline points="12 19 5 12 12 5"></polyline>
-              </svg>
-              Back
-            </Link>
+    <main className="mx-auto max-w-3xl px-4 py-8">
+      <h1 className={`${playfair.className} text-4xl md:text-5xl font-bold mb-3 text-white/95 text-center`}>
+        Help & Guide
+      </h1>
+      <p className="text-white/70 mb-8 text-center">
+        Everything you need to know to get the most out of The Busy Christian
+      </p>
 
-            <Link href="/" className="group flex items-center gap-2">
-              <Image
-                src="/logo.png"
-                alt="The Busy Christian"
-                width={40}
-                height={40}
-                priority
-                className="h-8 w-8 object-contain transition-transform group-hover:scale-105"
-              />
-              <span className={`${playfair.className} hidden sm:inline text-xl font-semibold leading-tight text-white/90`}>
-                <span className="italic text-lg align-baseline">The</span> Busy Christian
-              </span>
-            </Link>
-          </div>
+      <section className="space-y-6">
+        <div className="card">
+          <h2 className="text-xl font-semibold mb-3 text-white/90">Getting Started</h2>
+          <p className="text-white/80 mb-4">
+            <strong>The Busy Christian</strong> helps preachers, teachers, and devoted students 
+            prepare outlines and explore Scripture faster — while encouraging faithful, Spirit-led study.
+          </p>
+        </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setLightMode((v) => !v)}
-              className="flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-white/5 hover:bg-white/10 focus:outline-none"
-              aria-label={lightMode ? "Switch to dark mode" : "Switch to light mode"}
-            >
-              {lightMode ? (
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                </svg>
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-                  <circle cx="12" cy="12" r="5"></circle>
-                  <line x1="12" y1="1" x2="12" y2="3"></line>
-                  <line x1="12" y1="21" x2="12" y2="23"></line>
-                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                  <line x1="1" y1="12" x2="3" y2="12"></line>
-                  <line x1="21" y1="12" x2="23" y2="12"></line>
-                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                </svg>
-              )}
-            </button>
+        <div className="card">
+          <h2 className="text-xl font-semibold mb-4 text-white/90">🎨 Personalize Your Experience</h2>
+          <p className="text-white/80 mb-3">
+            Choose your preferred study style from the menu → <strong>Personalize</strong>:
+          </p>
+          <ul className="space-y-2 text-white/70 ml-4">
+            <li><strong className="text-yellow-400">☕ Casual Devotional:</strong> Warm, conversational, practical</li>
+            <li><strong className="text-yellow-400">📖 Bible Student:</strong> Balanced depth with accessibility</li>
+            <li><strong className="text-yellow-400">👨‍🏫 Pastor/Teacher:</strong> Sermon-ready with illustrations</li>
+            <li><strong className="text-yellow-400">🎓 Theologian:</strong> Academic with Greek/Hebrew terms</li>
+          </ul>
+          <p className="text-sm text-white/60 mt-3">
+            💡 Your AI-generated outlines will match your selected style!
+          </p>
+        </div>
 
-            <div className="relative" ref={menuRef}>
-              <button
-                onClick={() => setMenuOpen(!menuOpen)}
-                className="flex h-9 w-10 flex-col items-center justify-center rounded-md border border-white/10 bg-white/5 hover:bg-white/10 focus:outline-none"
-                aria-haspopup="menu"
-                aria-expanded={menuOpen}
-                aria-label={menuOpen ? "Close menu" : "Open menu"}
-              >
-                <span aria-hidden="true" className={`block h-0.5 w-5 bg-white/85 transition-transform duration-200 ${menuOpen ? "translate-y-[6px] rotate-45" : ""}`}></span>
-                <span aria-hidden="true" className={`mt-1 block h-0.5 w-5 bg-white/85 transition-opacity duration-150 ${menuOpen ? "opacity-0" : "opacity-100"}`}></span>
-                <span aria-hidden="true" className={`mt-1 block h-0.5 w-5 bg-white/85 transition-transform duration-200 ${menuOpen ? "-translate-y-[6px] -rotate-45" : ""}`}></span>
-              </button>
+        <div className="card">
+          <h2 className="text-xl font-semibold mb-4 text-white/90">📖 Main Study Tools</h2>
+          <div className="space-y-4 text-white/80">
+            <div>
+              <h3 className="font-semibold text-white mb-2">Outline Generator (Home Page)</h3>
+              <ul className="ml-4 mt-1 space-y-1 text-sm text-white/70">
+                <li>• Enter a <strong>Passage</strong> for passage-based outlines</li>
+                <li>• Enter a <strong>Topic</strong> for thematic studies</li>
+                <li>• Fill both for a combined study connecting text to theme</li>
+                <li>• Get sermon-ready points, illustrations, cross-refs, and applications</li>
+              </ul>
+            </div>
 
-              {menuOpen && (
-                <div role="menu" className="absolute right-0 z-50 mt-2 w-48 overflow-hidden rounded-md border border-white/15 bg-slate-900/95 p-1 shadow-lg backdrop-blur-md">
-                  <Link href="/" role="menuitem" onClick={() => setMenuOpen(false)} className="block rounded px-3 py-2 text-sm text-white/85 hover:bg-white/5 hover:underline decoration-yellow-400 underline-offset-4 font-semibold">
-                    🏠 Home
-                  </Link>
-                  <Link href="/deep-study" role="menuitem" onClick={() => setMenuOpen(false)} className="block rounded px-3 py-2 text-sm text-white/85 hover:bg-white/5 hover:underline decoration-yellow-400 underline-offset-4">
-                    📖 Deep Study
-                  </Link>
-                  <Link href="/library" role="menuitem" onClick={() => setMenuOpen(false)} className="block rounded px-3 py-2 text-sm text-white/85 hover:bg-white/5 hover:underline decoration-yellow-400 underline-offset-4 font-semibold">
-                    📚 My Notes
-                  </Link>
-                  <div className="my-1 h-px bg-white/10"></div>
-                  <Link href="/about" role="menuitem" onClick={() => setMenuOpen(false)} className="block rounded px-3 py-2 text-sm text-white/85 hover:bg-white/5 hover:underline decoration-yellow-400 underline-offset-4">
-                    About
-                  </Link>
-                  <Link href="/help" role="menuitem" onClick={() => setMenuOpen(false)} className="block rounded px-3 py-2 text-sm text-white/85 hover:bg-white/5 hover:underline decoration-yellow-400 underline-offset-4">
-                    Help
-                  </Link>
-                  <Link href="/contact" role="menuitem" onClick={() => setMenuOpen(false)} className="block rounded px-3 py-2 text-sm text-white/85 hover:bg-white/5 hover:underline decoration-yellow-400 underline-offset-4">
-                    Contact
-                  </Link>
-                </div>
-              )}
+            <div>
+              <h3 className="font-semibold text-white mb-2">ESV Text Lookup</h3>
+              <ul className="ml-4 mt-1 space-y-1 text-sm text-white/70">
+                <li>• Hover any word for Greek/Hebrew insights with Strong's numbers</li>
+                <li>• Click to pin the lexical note</li>
+                <li>• Click "Study Deeper" to access commentary and translations</li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-white mb-2">Deep Study Page</h3>
+              <ul className="ml-4 mt-1 space-y-1 text-sm text-white/70">
+                <li>• Compare 4 translations (KJV, ASV, WEB, NIV)</li>
+                <li>• Read AI-powered commentary (adapts to your style!)</li>
+                <li>• Access traditional commentary (Adam Clarke)</li>
+                <li>• Save commentaries to your notes with one click</li>
+                <li>• Links to external study tools (BibleHub, Blue Letter Bible, StudyLight)</li>
+              </ul>
             </div>
           </div>
         </div>
-        <div className="mt-3 h-px w-full bg-white/15" />
-      </div>
 
-      <section className="mx-auto max-w-3xl px-4 leading-relaxed text-white/90 space-y-8">
-        <h1 className={`${playfair.className} text-3xl font-semibold`}>Help & Guide</h1>
+        <div className="card">
+          <h2 className="text-xl font-semibold mb-4 text-white/90">📝 Notes & Library</h2>
+          <div className="space-y-2 text-white/80">
+            <p>
+              <strong>Add Notes:</strong> Click "Add Notes" on any study to save personal insights. 
+              Notes are automatically tied to the Bible reference.
+            </p>
+            <p>
+              <strong>Save Studies:</strong> Click "Save to Library" to bookmark passages for later.
+            </p>
+            <p>
+              <strong>Library Page:</strong> Access all your saved studies and notes. You can:
+            </p>
+            <ul className="ml-4 space-y-1 text-sm text-white/70">
+              <li>• View and search all your notes</li>
+              <li>• Click any note to expand/collapse the full text</li>
+              <li>• Copy individual notes</li>
+              <li>• Export all notes as a professional PDF</li>
+              <li>• Print all notes</li>
+              <li>• Reopen saved studies</li>
+            </ul>
+            <p className="text-sm text-white/60 mt-3">
+              💾 Everything is stored locally on your device - complete privacy!
+            </p>
+          </div>
+        </div>
 
-        <p>
-          <strong>The Busy Christian</strong> helps preachers, teachers, and devoted students
-          prepare outlines and explore Scripture faster — while encouraging faithful,
-          Spirit-led study.
-        </p>
+        <div className="card">
+          <h2 className="text-xl font-semibold mb-4 text-white/90">📄 Export Features</h2>
+          <ul className="space-y-2 text-white/80">
+            <li>
+              <strong className="text-white/90">Export Outline PDF:</strong> Clean, formatted PDF with 
+              all your study points, references, and application notes. Perfect for printing or 
+              sharing with your teaching team.
+            </li>
+            <li>
+              <strong className="text-white/90">Export Notes PDF:</strong> All your personal notes 
+              in a professional document, organized by reference with dates.
+            </li>
+            <li>
+              <strong className="text-white/90">Copy Functions:</strong> Quickly copy outlines, 
+              commentaries, or individual notes to paste into your sermon prep software.
+            </li>
+          </ul>
+        </div>
 
-        <h2 className="text-xl font-semibold mt-6">Main Tools</h2>
-        <ul className="list-disc ml-5 space-y-2">
-          <li><strong>Outline Generator:</strong> Enter a <em>Passage</em> and/or a <em>Theme</em> for sermon-ready points, illustrations, cross-refs, and application.</li>
-          <li><strong>Combined Mode:</strong> When both fields are filled, textual and thematic outlines are merged intelligently.</li>
-          <li><strong>Deep Study:</strong> Compare translations, see commentary, and get plain-English lexical notes (Greek/Hebrew with Strong's).</li>
-          <li><strong>Library:</strong> Your saved studies and private notes — stored locally on your device.</li>
-        </ul>
+        <div className="card">
+          <h2 className="text-xl font-semibold mb-4 text-white/90">💡 Pro Tips</h2>
+          <ul className="space-y-2 text-white/70">
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400">•</span>
+              <span>Toggle Light/Dark mode anytime - your preference is saved</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400">•</span>
+              <span>Adjust font size with A- and A+ buttons in the header</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400">•</span>
+              <span>Click cross-references in outlines to instantly load them in the ESV reader</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400">•</span>
+              <span>Use the "Show Recent Studies" button on the home page for quick access</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400">•</span>
+              <span>Save AI commentaries directly from Deep Study - great for research!</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400">•</span>
+              <span>Search your notes in the Library to find specific topics quickly</span>
+            </li>
+          </ul>
+        </div>
 
-        <h2 className="text-xl font-semibold mt-6">PDF Exports</h2>
-        <p>
-          Use <strong>Export PDF</strong> to download a clean outline. Each PDF includes the app disclaimer:
-          <em> "This app is not meant to replace diligent study and listening to the Holy Spirit."</em>
-        </p>
+        <div className="card bg-yellow-400/10 border-yellow-400/30">
+          <h2 className="text-xl font-semibold mb-3 text-white/90">⚠️ Important Disclaimer</h2>
+          <p className="text-white/80 italic">
+            "This app is not meant to replace diligent study and listening to the Holy Spirit."
+          </p>
+          <p className="text-sm text-white/70 mt-2">
+            AI-generated content is a helpful starting point, but should always be verified against 
+            Scripture and refined through prayer and the guidance of the Holy Spirit.
+          </p>
+        </div>
 
-        <h2 className="text-xl font-semibold mt-6">Notes & Saving</h2>
-        <p>
-          Add personal notes to any study. Everything is kept on your device only.
-          Manage everything in <Link href="/library" className="underline decoration-yellow-400 underline-offset-4">Library</Link>.
-        </p>
-
-        <h2 className="text-xl font-semibold mt-6">Tips</h2>
-        <ul className="list-disc ml-5 space-y-1">
-          <li>Switch Light/Dark anytime — your preference is remembered.</li>
-          <li>Hover or tap Greek/Hebrew words to see lexical notes and Strong's numbers.</li>
-          <li>Click cross-references to instantly load them in the ESV reader.</li>
-        </ul>
+        <div className="card">
+          <h2 className="text-xl font-semibold mb-3 text-white/90">Need More Help?</h2>
+          <p className="text-white/80">
+            Have questions or feedback?{" "}
+            <Link href="/contact" className="text-yellow-400 hover:text-yellow-300 underline underline-offset-4">
+              Contact us
+            </Link>{" "}
+            — we'd love to hear from you!
+          </p>
+        </div>
       </section>
 
-      <footer className="mx-auto mt-10 max-w-3xl px-4">
-        <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/70">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <span className="opacity-80">The Busy Christian</span>
-              <span className="mx-2">•</span>
-              <span>v{APP_VERSION}</span>
-            </div>
-            <nav className="space-x-3">
-              <Link href="/privacy" className="hover:underline decoration-yellow-400 underline-offset-4">Privacy</Link>
-              <span className="opacity-50">•</span>
-              <Link href="/contact" className="hover:underline decoration-yellow-400 underline-offset-4">Contact</Link>
-              <span className="opacity-50">•</span>
-              <Link href="/about" className="hover:underline decoration-yellow-400 underline-offset-4">About</Link>
-            </nav>
-          </div>
-        </div>
+      <footer className="mt-12 text-center text-xs text-white/40">
+        © Douglas M. Gilford — The Busy Christian • v{APP_VERSION}
       </footer>
     </main>
   );

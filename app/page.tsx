@@ -5,7 +5,6 @@ import type { JSX } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import jsPDF from "jspdf";
 import { Playfair_Display } from "next/font/google";
-import Image from "next/image";
 import Link from "next/link";
 
 const playfair = Playfair_Display({
@@ -45,11 +44,17 @@ async function esvFetch(passage: string) {
 }
 
 async function outlineFetch(input: { mode: "passage" | "theme"; passage?: string; theme?: string }) {
+  const userStyle = localStorage.getItem("bc-style") || "Casual Devotional";
+
   const res = await fetch("/api/outline", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
+    body: JSON.stringify({
+      ...input,
+      userStyle,
+    }),
   });
+
   const data = await res.json();
   if (!res.ok) throw new Error(data?.error || "Failed to generate outline.");
   return data as
@@ -70,11 +75,19 @@ async function outlineFetch(input: { mode: "passage" | "theme"; passage?: string
 }
 
 async function outlineFetchCombined(input: { passage: string; theme: string }) {
+  const userStyle = localStorage.getItem("bc-style") || "Casual Devotional";
+
   const res = await fetch("/api/outline", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ mode: "combined", passage: input.passage, theme: input.theme }),
+    body: JSON.stringify({
+      mode: "combined",
+      passage: input.passage,
+      theme: input.theme,
+      userStyle,
+    }),
   });
+
   const data = await res.json();
   if (!res.ok) throw new Error(data?.error || "Combined outline not available.");
   return data as {
@@ -222,27 +235,6 @@ function exportOutlinePDF(args: { outlines: any[] }) {
 }
 
 export default function Page(): JSX.Element {
-  const [lightMode, setLightMode] = useState(true);
-
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("bc-theme");
-    if (savedTheme === "dark") {
-      setLightMode(false);
-    } else {
-      setLightMode(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (lightMode) {
-      document.body.classList.add("light-mode");
-      localStorage.setItem("bc-theme", "light");
-    } else {
-      document.body.classList.remove("light-mode");
-      localStorage.setItem("bc-theme", "dark");
-    }
-  }, [lightMode]);
-
   const [savedStudies, setSavedStudies] = useState<SavedStudy[]>([]);
   const [showHistory, setShowHistory] = useState(false);
 
@@ -354,6 +346,17 @@ export default function Page(): JSX.Element {
 
   const [passageRef, setPassageRef] = useState("");
   const [theme, setTheme] = useState("");
+
+  // Load passage from URL if present (from library links)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const passageParam = params.get("passage");
+    if (passageParam) {
+      setPassageRef(passageParam);
+      // Optionally auto-submit
+      // setTimeout(() => document.getElementById('submit-btn')?.click(), 500);
+    }
+  }, []);
   
   const currentRefNotes = useMemo(() => {
     const ref = passageRef.trim() || theme.trim();
@@ -364,25 +367,6 @@ export default function Page(): JSX.Element {
   const [themeOutline, setThemeOutline] = useState<any | null>(null);
   const [combinedOutline, setCombinedOutline] = useState<any | null>(null);
   const [topError, setTopError] = useState<string | null>(null);
-
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement | null>(null);
-  
-  useEffect(() => {
-    const onClick = (e: MouseEvent) => {
-      if (!menuRef.current) return;
-      if (!menuRef.current.contains(e.target as Node)) setMenuOpen(false);
-    };
-    const onEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMenuOpen(false);
-    };
-    document.addEventListener("click", onClick);
-    document.addEventListener("keydown", onEsc);
-    return () => {
-      document.removeEventListener("click", onClick);
-      document.removeEventListener("keydown", onEsc);
-    };
-  }, []);
 
   const onSubmit = async () => {
     setTopError(null);
@@ -644,111 +628,23 @@ export default function Page(): JSX.Element {
   };
 
   return (
-    <main className="py-8">
-      <div className="mx-auto mb-6 max-w-3xl px-1">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex min-w-0 items-center gap-3">
-            <Image
-              src="/logo.png"
-              alt="The Busy Christian logo"
-              width={48}
-              height={48}
-              priority
-              sizes="(max-width: 640px) 32px, 48px"
-              className="h-8 w-8 sm:h-12 sm:w-12 object-contain"
-            />
-            <h1
-              className={`${playfair.className} text-balance break-words text-left text-3xl sm:text-4xl md:text-5xl font-semibold leading-tight text-white/90`}
-              title="The Busy Christian"
-            >
-              <span className="italic align-baseline text-2xl sm:text-3xl md:text-4xl">The</span>{" "}
-              Busy Christian
-            </h1>
-          </div>
-
-          <div className="flex items-center gap-2">
+    <main className="mx-auto max-w-3xl px-4 py-8">
+      <section className="card mb-8">
+        <div className="flex items-center justify-between mb-5">
+          <p className="text-sm text-white/70">See your passage/theme come alive!.</p>
+          
+          {savedStudies.length > 0 && (
             <button
-              onClick={() => setLightMode((v) => !v)}
-              className="flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-white/5 hover:bg-white/10 focus:outline-none"
-              aria-label={lightMode ? "Switch to dark mode" : "Switch to light mode"}
-              title={lightMode ? "Dark mode" : "Light mode"}
+              onClick={() => setShowHistory(!showHistory)}
+              className="flex items-center gap-2 text-sm text-yellow-400 hover:text-yellow-300 transition-colors"
             >
-              {lightMode ? (
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                </svg>
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-                  <circle cx="12" cy="12" r="5"></circle>
-                  <line x1="12" y1="1" x2="12" y2="3"></line>
-                  <line x1="12" y1="21" x2="12" y2="23"></line>
-                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                  <line x1="1" y1="12" x2="3" y2="12"></line>
-                  <line x1="21" y1="12" x2="23" y2="12"></line>
-                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                </svg>
-              )}
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {showHistory ? "Hide" : "Show"} Recent Studies ({savedStudies.length})
             </button>
-
-            <div className="relative" ref={menuRef}>
-              <button
-                onClick={() => setMenuOpen((v) => !v)}
-                className="flex h-9 w-10 flex-col items-center justify-center rounded-md border border-white/10 bg-white/5 hover:bg-white/10 focus:outline-none"
-                aria-haspopup="menu"
-                aria-expanded={menuOpen}
-                aria-label={menuOpen ? "Close menu" : "Open menu"}
-              >
-                <span aria-hidden="true" className={`block h-0.5 w-5 bg-white/85 transition-transform duration-200 ${menuOpen ? "translate-y-[6px] rotate-45" : ""}`}></span>
-                <span aria-hidden="true" className={`mt-1 block h-0.5 w-5 bg-white/85 transition-opacity duration-150 ${menuOpen ? "opacity-0" : "opacity-100"}`}></span>
-                <span aria-hidden="true" className={`mt-1 block h-0.5 w-5 bg-white/85 transition-transform duration-200 ${menuOpen ? "-translate-y-[6px] -rotate-45" : ""}`}></span>
-              </button>
-
-              {menuOpen && (
-                <div role="menu" className="absolute right-0 z-50 mt-2 w-48 overflow-hidden rounded-md border border-white/15 bg-slate-900/95 p-1 shadow-lg backdrop-blur-md">
-                  <Link href="/" role="menuitem" onClick={() => setMenuOpen(false)} className="block rounded px-3 py-2 text-sm text-white/85 hover:bg-white/5 hover:underline decoration-yellow-400 underline-offset-4 font-semibold">
-                    🏠 Home
-                  </Link>
-                  <Link href="/deep-study" role="menuitem" onClick={() => setMenuOpen(false)} className="block rounded px-3 py-2 text-sm text-white/85 hover:bg-white/5 hover:underline decoration-yellow-400 underline-offset-4">
-                    📖 Deep Study
-                  </Link>
-                  <Link href="/library" role="menuitem" onClick={() => setMenuOpen(false)} className="block rounded px-3 py-2 text-sm text-white/85 hover:bg-white/5 hover:underline decoration-yellow-400 underline-offset-4 font-semibold">
-                    📝 My Notes
-                  </Link>
-                  <div className="my-1 h-px bg-white/10"></div>
-                  <a href="/about" role="menuitem" onClick={() => setMenuOpen(false)} className="block rounded px-3 py-2 text-sm text-white/85 hover:bg-white/5 hover:underline decoration-yellow-400 underline-offset-4">
-                    About
-                  </a>
-                  <a href="/help" role="menuitem" onClick={() => setMenuOpen(false)} className="block rounded px-3 py-2 text-sm text-white/85 hover:bg-white/5 hover:underline decoration-yellow-400 underline-offset-4">
-                    Help
-                  </a>
-                  <a href="/contact" role="menuitem" onClick={() => setMenuOpen(false)} className="block rounded px-3 py-2 text-sm text-white/85 hover:bg-white/5 hover:underline decoration-yellow-400 underline-offset-4">
-                    Contact
-                  </a>
-                </div>
-              )}
-            </div>
-          </div>
+          )}
         </div>
-
-        <div className="mt-3 h-px w-full bg-white/15" />
-      </div>
-
-      <section className="mx-auto max-w-3xl rounded-2xl border border-white/10 bg-white/5 p-6 shadow-sm">
-        <p className="mb-5 text-sm text-white/70">Study faster. Stay accurate. Enjoy.</p>
-
-        {savedStudies.length > 0 && (
-          <button
-            onClick={() => setShowHistory(!showHistory)}
-            className="mb-4 flex items-center gap-2 text-sm text-yellow-400 hover:text-yellow-300 transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            {showHistory ? "Hide" : "Show"} Recent Studies ({savedStudies.length})
-          </button>
-        )}
 
         {showHistory && (
           <div className="mb-4 rounded-lg border border-white/10 bg-white/5 p-4">
@@ -787,7 +683,7 @@ export default function Page(): JSX.Element {
               placeholder="e.g., John 11:25"
               value={passageRef}
               onChange={(e) => setPassageRef(e.target.value)}
-              className="w-full rounded-lg border border-yellow-400/80 bg-transparent px-3 py-2 outline-none ring-0 placeholder:text-white/40"
+              className="input"
             />
           </div>
 
@@ -800,15 +696,16 @@ export default function Page(): JSX.Element {
               placeholder="e.g., Can God dance?"
               value={theme}
               onChange={(e) => setTheme(e.target.value)}
-              className="w-full rounded-lg border border-yellow-400/80 bg-transparent px-3 py-2 outline-none ring-0 placeholder:text-white/40"
+              className="input"
             />
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
             <button
+              id="submit-btn"
               onClick={onSubmit}
               disabled={topLoading}
-              className="rounded-lg bg-white/10 px-4 py-2 text-sm hover:bg-white/15 disabled:opacity-50"
+              className="btn"
             >
               {topLoading ? "Working…" : "Submit"}
             </button>
@@ -832,17 +729,17 @@ export default function Page(): JSX.Element {
                 setThemeOutline(null);
                 setCombinedOutline(null);
               }}
-              className="ml-auto rounded-lg bg-white/10 px-4 py-2 text-sm hover:bg-white/15"
+              className="ml-auto btn"
             >
               Clear
             </button>
           </div>
 
           <div className="mt-2">
-            <div className="relative mb-2 h-[6px] w-full overflow-hidden rounded-full bg-white/5">
+            <div className="statusbar">
               <div
-                className="h-full rounded-full bg-yellow-400/80 transition-[width] duration-150"
-                style={{ width: `${progress}%` }}
+                className="statusbar-fill"
+                style={{ width: `${progress}%`, animation: progress > 0 ? undefined : 'none' }}
               />
             </div>
             <div className="h-4 text-center text-xs text-white/60">{progress > 0 ? statusWord : " "}</div>
@@ -855,7 +752,7 @@ export default function Page(): JSX.Element {
           )}
 
           {combinedOutline && (
-            <div className="mt-2 rounded-lg border border-white/10 bg-white/5 p-4">
+            <div className="card mt-2">
               <h3 className="text-lg font-semibold">{combinedOutline.title}</h3>
               <p className="text-sm text-white/70">
                 {combinedOutline.reference ? <>Text: {combinedOutline.reference}</> : null}
@@ -901,7 +798,7 @@ export default function Page(): JSX.Element {
           )}
 
           {!combinedOutline && passageOutline && (
-            <div className="mt-2 rounded-lg border border-white/10 bg-white/5 p-4">
+            <div className="card mt-2">
               <h3 className="text-lg font-semibold">
                 {passageOutline.title || passageOutline.reference}
               </h3>
@@ -945,7 +842,7 @@ export default function Page(): JSX.Element {
           )}
 
           {!combinedOutline && themeOutline && (
-            <div className="mt-2 rounded-lg border border-white/10 bg-white/5 p-4">
+            <div className="card mt-2">
               <h3 className="text-lg font-semibold">{themeOutline.title || themeOutline.topic}</h3>
               <p className="text-sm text-white/70">Topic: {themeOutline.topic}</p>
               <ol className="mt-3 list-decimal space-y-4 pl-5">
@@ -1000,7 +897,7 @@ export default function Page(): JSX.Element {
               </button>
               <button
                 onClick={copyOutline}
-                className="rounded-lg bg-white/10 px-4 py-2 text-sm hover:bg-white/15 transition-colors flex items-center gap-1"
+                className="btn flex items-center gap-1"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -1029,7 +926,7 @@ export default function Page(): JSX.Element {
                       value={currentNote}
                       onChange={(e) => setCurrentNote(e.target.value)}
                       placeholder="Add your personal notes here..."
-                      className="flex-1 rounded-lg border border-yellow-400/80 bg-transparent px-3 py-2 outline-none ring-0 placeholder:text-white/40 min-h-[80px]"
+                      className="input min-h-[80px]"
                     />
                     <button
                       onClick={saveNote}
@@ -1070,7 +967,7 @@ export default function Page(): JSX.Element {
 
       <section
         id="ol-study"
-        className="mx-auto mt-12 max-w-3xl rounded-xl border border-white/10 bg-white/5 p-4 shadow-sm"
+        className="card"
       >
         <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
           <div>
@@ -1083,7 +980,7 @@ export default function Page(): JSX.Element {
               value={bpRef}
               onChange={(e) => setBpRef(e.target.value)}
               onKeyDown={onBottomKey}
-              className="w-full rounded-lg border border-yellow-400/80 bg-transparent px-3 py-2 outline-none ring-0 placeholder:text-white/40"
+              className="input"
             />
           </div>
 
@@ -1091,14 +988,14 @@ export default function Page(): JSX.Element {
             <button
               onClick={bpFetch}
               disabled={esvLoading}
-              className="rounded-lg bg-white/10 px-4 py-2 text-sm hover:bg-white/15 disabled:opacity-50"
+              className="btn"
             >
               {esvLoading ? "Loading…" : "Get ESV"}
             </button>
             {bpText && (
               <button
                 onClick={() => handleCopy(bpText)}
-                className="rounded-lg bg-white/10 px-4 py-2 text-sm hover:bg-white/15 transition-colors"
+                className="btn"
                 title="Copy text"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1121,7 +1018,7 @@ export default function Page(): JSX.Element {
                 setActiveWord(null);
                 setHoverData(null);
               }}
-              className="rounded-lg bg-white/10 px-4 py-2 text-sm hover:bg-white/15"
+              className="btn"
             >
               Clear
             </button>
@@ -1173,7 +1070,7 @@ export default function Page(): JSX.Element {
               <div className="text-xs uppercase tracking-wide text-white/60">Word for Today</div>
               <button
                 onClick={() => setPopoverPinned((p) => !p)}
-                className="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs hover:bg-white/10"
+                className="btn text-xs px-2 py-1"
               >
                 {popoverPinned ? "Unpin" : "Pin"}
               </button>

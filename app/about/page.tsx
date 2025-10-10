@@ -1,9 +1,8 @@
+// app/about/page.tsx
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { Playfair_Display } from "next/font/google";
-import { useEffect, useState, useRef } from "react";
 
 const playfair = Playfair_Display({
   weight: ["600", "700"],
@@ -14,190 +13,90 @@ const playfair = Playfair_Display({
 const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? "2.1";
 
 export default function AboutPage() {
-  const [lightMode, setLightMode] = useState(true);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("bc-theme");
-    if (savedTheme === "dark") {
-      setLightMode(false);
-    } else {
-      setLightMode(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (lightMode) {
-      document.body.classList.add("light-mode");
-      localStorage.setItem("bc-theme", "light");
-    } else {
-      document.body.classList.remove("light-mode");
-      localStorage.setItem("bc-theme", "dark");
-    }
-  }, [lightMode]);
-
-  useEffect(() => {
-    const onClick = (e: MouseEvent) => {
-      if (!menuRef.current) return;
-      if (!menuRef.current.contains(e.target as Node)) setMenuOpen(false);
-    };
-    const onEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMenuOpen(false);
-    };
-    document.addEventListener("click", onClick);
-    document.addEventListener("keydown", onEsc);
-    return () => {
-      document.removeEventListener("click", onClick);
-      document.removeEventListener("keydown", onEsc);
-    };
-  }, []);
-
   return (
-    <main className="py-8">
-      <div className="mx-auto mb-6 max-w-3xl px-4">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/"
-              className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10 transition-colors"
-              aria-label="Back to Home"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-                <line x1="19" y1="12" x2="5" y2="12"></line>
-                <polyline points="12 19 5 12 12 5"></polyline>
-              </svg>
-              Back
-            </Link>
+    <main className="mx-auto max-w-3xl px-4 py-8">
+      <h1 className={`${playfair.className} text-4xl md:text-5xl font-bold mb-3 text-white/95 text-center`}>
+        About This App
+      </h1>
+      <p className="text-white/70 mb-8 text-center">
+        Built to help you study Scripture faster and more accurately
+      </p>
 
-            <Link href="/" className="group flex items-center gap-2">
-              <Image
-                src="/logo.png"
-                alt="The Busy Christian"
-                width={40}
-                height={40}
-                priority
-                className="h-8 w-8 object-contain transition-transform group-hover:scale-105"
-              />
-              <span className={`${playfair.className} hidden sm:inline text-xl font-semibold leading-tight text-white/90`}>
-                <span className="italic text-lg align-baseline">The</span> Busy Christian
-              </span>
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setLightMode((v) => !v)}
-              className="flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-white/5 hover:bg-white/10 focus:outline-none"
-              aria-label={lightMode ? "Switch to dark mode" : "Switch to light mode"}
-            >
-              {lightMode ? (
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                </svg>
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-                  <circle cx="12" cy="12" r="5"></circle>
-                  <line x1="12" y1="1" x2="12" y2="3"></line>
-                  <line x1="12" y1="21" x2="12" y2="23"></line>
-                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                  <line x1="1" y1="12" x2="3" y2="12"></line>
-                  <line x1="21" y1="12" x2="23" y2="12"></line>
-                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                </svg>
-              )}
-            </button>
-
-            <div className="relative" ref={menuRef}>
-              <button
-                onClick={() => setMenuOpen(!menuOpen)}
-                className="flex h-9 w-10 flex-col items-center justify-center rounded-md border border-white/10 bg-white/5 hover:bg-white/10 focus:outline-none"
-                aria-haspopup="menu"
-                aria-expanded={menuOpen}
-                aria-label={menuOpen ? "Close menu" : "Open menu"}
-              >
-                <span aria-hidden="true" className={`block h-0.5 w-5 bg-white/85 transition-transform duration-200 ${menuOpen ? "translate-y-[6px] rotate-45" : ""}`}></span>
-                <span aria-hidden="true" className={`mt-1 block h-0.5 w-5 bg-white/85 transition-opacity duration-150 ${menuOpen ? "opacity-0" : "opacity-100"}`}></span>
-                <span aria-hidden="true" className={`mt-1 block h-0.5 w-5 bg-white/85 transition-transform duration-200 ${menuOpen ? "-translate-y-[6px] -rotate-45" : ""}`}></span>
-              </button>
-
-              {menuOpen && (
-                <div role="menu" className="absolute right-0 z-50 mt-2 w-48 overflow-hidden rounded-md border border-white/15 bg-slate-900/95 p-1 shadow-lg backdrop-blur-md">
-                  <Link href="/" role="menuitem" onClick={() => setMenuOpen(false)} className="block rounded px-3 py-2 text-sm text-white/85 hover:bg-white/5 hover:underline decoration-yellow-400 underline-offset-4 font-semibold">
-                    🏠 Home
-                  </Link>
-                  <Link href="/deep-study" role="menuitem" onClick={() => setMenuOpen(false)} className="block rounded px-3 py-2 text-sm text-white/85 hover:bg-white/5 hover:underline decoration-yellow-400 underline-offset-4">
-                    📖 Deep Study
-                  </Link>
-                  <Link href="/library" role="menuitem" onClick={() => setMenuOpen(false)} className="block rounded px-3 py-2 text-sm text-white/85 hover:bg-white/5 hover:underline decoration-yellow-400 underline-offset-4 font-semibold">
-                    📚 My Notes
-                  </Link>
-                  <div className="my-1 h-px bg-white/10"></div>
-                  <Link href="/about" role="menuitem" onClick={() => setMenuOpen(false)} className="block rounded px-3 py-2 text-sm text-white/85 hover:bg-white/5 hover:underline decoration-yellow-400 underline-offset-4">
-                    About
-                  </Link>
-                  <Link href="/help" role="menuitem" onClick={() => setMenuOpen(false)} className="block rounded px-3 py-2 text-sm text-white/85 hover:bg-white/5 hover:underline decoration-yellow-400 underline-offset-4">
-                    Help
-                  </Link>
-                  <Link href="/contact" role="menuitem" onClick={() => setMenuOpen(false)} className="block rounded px-3 py-2 text-sm text-white/85 hover:bg-white/5 hover:underline decoration-yellow-400 underline-offset-4">
-                    Contact
-                  </Link>
-                </div>
-              )}
-            </div>
-          </div>
+      <section className="space-y-6">
+        <div className="card">
+          <h2 className="text-xl font-semibold mb-3 text-white/90">Our Mission</h2>
+          <p className="text-white/80 leading-relaxed">
+            <strong className="text-white/95">The Busy Christian</strong> is crafted by{" "}
+            <strong className="text-white/95">Douglas M. Gilford</strong> to help pastors, teachers, 
+            and serious students prepare faithful, clear messages with less friction. AI is used to 
+            assist synthesis – never to replace careful study or the Spirit's leading.
+          </p>
         </div>
-        <div className="mt-3 h-px w-full bg-white/15" />
-      </div>
 
-      <section className="mx-auto max-w-3xl px-4 leading-relaxed text-white/90 space-y-8">
-        <h1 className={`${playfair.className} text-3xl font-semibold`}>About This App</h1>
+        <div className="card">
+          <h2 className="text-xl font-semibold mb-4 text-white/90">Core Features</h2>
+          <ul className="space-y-2 text-white/80">
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400 mt-1">📖</span>
+              <span>Smart outline generator (passage, theme, or combined)</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400 mt-1">🎨</span>
+              <span>4 personalized study styles (Casual, Student, Pastor, Theologian)</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400 mt-1">📚</span>
+              <span>Integrated ESV® text (used by permission)</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400 mt-1">🔤</span>
+              <span>Plain-English lexical notes for Greek/Hebrew with Strong's numbers</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400 mt-1">💾</span>
+              <span>Local library for saved studies and personal notes</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400 mt-1">📄</span>
+              <span>Professional PDF exports for teaching/preaching</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400 mt-1">🔍</span>
+              <span>Deep study tools with multiple translations and commentaries</span>
+            </li>
+          </ul>
+        </div>
 
-        <p>
-          <strong>The Busy Christian</strong> is crafted by <strong>Douglas M. Gilford</strong> to help
-          pastors, teachers, and serious students prepare faithful, clear messages with less friction.
-          AI is used to assist synthesis — never to replace careful study or the Spirit's leading.
-        </p>
+        <div className="card">
+          <h2 className="text-xl font-semibold mb-3 text-white/90">Our Vision</h2>
+          <p className="text-white/80 leading-relaxed">
+            To equip busy believers to "rightly handle the word of truth" (2 Tim. 2:15) – 
+            saving time while deepening accuracy, clarity, and devotion. We believe technology 
+            should assist, not replace, the work of faithful Bible study.
+          </p>
+        </div>
 
-        <h2 className="text-xl font-semibold mt-6">Core Features</h2>
-        <ul className="list-disc ml-5 space-y-2">
-          <li>Smart outline generator (passage, theme, or combined).</li>
-          <li>Integrated ESV® text (used by permission).</li>
-          <li>Plain-English lexical notes for Greek/Hebrew with Strong's numbers.</li>
-          <li>Local Library for saved studies and personal notes.</li>
-          <li>Professional PDF exports for teaching/preaching.</li>
-        </ul>
+        <div className="card bg-blue-500/10 border-blue-500/30">
+          <h2 className="text-xl font-semibold mb-3 text-white/90">Technology</h2>
+          <p className="text-white/80 leading-relaxed">
+            Built with Next.js, powered by GPT-4 for intelligent content generation, 
+            and designed with a focus on speed, accuracy, and user experience. All notes 
+            and preferences are stored locally on your device for complete privacy.
+          </p>
+        </div>
 
-        <h2 className="text-xl font-semibold mt-6">Vision</h2>
-        <p>
-          To equip busy believers to "rightly handle the word of truth" (2 Tim. 2:15) — saving time while deepening accuracy, clarity, and devotion.
-        </p>
-
-        <div className="border-t border-white/10 pt-8 text-sm text-white/60">
-          <p>© Douglas M. Gilford</p>
-          <p>This app is not meant to replace diligent study and listening to the Holy Spirit.</p>
+        <div className="card border-white/20">
+          <p className="text-sm text-white/70 italic">
+            "This app is not meant to replace diligent study and listening to the Holy Spirit."
+          </p>
+          <p className="text-xs text-white/50 mt-2">
+            © Douglas M. Gilford • The Busy Christian
+          </p>
         </div>
       </section>
 
-      <footer className="mx-auto mt-10 max-w-3xl px-4">
-        <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/70">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <span className="opacity-80">The Busy Christian</span>
-              <span className="mx-2">•</span>
-              <span>v{APP_VERSION}</span>
-            </div>
-            <nav className="space-x-3">
-              <Link href="/privacy" className="hover:underline decoration-yellow-400 underline-offset-4">Privacy</Link>
-              <span className="opacity-50">•</span>
-              <Link href="/contact" className="hover:underline decoration-yellow-400 underline-offset-4">Contact</Link>
-              <span className="opacity-50">•</span>
-              <Link href="/help" className="hover:underline decoration-yellow-400 underline-offset-4">Help</Link>
-            </nav>
-          </div>
-        </div>
+      <footer className="mt-12 text-center text-xs text-white/40">
+        © Douglas M. Gilford – The Busy Christian • v{APP_VERSION}
       </footer>
     </main>
   );

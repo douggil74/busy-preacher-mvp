@@ -1,7 +1,118 @@
 // app/api/deep-study/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const maxDuration = 60;
+
 const BIBLE_API_BASE = "https://bible-api.com";
+
+interface BibleTranslation {
+  text: string;
+  book?: string;
+  error?: string;
+}
+
+async function fetchBibleVerse(reference: string, version: string = "kjv"): Promise<BibleTranslation> {
+  try {
+    const response = await fetch(
+      `https://bible-api.com/${encodeURIComponent(reference)}?translation=${version}`
+    );
+    
+    if (!response.ok) {
+      return { text: "", error: "Verse not found" };
+    }
+
+    const data = await response.json();
+    return {
+      text: data.text || "",
+      book: data.reference || reference,
+    };
+  } catch (error) {
+    console.error(`Error fetching ${version}:`, error);
+    return { text: "", error: "Failed to fetch verse" };
+  }
+}
+
+async function generateAICommentary(reference: string, verseText: string): Promise<string> {
+  const openaiApiKey = process.env.OPENAI_API_KEY;
+  
+  if (!openaiApiKey) {
+    console.error("No OpenAI API key found");
+    return "AI commentary unavailable - API key not configured.";
+  }
+
+  try {
+    console.log("Generating AI commentary for:", reference);
+    
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${openaiApiKey}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: "You are a knowledgeable Bible scholar providing insightful, practical commentary on Scripture. Provide context-aware insights that help readers understand and apply the passage. Be clear, concise, and encouraging. Format your response in markdown with headers, bold text for emphasis, and bullet points where appropriate."
+          },
+          {
+            role: "user",
+            content: `Provide biblical commentary on ${reference}:\n\n"${verseText}"\n\nInclude:\n1. Historical and cultural context\n2. Key themes and meanings\n3. Practical application for modern readers\n4. Connection to broader biblical narrative\n\nKeep it under 400 words.`
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 600,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("OpenAI API error:", errorData);
+      
+      if (response.status === 429) {
+        return "AI commentary temporarily unavailable - API rate limit reached. Please try again in a moment.";
+      }
+      
+      if (response.status === 401) {
+        return "AI commentary unavailable - Invalid API key.";
+      }
+      
+      return `AI commentary unavailable - API error (${response.status}).`;
+    }
+
+    const data = await response.json();
+    const commentary = data.choices?.[0]?.message?.content;
+    
+    if (!commentary) {
+      console.error("No commentary in response:", data);
+      return "AI commentary generation failed - empty response.";
+    }
+    
+    console.log("AI commentary generated successfully");
+    return commentary;
+    
+  } catch (error: any) {
+    console.error("Error generating AI commentary:", error);
+    
+    if (error.name === 'AbortError' || error.message.includes('timeout')) {
+      return "AI commentary unavailable - request timed out. Please try again.";
+    }
+    
+    return "AI commentary generation failed. Please try again.";
+  }
+}
+
+function generateStudyLinks(reference: string) {
+  const encodedRef = encodeURIComponent(reference);
+  return {
+    bibleHub: `https://biblehub.com/commentaries/${reference.toLowerCase().replace(/\s+/g, '_')}.htm`,
+    blueLetterBible: `https://www.blueletterbible.org/search/search.cfm?Criteria=${encodedRef}`,
+    studyLight: `https://www.studylight.org/commentary/${reference.toLowerCase().replace(/\s+/g, '-')}.html`,
+  };
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,9 +132,9 @@ export async function GET(request: NextRequest) {
 
     // Fetch from bible-api.com - only accurate translations
     const translations = {
-      KJV: "kjv",
-      WEB: "web",
-      ASV: "asv"
+      kjv: "kjv",
+      web: "web",
+      asv: "asv"
     };
 
     const translationsData: Record<string, any> = {};
@@ -40,7 +151,7 @@ export async function GET(request: NextRequest) {
           console.error(`Failed to fetch ${name}: ${response.status}`);
           return [name, {
             error: true,
-            text: `Unable to load ${name}`
+            text: `Unable to load ${name.toUpperCase()}`
           }];
         }
         
@@ -55,7 +166,7 @@ export async function GET(request: NextRequest) {
         console.error(`Error fetching ${name}:`, error);
         return [name, {
           error: true,
-          text: `Error loading ${name}`
+          text: `Error loading ${name.toUpperCase()}`
         }];
       }
     });
@@ -66,51 +177,21 @@ export async function GET(request: NextRequest) {
       translationsData[name as string] = data;
     });
 
-    // Start AI commentary fetch (but don't wait for it)
-    let aiCommentary = null;
-    const openaiApiKey = process.env.OPENAI_API_KEY;
+    // Get verse text for AI commentary (use first available translation)
+    const verseText = translationsData.kjv?.text || translationsData.web?.text || translationsData.asv?.text || "";
     
-    if (openaiApiKey) {
-      // Fetch AI commentary with a shorter timeout
-      const aiPromise = Promise.race([
-        fetch("https://api.openai.com/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${openaiApiKey}`,
-          },
-          body: JSON.stringify({
-            model: "gpt-4o-mini", // Faster model
-            messages: [
-              {
-                role: "system",
-                content: "You are a biblical scholar. Provide concise commentary with historical context and practical application."
-              },
-              {
-                role: "user",
-                content: `Brief commentary on ${normalizedReference} (max 300 words).`
-              }
-            ],
-            max_tokens: 400, // Reduced from 500
-            temperature: 0.7,
-          }),
-        }).then(res => res.json()),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('AI timeout')), 8000) // 8 second timeout
-        )
-      ]);
-
-      try {
-        const aiData = await aiPromise as any;
-        aiCommentary = {
-          commentary: aiData.choices?.[0]?.message?.content || "Commentary generation timed out"
-        };
-      } catch (error) {
-        console.log("AI commentary skipped or timed out");
-        aiCommentary = {
-          commentary: "AI commentary unavailable - Bible verses loaded successfully!"
-        };
-      }
+    // Generate AI commentary
+    let aiCommentary = null;
+    if (verseText && !verseText.includes("Unable to load") && !verseText.includes("Error loading")) {
+      const commentary = await generateAICommentary(normalizedReference, verseText);
+      aiCommentary = {
+        commentary,
+        source: "GPT-4"
+      };
+    } else {
+      aiCommentary = {
+        commentary: "AI commentary unavailable - unable to load Bible text."
+      };
     }
 
     // Create study links
@@ -123,6 +204,9 @@ export async function GET(request: NextRequest) {
     // Check if it's a chapter request (no verse number)
     const isChapter = !normalizedReference.includes(':');
 
+    console.log("=== Response Ready ===");
+    console.log("AI Commentary status:", aiCommentary ? "Generated" : "Failed");
+
     return NextResponse.json({
       reference: normalizedReference,
       parsed: {
@@ -130,11 +214,11 @@ export async function GET(request: NextRequest) {
       },
       translations: translationsData,
       commentaries: {
-        adamClarke: null,
         ai: aiCommentary
       },
       studyLinks,
-      isChapter
+      isChapter,
+      success: true
     });
 
   } catch (error: any) {

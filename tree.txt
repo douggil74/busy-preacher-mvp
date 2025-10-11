@@ -1,54 +1,70 @@
 .
 ├── app
 │   ├── about
-│   │   └── page.tsx
+│   │   ├── page.tsx
+│   │   └── page.tsx.backup
 │   ├── api
 │   │   ├── deep-study
-│   │   │   └── route.ts
 │   │   ├── esv
-│   │   │   └── route.ts
 │   │   ├── generate
-│   │   │   ├── passage
-│   │   │   ├── route.ts
-│   │   │   └── sermon
 │   │   ├── lexicon
-│   │   │   └── route.ts
 │   │   ├── lexplain
-│   │   │   └── route.ts
 │   │   ├── outline
-│   │   │   └── route.ts
 │   │   └── route.ts
 │   ├── config
 │   │   └── studyStyles.ts
 │   ├── contact
-│   │   └── page.tsx
+│   │   ├── page.tsx
+│   │   └── page.tsx.backup
+│   ├── create
+│   │   ├── page.tsx
+│   │   └── page.tsx.backup
+│   ├── debug-storage
+│   │   ├── page.tsx
+│   │   └── page.tsx.backup
 │   ├── deep-study
-│   │   └── page.tsx
+│   │   ├── page.tsx
+│   │   └── page.tsx.backup
 │   ├── globals.css
 │   ├── HeaderBar.tsx
 │   ├── help
-│   │   └── page.tsx
+│   │   ├── page.tsx
+│   │   └── page.tsx.backup
 │   ├── hooks
-│   │   └── useStudyStyle.ts
+│   │   └── useStudyStyle.tsx
 │   ├── layout.tsx
 │   ├── library
-│   │   └── page.tsx
+│   │   ├── page.tsx
+│   │   └── page.tsx.backup
 │   ├── mynotes
-│   │   └── page.tsx
+│   │   ├── page.tsx
+│   │   └── page.tsx.backup
 │   ├── page.tsx
+│   ├── page.tsx.backup
 │   ├── personalize
-│   │   └── page.tsx
+│   │   ├── page.tsx
+│   │   └── page.tsx.backup
 │   ├── privacy
-│   │   └── page.tsx
-│   └── setup
-│       └── page.tsx
+│   │   ├── page.tsx
+│   │   └── page.tsx.backup
+│   ├── setup
+│   │   ├── page.tsx
+│   │   └── page.tsx.backup
+│   └── test-styles
+│       ├── page.tsx
+│       └── page.tsx.backup
 ├── components
+│   ├── CompareFourStylesLink.tsx
 │   ├── LexiconPopover.tsx
 │   ├── Logo.tsx
+│   ├── PersonalizeClient.tsx
 │   ├── Popover.tsx
 │   ├── PreviewPanel.tsx
+│   ├── StyleIndicator.tsx
 │   └── VersePreview.tsx
+├── fix-headings.sh
 ├── lib
+│   ├── aiPrompts.ts
 │   └── credits.ts
 ├── next-env.d.ts
 ├── next.config.ts
@@ -69,4 +85,4 @@
 ├── tree.txt
 └── tsconfig.json
 
-25 directories, 45 files
+26 directories, 60 files

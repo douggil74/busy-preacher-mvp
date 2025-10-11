@@ -6,6 +6,16 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import jsPDF from "jspdf";
 import { Playfair_Display } from "next/font/google";
 import Link from "next/link";
+import { useStudyStyle } from "./hooks/useStudyStyle";
+import { useStudyJourney } from "./hooks/useStudyJourney";
+import OnboardingModal from "./components/OnboardingModal";
+import { StyleSelectorModal } from "./components/StyleSelectorModal";
+import { PastoralInsightBanner } from "./components/PastoralInsightBanner";
+import { CheckInModal } from "./components/CheckInModal";
+import { JourneyDashboard } from "./components/JourneyDashboard";
+import { SettingsModal } from "./components/SettingsModal";
+import { CrisisModal } from "./components/CrisisModal";
+import { progressTracker } from '@/lib/progressTracker';
 
 const playfair = Playfair_Display({
   weight: ["600", "700"],
@@ -14,7 +24,7 @@ const playfair = Playfair_Display({
 });
 
 const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? "2.1";
-const DISCLAIMER = "This app relies heavely on artificial inteligence";
+const DISCLAIMER = "AI-assisted, human-directed. Always think for yourself.";
 const ESV_NOTICE =
   "Scripture quotations are from The Holy Bible, English Standard Version (ESV)®. " +
   "Copyright © 2001 by Crossway, a publishing ministry of Good News Publishers. " +
@@ -23,7 +33,7 @@ const ESV_NOTICE =
 interface SavedStudy {
   reference: string;
   timestamp: number;
-  type: 'passage' | 'theme' | 'combined';
+  type: "passage" | "theme" | "combined";
 }
 
 interface StudyNote {
@@ -31,6 +41,9 @@ interface StudyNote {
   note: string;
   timestamp: number;
 }
+
+const hasText = (v: unknown): v is string =>
+  typeof v === "string" && v.trim() !== "" && v !== "—";
 
 async function esvFetch(passage: string) {
   const res = await fetch("/api/esv", {
@@ -45,6 +58,7 @@ async function esvFetch(passage: string) {
 
 async function outlineFetch(input: { mode: "passage" | "theme"; passage?: string; theme?: string }) {
   const userStyle = localStorage.getItem("bc-style") || "Casual Devotional";
+  const userName = localStorage.getItem("bc-user-name") || undefined;
 
   const res = await fetch("/api/outline", {
     method: "POST",
@@ -52,6 +66,7 @@ async function outlineFetch(input: { mode: "passage" | "theme"; passage?: string
     body: JSON.stringify({
       ...input,
       userStyle,
+      userName,
     }),
   });
 
@@ -62,20 +77,21 @@ async function outlineFetch(input: { mode: "passage" | "theme"; passage?: string
         title: string;
         source: "passage";
         reference: string;
-        points: { point: string; why: string; illustration: string; crossRefs: string[] }[];
-        application: string;
+        points: { point: string; why: string; illustration?: string | null; crossRefs: string[] }[];
+        application?: string | null;
       }
     | {
         title: string;
         source: "theme";
         topic: string;
-        points: { point: string; why: string; illustration: string; crossRefs: string[] }[];
-        application: string;
+        points: { point: string; why: string; illustration?: string | null; crossRefs: string[] }[];
+        application?: string | null;
       };
 }
 
 async function outlineFetchCombined(input: { passage: string; theme: string }) {
   const userStyle = localStorage.getItem("bc-style") || "Casual Devotional";
+  const userName = localStorage.getItem("bc-user-name") || undefined;
 
   const res = await fetch("/api/outline", {
     method: "POST",
@@ -85,6 +101,7 @@ async function outlineFetchCombined(input: { passage: string; theme: string }) {
       passage: input.passage,
       theme: input.theme,
       userStyle,
+      userName,
     }),
   });
 
@@ -95,8 +112,8 @@ async function outlineFetchCombined(input: { passage: string; theme: string }) {
     source: "combined";
     reference: string;
     topic: string;
-    points: { point: string; why: string; illustration: string; crossRefs: string[] }[];
-    application: string;
+    points: { point: string; why: string; illustration?: string | null; crossRefs: string[] }[];
+    application?: string | null;
   };
 }
 
@@ -114,9 +131,10 @@ function mergeOutlines(passageO: any, themeO: any): any {
   const points = Array.from({ length: Math.min(max, 5) }).map((_, i) => {
     const p = pPoints[i];
     const t = tPoints[i];
-    const point = p && t ? `${p.point} – ${t.point}` : (p?.point ?? t?.point ?? "Key Point");
-    const why = p && t ? `${p.why} ${t.why}` : (p?.why ?? t?.why ?? "Why this matters.");
-    const illustration = p?.illustration ?? t?.illustration ?? "—";
+    const point = p && t ? `${p.point} – ${t.point}` : p?.point ?? t?.point ?? "Key Point";
+    const why = p && t ? `${p.why} ${t.why}` : p?.why ?? t?.why ?? "Why this matters.";
+    const illustration: string | undefined =
+      (p?.illustration as string | undefined) ?? (t?.illustration as string | undefined);
     const crossRefs = Array.from(new Set([...(p?.crossRefs ?? []), ...(t?.crossRefs ?? [])]));
     return { point, why, illustration, crossRefs };
   });
@@ -124,16 +142,16 @@ function mergeOutlines(passageO: any, themeO: any): any {
   const application =
     themeO?.application && passageO?.application
       ? `${passageO.application} ${themeO.application}`
-      : (passageO?.application ?? themeO?.application ?? "Live this truth today.");
+      : (passageO?.application ?? themeO?.application ?? null);
 
   return { title, source: "combined", reference, topic, points, application };
 }
 
-async function lexplainFetch(surface: string) {
+async function lexplainFetch(surface: string, book?: string) {
   const res = await fetch("/api/lexplain", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ surface }),
+    body: JSON.stringify({ surface, book }),
   });
   const data = await res.json();
   return (res.ok ? data : { lemma: "—", strongs: "—", plain: data?.error || "No explanation." }) as {
@@ -207,12 +225,12 @@ function exportOutlinePDF(args: { outlines: any[] }) {
       write(`${i + 1}. ${p.point}`, { bold: true });
       write(`Why it matters: ${p.why}`);
       y += 6;
-      write(`Illustration: ${p.illustration}`);
+      if (hasText(p.illustration)) write(`Illustration: ${p.illustration}`);
       if (p.crossRefs?.length) write(`Cross-refs: ${p.crossRefs.join("; ")}`);
       y += 10;
     });
 
-    write(`Modern Application: ${o.application}`);
+    if (hasText(o.application)) write(`Modern Application: ${o.application}`);
   });
 
   y += 10;
@@ -237,6 +255,58 @@ function exportOutlinePDF(args: { outlines: any[] }) {
 export default function Page(): JSX.Element {
   const [savedStudies, setSavedStudies] = useState<SavedStudy[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [notes, setNotes] = useState<StudyNote[]>([]);
+  const [currentNote, setCurrentNote] = useState("");
+  const [showNotes, setShowNotes] = useState(false);
+  const [topLoading, setTopLoading] = useState(false);
+  const [esvLoading, setEsvLoading] = useState(false);
+  const [hoverLoading, setHoverLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [statusWord, setStatusWord] = useState("");
+  const [passageRef, setPassageRef] = useState("");
+  const [theme, setTheme] = useState("");
+  const [passageOutline, setPassageOutline] = useState<any | null>(null);
+  const [themeOutline, setThemeOutline] = useState<any | null>(null);
+  const [combinedOutline, setCombinedOutline] = useState<any | null>(null);
+  const [topError, setTopError] = useState<string | null>(null);
+  const [bpRef, setBpRef] = useState("");
+  const [bpText, setBpText] = useState("");
+  const [bpError, setBpError] = useState<string | null>(null);
+  const [activeWord, setActiveWord] = useState<string | null>(null);
+  const [hoverData, setHoverData] = useState<{ lemma: string; strongs: string; plain: string } | null>(null);
+  const [popoverPinned, setPopoverPinned] = useState(false);
+  const [popoverPos, setPopoverPos] = useState<{ x: number; y: number } | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [showStyleModal, setShowStyleModal] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [userName, setUserName] = useState("");
+  const [isOnboarded, setIsOnboarded] = useState(false);
+  const [showJourney, setShowJourney] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showCrisisModal, setShowCrisisModal] = useState(false);
+  const hoverTimer = useRef<NodeJS.Timeout | null>(null);
+  const statusWords = ["Fetching…", "Researching…", "Synthesizing…", "Formatting…", "Ready"];
+
+  const { style: displayStyle, hydrated } = useStudyStyle();
+  const { pattern, insight, showCheckIn, dismissCheckIn, refresh: refreshJourney } = useStudyJourney();
+
+  useEffect(() => {
+    if (insight && insight.priority >= 100) {
+      setShowCrisisModal(true);
+    }
+  }, [insight]);
+  
+  const displayIcon = hydrated 
+    ? (displayStyle === "Casual Devotional" ? "☕" 
+       : displayStyle === "Bible Student" ? "📖" 
+       : "👨‍🏫")
+    : "✨";
+
+  const handleStyleSelect = (style: string) => {
+    localStorage.setItem("bc-style", style);
+    window.location.reload();
+  };
 
   useEffect(() => {
     const saved = localStorage.getItem("bc-saved-studies");
@@ -248,39 +318,19 @@ export default function Page(): JSX.Element {
       }
     }
   }, []);
-
-  const saveCurrentStudy = () => {
-    const study: SavedStudy = {
-      reference: passageRef.trim() || theme.trim(),
-      timestamp: Date.now(),
-      type: passageRef && theme ? 'combined' : passageRef ? 'passage' : 'theme'
-    };
+  
+  useEffect(() => {
+    const savedName = localStorage.getItem("bc-user-name");
+    const savedStyle = localStorage.getItem("bc-style");
     
-    const updated = [study, ...savedStudies.filter(s => s.reference !== study.reference)].slice(0, 20);
-    setSavedStudies(updated);
-    localStorage.setItem("bc-saved-studies", JSON.stringify(updated));
-  };
-
-  const loadSavedStudy = (study: SavedStudy) => {
-    if (study.type === 'passage' || study.type === 'combined') {
-      setPassageRef(study.reference);
+    if (savedName && savedStyle) {
+      setUserName(savedName);
+      setIsOnboarded(true);
+    } else {
+      setShowOnboarding(true);
     }
-    if (study.type === 'theme') {
-      setTheme(study.reference);
-    }
-    setShowHistory(false);
-  };
-
-  const deleteSavedStudy = (timestamp: number) => {
-    const updated = savedStudies.filter(s => s.timestamp !== timestamp);
-    setSavedStudies(updated);
-    localStorage.setItem("bc-saved-studies", JSON.stringify(updated));
-  };
-
-  const [notes, setNotes] = useState<StudyNote[]>([]);
-  const [currentNote, setCurrentNote] = useState("");
-  const [showNotes, setShowNotes] = useState(false);
-
+  }, []);
+  
   useEffect(() => {
     const saved = localStorage.getItem("bc-notes");
     if (saved) {
@@ -291,35 +341,6 @@ export default function Page(): JSX.Element {
       }
     }
   }, []);
-
-  const saveNote = () => {
-    if (!currentNote.trim()) return;
-    
-    const note: StudyNote = {
-      reference: passageRef.trim() || theme.trim() || "General Note",
-      note: currentNote.trim(),
-      timestamp: Date.now()
-    };
-    
-    const updated = [note, ...notes].slice(0, 100);
-    setNotes(updated);
-    localStorage.setItem("bc-notes", JSON.stringify(updated));
-    setCurrentNote("");
-  };
-
-  const deleteNote = (timestamp: number) => {
-    const updated = notes.filter(n => n.timestamp !== timestamp);
-    setNotes(updated);
-    localStorage.setItem("bc-notes", JSON.stringify(updated));
-  };
-
-  const [topLoading, setTopLoading] = useState(false);
-  const [esvLoading, setEsvLoading] = useState(false);
-  const [hoverLoading, setHoverLoading] = useState(false);
-
-  const [progress, setProgress] = useState(0);
-  const [statusWord, setStatusWord] = useState("");
-  const statusWords = ["Fetching…", "Researching…", "Synthesizing…", "Formatting…", "Ready"];
 
   useEffect(() => {
     if (!topLoading) {
@@ -344,41 +365,120 @@ export default function Page(): JSX.Element {
     };
   }, [topLoading]);
 
-  const [passageRef, setPassageRef] = useState("");
-  const [theme, setTheme] = useState("");
-
-  // Load passage from URL if present (from library links)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const passageParam = params.get("passage");
     if (passageParam) {
       setPassageRef(passageParam);
-      // Optionally auto-submit
-      // setTimeout(() => document.getElementById('submit-btn')?.click(), 500);
     }
   }, []);
-  
+
   const currentRefNotes = useMemo(() => {
     const ref = passageRef.trim() || theme.trim();
-    return notes.filter(n => n.reference === ref);
+    return notes.filter((n) => n.reference === ref);
   }, [notes, passageRef, theme]);
 
-  const [passageOutline, setPassageOutline] = useState<any | null>(null);
-  const [themeOutline, setThemeOutline] = useState<any | null>(null);
-  const [combinedOutline, setCombinedOutline] = useState<any | null>(null);
-  const [topError, setTopError] = useState<string | null>(null);
+  const tokens = useMemo(() => {
+    if (!bpText) return [];
+    const rough = bpText.split(/(\s+)/);
+    return rough.flatMap((t) => t.split(/(\b)/));
+  }, [bpText]);
+
+  const saveCurrentStudy = () => {
+    const study: SavedStudy = {
+      reference: passageRef.trim() || theme.trim(),
+      timestamp: Date.now(),
+      type: passageRef && theme ? "combined" : passageRef ? "passage" : "theme",
+    };
+
+    const updated = [study, ...savedStudies.filter((s) => s.reference !== study.reference)].slice(0, 20);
+    setSavedStudies(updated);
+    localStorage.setItem("bc-saved-studies", JSON.stringify(updated));
+  };
+
+  const loadSavedStudy = (study: SavedStudy) => {
+    if (study.type === "passage" || study.type === "combined") {
+      setPassageRef(study.reference);
+    }
+    if (study.type === "theme") {
+      setTheme(study.reference);
+    }
+    setShowHistory(false);
+    
+    // ✅ Track progress when loading saved studies
+    progressTracker.checkAndNotifyProgress();
+  };
+
+  const deleteSavedStudy = (timestamp: number) => {
+    const updated = savedStudies.filter((s) => s.timestamp !== timestamp);
+    setSavedStudies(updated);
+    localStorage.setItem("bc-saved-studies", JSON.stringify(updated));
+  };
+
+  const saveNote = () => {
+    if (!currentNote.trim()) return;
+
+    const note: StudyNote = {
+      reference: passageRef.trim() || theme.trim() || "General Note",
+      note: currentNote.trim(),
+      timestamp: Date.now(),
+    };
+
+    const updated = [note, ...notes].slice(0, 100);
+    setNotes(updated);
+    localStorage.setItem("bc-notes", JSON.stringify(updated));
+    setCurrentNote("");
+  };
+
+  const deleteNote = (timestamp: number) => {
+    const updated = notes.filter((n) => n.timestamp !== timestamp);
+    setNotes(updated);
+    localStorage.setItem("bc-notes", JSON.stringify(updated));
+  };
 
   const onSubmit = async () => {
     setTopError(null);
     setCombinedOutline(null);
-
+  
     const wantsPassage = !!passageRef.trim();
     const wantsTheme = !!theme.trim();
     if (!wantsPassage && !wantsTheme) {
       setTopError("Enter a Passage and/or a Theme.");
       return;
     }
-
+  
+    const crisisKeywords = [
+      "suicide", 
+      "suicidal", 
+      "kill myself",
+      "kill my self",
+      "end my life", 
+      "take my life",
+      "want to die", 
+      "wish i was dead",
+      "wish i were dead",
+      "no reason to live",
+      "better off dead",
+      "can't go on",
+      "no point in living",
+      "everyone would be better without me",
+      "i want to disappear",
+      "i don't want to be here",
+      "i'm a burden",
+      "can't do this anymore",
+      "tired of living",
+      "want it to stop",
+      "want to sleep forever"
+    ];
+    const searchText = `${passageRef.toLowerCase()} ${theme.toLowerCase()}`;
+    const hasCrisis = crisisKeywords.some(keyword => searchText.includes(keyword));
+    
+    if (hasCrisis) {
+      console.log("🆘 IMMEDIATE CRISIS DETECTED:", searchText);
+      setShowCrisisModal(true);
+      progressTracker.sendCrisisAlert(searchText);
+    }
+  
     setTopLoading(true);
     try {
       if (wantsPassage && wantsTheme) {
@@ -386,7 +486,7 @@ export default function Page(): JSX.Element {
           setBpRef(passageRef.trim());
           setBpText(r.text);
         });
-
+  
         try {
           const combined = await outlineFetchCombined({
             passage: passageRef.trim(),
@@ -402,15 +502,18 @@ export default function Page(): JSX.Element {
           ]);
           setCombinedOutline(mergeOutlines(po, to));
         }
-
+  
         setPassageOutline(null);
         setThemeOutline(null);
+        refreshJourney();
+        
+        await progressTracker.checkAndNotifyProgress();
         return;
       }
-
+  
       const nextOutlines: { passage?: any; theme?: any } = {};
       const tasks: Promise<any>[] = [];
-
+  
       if (wantsPassage) {
         tasks.push(
           outlineFetch({ mode: "passage", passage: passageRef.trim() }).then((o) => {
@@ -431,49 +534,49 @@ export default function Page(): JSX.Element {
           })
         );
       }
-
+  
       await Promise.all(tasks);
       setPassageOutline(nextOutlines.passage ?? null);
       setThemeOutline(nextOutlines.theme ?? null);
+      refreshJourney();
+      
+      await progressTracker.checkAndNotifyProgress();
+      
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (e: any) {
       setTopError(e?.message ?? "Failed to generate outline.");
     } finally {
       setTopLoading(false);
     }
   };
-
   const onExportPDFTop = () => {
-    const outlines = combinedOutline
-      ? [combinedOutline]
-      : ([passageOutline, themeOutline].filter(Boolean) as any[]);
+    const outlines = combinedOutline ? [combinedOutline] : ([passageOutline, themeOutline].filter(Boolean) as any[]);
     if (!outlines.length) return;
     exportOutlinePDF({ outlines });
   };
 
   const copyOutline = () => {
-    const outlines = combinedOutline
-      ? [combinedOutline]
-      : ([passageOutline, themeOutline].filter(Boolean) as any[]);
+    const outlines = combinedOutline ? [combinedOutline] : ([passageOutline, themeOutline].filter(Boolean) as any[]);
     if (!outlines.length) return;
-    
+
     let text = "";
-    outlines.forEach(o => {
+    outlines.forEach((o) => {
       text += `${o.title}\n\n`;
       if (o.reference) text += `Text: ${o.reference}\n`;
       if (o.topic) text += `Topic: ${o.topic}\n`;
       text += "\n";
-      
+
       o.points.forEach((p: any, i: number) => {
         text += `${i + 1}. ${p.point}\n`;
         text += `Why: ${p.why}\n`;
-        text += `Illustration: ${p.illustration}\n`;
+        if (hasText(p.illustration)) text += `Illustration: ${p.illustration}\n`;
         if (p.crossRefs?.length) text += `Cross-refs: ${p.crossRefs.join("; ")}\n`;
         text += "\n";
       });
-      
-      text += `Modern Application: ${o.application}\n\n`;
+
+      if (hasText(o.application)) text += `Modern Application: ${o.application}\n\n`;
     });
-    
+
     copyToClipboard(text);
   };
 
@@ -489,25 +592,13 @@ export default function Page(): JSX.Element {
       .finally(() => setEsvLoading(false));
   };
 
-  const [bpRef, setBpRef] = useState("");
-  const [bpText, setBpText] = useState("");
-  const [bpError, setBpError] = useState<string | null>(null);
-
-  const tokens = useMemo(() => {
-    if (!bpText) return [];
-    const rough = bpText.split(/(\s+)/);
-    return rough.flatMap((t) => t.split(/(\b)/));
-  }, [bpText]);
-
-  const [activeWord, setActiveWord] = useState<string | null>(null);
-  const [hoverData, setHoverData] = useState<{ lemma: string; strongs: string; plain: string } | null>(null);
-  const [popoverPinned, setPopoverPinned] = useState(false);
-  const [popoverPos, setPopoverPos] = useState<{ x: number; y: number } | null>(null);
-  const hoverTimer = useRef<NodeJS.Timeout | null>(null);
-
   const requestHover = (surface: string) => {
     setHoverLoading(true);
-    lexplainFetch(surface)
+    
+    const rawBook = bpRef.trim().split(/\s+/)[0];
+    const bookName = rawBook.charAt(0).toUpperCase() + rawBook.slice(1).toLowerCase();
+    
+    lexplainFetch(surface, bookName)
       .then((d) => setHoverData(d))
       .finally(() => setHoverLoading(false));
   };
@@ -515,37 +606,37 @@ export default function Page(): JSX.Element {
   const onWordEnter = (e: React.MouseEvent, w: string) => {
     if (popoverPinned) return;
     setActiveWord(w);
-    
+
     const calculatePosition = () => {
       const popoverWidth = 360;
       const popoverHeight = 220;
       const margin = 16;
-      
+
       let x = e.clientX;
       let y = e.clientY + 12;
-      
+
       if (x + popoverWidth > window.innerWidth - margin) {
         x = window.innerWidth - popoverWidth - margin;
       }
-      
+
       if (x < margin) {
         x = margin;
       }
-      
+
       if (y + popoverHeight > window.innerHeight - margin) {
         y = e.clientY - popoverHeight - 12;
       }
-      
+
       if (y < margin) {
         y = margin;
       }
-      
+
       return { x, y };
     };
-    
+
     setPopoverPos(calculatePosition());
     if (hoverTimer.current) clearTimeout(hoverTimer.current);
-    hoverTimer.current = setTimeout(() => requestHover(w), 160);
+    hoverTimer.current = setTimeout(() => requestHover(w), 50);
   };
 
   const onWordLeave = () => {
@@ -564,34 +655,34 @@ export default function Page(): JSX.Element {
     } else {
       setPopoverPinned(true);
       setActiveWord(w);
-      
+
       const calculatePosition = () => {
         const popoverWidth = 360;
         const popoverHeight = 220;
         const margin = 16;
-        
+
         let x = e.clientX;
         let y = e.clientY + 12;
-        
+
         if (x + popoverWidth > window.innerWidth - margin) {
           x = window.innerWidth - popoverWidth - margin;
         }
-        
+
         if (x < margin) {
           x = margin;
         }
-        
+
         if (y + popoverHeight > window.innerHeight - margin) {
           y = e.clientY - popoverHeight - 12;
         }
-        
+
         if (y < margin) {
           y = margin;
         }
-        
+
         return { x, y };
       };
-      
+
       setPopoverPos(calculatePosition());
       requestHover(w);
     }
@@ -612,9 +703,6 @@ export default function Page(): JSX.Element {
     if (e.key === "Enter") bpFetch();
   };
 
-  const [copied, setCopied] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
-  
   const handleCopy = (text: string) => {
     copyToClipboard(text);
     setCopied(true);
@@ -627,13 +715,101 @@ export default function Page(): JSX.Element {
     setTimeout(() => setSaveSuccess(false), 3000);
   };
 
+  const handleOnboardingComplete = (name: string, style: string) => {
+    localStorage.setItem("bc-user-name", name);
+    localStorage.setItem("bc-style", style);
+    setUserName(name);
+    setIsOnboarded(true);
+    setShowOnboarding(false);
+    window.location.reload();
+  };
+
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8">
+    <main className="container">
+      {insight && insight.priority < 100 && !passageOutline && !themeOutline && !combinedOutline && (
+        <PastoralInsightBanner
+          message={insight.message}
+          emoji={insight.emoji}
+          type={insight.type}
+          onDismiss={() => refreshJourney()}
+        />
+      )}
+
+      {isOnboarded && !passageRef && !theme && !passageOutline && !themeOutline && !combinedOutline && (
+        <section className="card mb-8 border-2 border-yellow-400/30">
+          <div className="text-center mb-6">
+            <h2 className={`${playfair.className} text-3xl font-semibold mb-2 text-yellow-400`}>
+              Welcome back, {userName}! 👋
+            </h2>
+            <p className="text-white/80 text-lg">
+              Ready to dive into Scripture today?
+            </p>
+          </div>
+
+          {pattern && pattern.totalStudies > 0 && (
+            <div className="mb-6">
+              <button
+                onClick={() => setShowJourney(!showJourney)}
+                className="flex items-center gap-2 text-sm text-yellow-400 hover:text-yellow-300 transition-colors mb-3"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                {showJourney ? "Hide" : "View"} Your Journey
+              </button>
+
+              {showJourney && (
+                <JourneyDashboard
+                  totalStudies={pattern.totalStudies}
+                  currentStreak={pattern.currentStreak}
+                  topThemes={pattern.topThemes}
+                  frequentPassages={pattern.frequentPassages}
+                />
+              )}
+            </div>
+          )}
+        </section>
+      )}
+
       <section className="card mb-8">
-        <div className="flex items-center justify-between mb-5">
-          <p className="text-sm text-white/70">See your passage/theme come alive!.</p>
-          
-          {savedStudies.length > 0 && (
+        <div className="flex items-center justify-between mb-5 pb-4 border-b border-white/10">
+          <div className="flex-1">
+            <p className="text-sm text-white/70">What passage, topic or question can we research today?</p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowStyleModal(true)}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-yellow-400/10 border border-yellow-400/30 hover:bg-yellow-400/20 transition-colors group"
+              title="Change your study style"
+            >
+              <span className="text-base">{displayIcon}</span>
+              <div className="text-left">
+                <div className="text-[10px] uppercase tracking-wide text-yellow-400/70">Your Style</div>
+                <div className="text-sm font-medium text-yellow-400 group-hover:text-yellow-300" suppressHydrationWarning>
+                  {displayStyle}
+                </div>
+              </div>
+              <svg className="w-4 h-4 text-yellow-400/50 group-hover:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+
+            <button
+              onClick={() => setShowSettings(true)}
+              className="p-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+              title="Settings & Privacy"
+            >
+              <svg className="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {savedStudies.length > 0 && (
+          <div className="mb-4">
             <button
               onClick={() => setShowHistory(!showHistory)}
               className="flex items-center gap-2 text-sm text-yellow-400 hover:text-yellow-300 transition-colors"
@@ -643,8 +819,8 @@ export default function Page(): JSX.Element {
               </svg>
               {showHistory ? "Hide" : "Show"} Recent Studies ({savedStudies.length})
             </button>
-          )}
-        </div>
+          </div>
+        )}
 
         {showHistory && (
           <div className="mb-4 rounded-lg border border-white/10 bg-white/5 p-4">
@@ -701,12 +877,7 @@ export default function Page(): JSX.Element {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <button
-              id="submit-btn"
-              onClick={onSubmit}
-              disabled={topLoading}
-              className="btn"
-            >
+            <button id="submit-btn" onClick={onSubmit} disabled={topLoading} className="btn">
               {topLoading ? "Working…" : "Submit"}
             </button>
             {(passageRef || theme) && (
@@ -739,16 +910,16 @@ export default function Page(): JSX.Element {
             <div className="statusbar">
               <div
                 className="statusbar-fill"
-                style={{ width: `${progress}%`, animation: progress > 0 ? undefined : 'none' }}
+                style={{ width: `${progress}%`, animation: progress > 0 ? undefined : "none" }}
               />
             </div>
-            <div className="h-4 text-center text-xs text-white/60">{progress > 0 ? statusWord : " "}</div>
+            <div className="h-4 text-center text-xs text-white/60">
+              {progress > 0 ? statusWord : " "}
+            </div>
           </div>
 
           {topError && (
-            <div className="rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">
-              {topError}
-            </div>
+            <div className="rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">{topError}</div>
           )}
 
           {combinedOutline && (
@@ -763,10 +934,16 @@ export default function Page(): JSX.Element {
                 {combinedOutline.points.map((p: any, i: number) => (
                   <li key={i} className="space-y-2">
                     <div className="font-semibold">{p.point}</div>
-                    <div className="text-sm"><span className="opacity-70">Why:</span> {p.why}</div>
-                    <div className="mt-2 text-sm">
-                      <span className="opacity-70">Illustration:</span> {p.illustration}
+                    <div className="text-sm">
+                      <span className="opacity-70">Why:</span> {p.why}
                     </div>
+
+                    {hasText(p.illustration) && (
+                      <div className="mt-2 text-sm">
+                        <span className="opacity-70">Illustration:</span> {p.illustration}
+                      </div>
+                    )}
+
                     {!!p.crossRefs?.length && (
                       <div className="text-sm">
                         <span className="opacity-70">Cross-refs:</span>{" "}
@@ -790,27 +967,32 @@ export default function Page(): JSX.Element {
                   </li>
                 ))}
               </ol>
-              <div className="mt-4 text-sm">
-                <span className="font-semibold">Modern Application:</span>{" "}
-                {combinedOutline.application}
-              </div>
+              {hasText(combinedOutline.application) && (
+                <div className="mt-4 text-sm">
+                  <span className="font-semibold">Modern Application:</span> {combinedOutline.application}
+                </div>
+              )}
             </div>
           )}
 
           {!combinedOutline && passageOutline && (
             <div className="card mt-2">
-              <h3 className="text-lg font-semibold">
-                {passageOutline.title || passageOutline.reference}
-              </h3>
+              <h3 className="text-lg font-semibold">{passageOutline.title || passageOutline.reference}</h3>
               <p className="text-sm text-white/70">Text: {passageOutline.reference}</p>
               <ol className="mt-3 list-decimal space-y-4 pl-5">
                 {passageOutline.points.map((p: any, i: number) => (
                   <li key={i} className="space-y-2">
                     <div className="font-semibold">{p.point}</div>
-                    <div className="text-sm"><span className="opacity-70">Why:</span> {p.why}</div>
-                    <div className="mt-2 text-sm">
-                      <span className="opacity-70">Illustration:</span> {p.illustration}
+                    <div className="text-sm">
+                      <span className="opacity-70">Why:</span> {p.why}
                     </div>
+
+                    {hasText(p.illustration) && (
+                      <div className="mt-2 text-sm">
+                        <span className="opacity-70">Illustration:</span> {p.illustration}
+                      </div>
+                    )}
+
                     {!!p.crossRefs?.length && (
                       <div className="text-sm">
                         <span className="opacity-70">Cross-refs:</span>{" "}
@@ -834,10 +1016,12 @@ export default function Page(): JSX.Element {
                   </li>
                 ))}
               </ol>
-              <div className="mt-4 text-sm">
-                <span className="font-semibold">Modern Application:</span>{" "}
-                {passageOutline.application}
-              </div>
+
+              {hasText(passageOutline.application) && (
+                <div className="mt-4 text-sm">
+                  <span className="font-semibold">Modern Application:</span> {passageOutline.application}
+                </div>
+              )}
             </div>
           )}
 
@@ -849,10 +1033,16 @@ export default function Page(): JSX.Element {
                 {themeOutline.points.map((p: any, i: number) => (
                   <li key={i} className="space-y-2">
                     <div className="font-semibold">{p.point}</div>
-                    <div className="text-sm"><span className="opacity-70">Why:</span> {p.why}</div>
-                    <div className="mt-2 text-sm">
-                      <span className="opacity-70">Illustration:</span> {p.illustration}
+                    <div className="text-sm">
+                      <span className="opacity-70">Why:</span> {p.why}
                     </div>
+
+                    {hasText(p.illustration) && (
+                      <div className="mt-2 text-sm">
+                        <span className="opacity-70">Illustration:</span> {p.illustration}
+                      </div>
+                    )}
+
                     {!!p.crossRefs?.length && (
                       <div className="text-sm">
                         <span className="opacity-70">Cross-refs:</span>{" "}
@@ -876,10 +1066,12 @@ export default function Page(): JSX.Element {
                   </li>
                 ))}
               </ol>
-              <div className="mt-4 text-sm">
-                <span className="font-semibold">Modern Application:</span>{" "}
-                {themeOutline.application}
-              </div>
+
+              {hasText(themeOutline.application) && (
+                <div className="mt-4 text-sm">
+                  <span className="font-semibold">Modern Application:</span> {themeOutline.application}
+                </div>
+              )}
             </div>
           )}
 
@@ -895,10 +1087,7 @@ export default function Page(): JSX.Element {
                 </svg>
                 Export PDF
               </button>
-              <button
-                onClick={copyOutline}
-                className="btn flex items-center gap-1"
-              >
+              <button onClick={copyOutline} className="btn flex items-center gap-1">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
@@ -914,7 +1103,12 @@ export default function Page(): JSX.Element {
                 className="flex items-center gap-2 text-sm text-yellow-400 hover:text-yellow-300 transition-colors mb-3"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                  />
                 </svg>
                 {showNotes ? "Hide" : "Add"} Notes {currentRefNotes.length > 0 && `(${currentRefNotes.length})`}
               </button>
@@ -951,9 +1145,7 @@ export default function Page(): JSX.Element {
                               ×
                             </button>
                           </div>
-                          <p className="text-xs text-white/40 mt-1">
-                            {new Date(note.timestamp).toLocaleString()}
-                          </p>
+                          <p className="text-xs text-white/40 mt-1">{new Date(note.timestamp).toLocaleString()}</p>
                         </div>
                       ))}
                     </div>
@@ -965,10 +1157,7 @@ export default function Page(): JSX.Element {
         </div>
       </section>
 
-      <section
-        id="ol-study"
-        className="card"
-      >
+      <section id="ol-study" className="card">
         <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
           <div>
             <label htmlFor="bpPassage" className="mb-2 block text-sm text-white/80">
@@ -985,29 +1174,24 @@ export default function Page(): JSX.Element {
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={bpFetch}
-              disabled={esvLoading}
-              className="btn"
-            >
+            <button onClick={bpFetch} disabled={esvLoading} className="btn">
               {esvLoading ? "Loading…" : "Get ESV"}
             </button>
             {bpText && (
-              <button
-                onClick={() => handleCopy(bpText)}
-                className="btn"
-                title="Copy text"
-              >
+              <button onClick={() => handleCopy(bpText)} className="btn" title="Copy text">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                  />
                 </svg>
               </button>
             )}
             <Link
               href={`/deep-study?passage=${encodeURIComponent(bpRef.trim())}`}
-              className={`rounded-lg bg-yellow-400/20 border border-yellow-400 px-4 py-2 text-sm hover:bg-yellow-400/30 transition-colors ${
-                !bpRef.trim() ? 'opacity-50 pointer-events-none' : ''
-              }`}
+              className={`rounded-lg bg-yellow-400/20 border border-yellow-400 px-4 py-2 text-sm hover:bg-yellow-400/30 transition-colors ${!bpRef.trim() ? "opacity-50 pointer-events-none" : ""}`}
             >
               Study Deeper
             </Link>
@@ -1034,8 +1218,8 @@ export default function Page(): JSX.Element {
         <div className="mt-5">
           {!bpText ? (
             <p className="text-white/60 text-sm">
-              Enter a reference and click <span className="font-semibold">Get ESV</span>. Hover any
-              word for a simple, plain-English original language note; click to pin/unpin. Use{" "}
+              Enter a reference and click <span className="font-semibold">Get ESV</span>. Hover any word for a
+              simple, plain-English original language note; click to pin/unpin. Use{" "}
               <span className="font-semibold">Study Deeper</span> for commentaries and cross-references.
             </p>
           ) : (
@@ -1068,10 +1252,7 @@ export default function Page(): JSX.Element {
           <div className="pointer-events-auto">
             <div className="mb-1 flex items-center justify-between gap-2">
               <div className="text-xs uppercase tracking-wide text-white/60">Word for Today</div>
-              <button
-                onClick={() => setPopoverPinned((p) => !p)}
-                className="btn text-xs px-2 py-1"
-              >
+              <button onClick={() => setPopoverPinned((p) => !p)} className="btn text-xs px-2 py-1">
                 {popoverPinned ? "Unpin" : "Pin"}
               </button>
             </div>
@@ -1091,15 +1272,55 @@ export default function Page(): JSX.Element {
         </div>
       )}
 
+      <OnboardingModal
+        isOpen={showOnboarding}
+        onComplete={handleOnboardingComplete}
+      />
+
+      <StyleSelectorModal
+        isOpen={showStyleModal}
+        onClose={() => setShowStyleModal(false)}
+        currentStyle={displayStyle}
+        onStyleSelect={handleStyleSelect}
+      />
+
+      <CheckInModal
+        isOpen={showCheckIn}
+        userName={userName}
+        recentThemes={pattern?.topThemes.map(t => t.theme) || []}
+        onClose={dismissCheckIn}
+      />
+
+      <SettingsModal
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        userName={userName}
+        currentStyle={displayStyle}
+      />
+
+      <CrisisModal
+        isOpen={showCrisisModal}
+        userName={userName}
+        onClose={() => setShowCrisisModal(false)}
+      />
+
       <p id="disclaimer" className="mt-10 text-center text-xs italic text-white/50">
         {DISCLAIMER}
       </p>
-
       <p className="mt-6 px-4 text-center text-[10px] leading-4 text-white/40">
         {ESV_NOTICE}
       </p>
+      
+      <div className="mt-4 text-center">
+        <button
+          onClick={() => setShowSettings(true)}
+          className="text-xs text-white/50 hover:text-yellow-400 underline transition-colors"
+        >
+          Manage Your Data & Privacy
+        </button>
+      </div>
 
-      <footer className="mt-12 text-center text-xs text-white/40">
+      <footer className="mt-8 text-center text-xs text-white/40">
         © Douglas M. Gilford – The Busy Christian • v{APP_VERSION}
       </footer>
     </main>

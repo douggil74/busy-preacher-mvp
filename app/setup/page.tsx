@@ -22,7 +22,7 @@ export default function SetupPage() {
             className="rounded-xl border border-white/10 bg-white/5 p-4 hover:bg-white/10 transition"
           >
             <h2 className="text-xl font-semibold mb-2">{key}</h2>
-            <p className="text-white/70 text-sm">{value.description}</p>
+            <p className="text-white/70 light:text-black/70 text-sm">{value.description}</p>
           </button>
         ))}
       </div>

@@ -142,17 +142,17 @@ export default function MyNotesPage() {
       <div className="mx-auto mb-6 max-w-5xl px-4">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Link
-              href="/"
+            <button
+              onClick={() => window.history.back()}
               className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10 transition-colors"
-              aria-label="Back to Home"
+              aria-label="Go back"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
                 <line x1="19" y1="12" x2="5" y2="12"></line>
                 <polyline points="12 19 5 12 12 5"></polyline>
               </svg>
               Back
-            </Link>
+            </button>
 
             <Link href="/" className="group flex items-center gap-2">
               <Image
@@ -163,7 +163,7 @@ export default function MyNotesPage() {
                 priority
                 className="h-8 w-8 object-contain transition-transform group-hover:scale-105"
               />
-              <span className={`${playfair.className} hidden sm:inline text-xl font-semibold leading-tight text-white/90`}>
+              <span className={`${playfair.className} hidden sm:inline text-xl font-semibold leading-tight text-white/90 light:text-black/90`}>
                 <span className="italic text-lg align-baseline">The</span> Busy Christian
               </span>
             </Link>
@@ -240,7 +240,7 @@ export default function MyNotesPage() {
         <h1 className={`${playfair.className} text-3xl font-bold mb-2`}>
           My Notes
         </h1>
-        <p className="text-white/70 mb-6">
+        <p className="text-white/70 light:text-black/70 mb-6">
           Your saved studies and personal notes
         </p>
 
@@ -279,7 +279,7 @@ export default function MyNotesPage() {
             className={`px-4 py-2 text-sm font-semibold transition-colors ${
               activeTab === "studies"
                 ? "text-yellow-400 border-b-2 border-yellow-400"
-                : "text-white/60 hover:text-white/90"
+                : "text-white/60 light:text-black/60 hover:text-white/90 light:text-black/90"
             }`}
           >
             Saved Studies ({savedStudies.length})
@@ -289,7 +289,7 @@ export default function MyNotesPage() {
             className={`px-4 py-2 text-sm font-semibold transition-colors ${
               activeTab === "notes"
                 ? "text-yellow-400 border-b-2 border-yellow-400"
-                : "text-white/60 hover:text-white/90"
+                : "text-white/60 light:text-black/60 hover:text-white/90 light:text-black/90"
             }`}
           >
             My Notes ({notes.length})
@@ -303,7 +303,7 @@ export default function MyNotesPage() {
                 <svg className="w-16 h-16 mx-auto mb-4 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                 </svg>
-                <p className="text-white/60 mb-2">
+                <p className="text-white/60 light:text-black/60 mb-2">
                   {searchTerm ? "No studies match your search" : "No saved studies yet"}
                 </p>
                 <p className="text-white/40 text-sm">
@@ -320,11 +320,11 @@ export default function MyNotesPage() {
                     <div className="flex-1">
                       <Link
                         href={`/?ref=${encodeURIComponent(study.reference)}`}
-                        className="text-lg font-semibold text-white/90 hover:text-yellow-400 transition-colors"
+                        className="text-lg font-semibold text-white/90 light:text-black/90 hover:text-yellow-400 transition-colors"
                       >
                         {study.reference}
                       </Link>
-                      <p className="text-xs text-white/50 mt-1">
+                      <p className="text-xs text-white/50 light:text-black/50 mt-1">
                         Saved on {new Date(study.timestamp).toLocaleString()}
                       </p>
                     </div>
@@ -359,7 +359,7 @@ export default function MyNotesPage() {
                 <svg className="w-16 h-16 mx-auto mb-4 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
-                <p className="text-white/60 mb-2">
+                <p className="text-white/60 light:text-black/60 mb-2">
                   {searchTerm ? "No notes match your search" : "No notes yet"}
                 </p>
                 <p className="text-white/40 text-sm">
@@ -385,7 +385,7 @@ export default function MyNotesPage() {
                           • {new Date(note.timestamp).toLocaleDateString()}
                         </span>
                       </div>
-                      <p className="text-white/80 leading-relaxed">{note.note}</p>
+                      <p className="text-white/80 light:text-black/80 leading-relaxed">{note.note}</p>
                     </div>
                     <button
                       onClick={() => deleteNote(note.timestamp)}

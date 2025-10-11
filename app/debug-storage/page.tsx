@@ -30,20 +30,20 @@ export default function DebugStoragePage() {
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6 text-white">Debug: localStorage Contents</h1>
+      <h1 className="text-3xl font-bold mb-6 text-white light:text-black">Debug: localStorage Contents</h1>
 
       <div className="space-y-6">
         <div className="card">
           <h2 className="text-xl font-semibold mb-3 text-yellow-400">Notes (bc-notes)</h2>
           {storage.notes ? (
             <>
-              <p className="text-sm text-white/70 mb-2">Found {JSON.parse(storage.notes).length} notes</p>
-              <pre className="bg-black/30 p-4 rounded text-xs overflow-auto max-h-96 text-white/80">
+              <p className="text-sm text-white/70 light:text-black/70 mb-2">Found {JSON.parse(storage.notes).length} notes</p>
+              <pre className="bg-black/30 p-4 rounded text-xs overflow-auto max-h-96 text-white/80 light:text-black/80">
                 {JSON.stringify(JSON.parse(storage.notes), null, 2)}
               </pre>
             </>
           ) : (
-            <p className="text-white/60">No notes saved</p>
+            <p className="text-white/60 light:text-black/60">No notes saved</p>
           )}
         </div>
 
@@ -51,22 +51,22 @@ export default function DebugStoragePage() {
           <h2 className="text-xl font-semibold mb-3 text-yellow-400">Saved Studies (bc-saved-studies)</h2>
           {storage.savedStudies ? (
             <>
-              <p className="text-sm text-white/70 mb-2">Found {JSON.parse(storage.savedStudies).length} studies</p>
-              <pre className="bg-black/30 p-4 rounded text-xs overflow-auto max-h-96 text-white/80">
+              <p className="text-sm text-white/70 light:text-black/70 mb-2">Found {JSON.parse(storage.savedStudies).length} studies</p>
+              <pre className="bg-black/30 p-4 rounded text-xs overflow-auto max-h-96 text-white/80 light:text-black/80">
                 {JSON.stringify(JSON.parse(storage.savedStudies), null, 2)}
               </pre>
             </>
           ) : (
-            <p className="text-white/60">No studies saved</p>
+            <p className="text-white/60 light:text-black/60">No studies saved</p>
           )}
         </div>
 
         <div className="card">
           <h2 className="text-xl font-semibold mb-3 text-yellow-400">Preferences</h2>
           <div className="space-y-2 text-sm">
-            <p className="text-white/80">Theme: <span className="text-yellow-400">{storage.theme || "not set"}</span></p>
-            <p className="text-white/80">Study Style: <span className="text-yellow-400">{storage.style || "not set"}</span></p>
-            <p className="text-white/80">Font Scale: <span className="text-yellow-400">{storage.fontScale || "not set"}</span></p>
+            <p className="text-white/80 light:text-black/80">Theme: <span className="text-yellow-400">{storage.theme || "not set"}</span></p>
+            <p className="text-white/80 light:text-black/80">Study Style: <span className="text-yellow-400">{storage.style || "not set"}</span></p>
+            <p className="text-white/80 light:text-black/80">Font Scale: <span className="text-yellow-400">{storage.fontScale || "not set"}</span></p>
           </div>
         </div>
 

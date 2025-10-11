@@ -44,7 +44,7 @@ function CompareFourStylesLink({
 // ✅ Page component with default export
 export default function CreatePage() {
   return (
-    <main className="p-6 text-white">
+    <main className="p-6 text-white light:text-black">
       <h1 className="text-2xl font-bold mb-4">Create Page</h1>
       <CompareFourStylesLink variant="button" />
     </main>

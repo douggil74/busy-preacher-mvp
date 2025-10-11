@@ -54,15 +54,15 @@ export default function StyleTesterPage() {
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8">
-      <h1 className={`${playfair.className} text-4xl font-bold mb-2 text-white/95 text-center`}>
+      <h1 className={`${playfair.className} text-4xl font-bold mb-2 text-white/95 light:text-black/95 text-center`}>
         AI Style Comparison Tester
       </h1>
-      <p className="text-white/70 mb-8 text-center text-sm">
+      <p className="text-white/70 light:text-black/70 mb-8 text-center text-sm">
         Test how the same passage generates different outputs based on study style
       </p>
 
       <div className="card mb-8 max-w-2xl">
-        <label htmlFor="testPassage" className="mb-2 block text-sm text-white/80">
+        <label htmlFor="testPassage" className="mb-2 block text-sm text-white/80 light:text-black/80">
           Enter a Bible Passage to Test
         </label>
         <input
@@ -107,7 +107,7 @@ export default function StyleTesterPage() {
                   <p className="text-red-400">{result.error}</p>
                 ) : (
                   <>
-                    <h3 className="font-semibold text-lg mb-3 text-white/90">
+                    <h3 className="font-semibold text-lg mb-3 text-white/90 light:text-black/90">
                       {result.title}
                     </h3>
 
@@ -115,11 +115,11 @@ export default function StyleTesterPage() {
                       {result.points?.slice(0, 1).map((point: any, idx: number) => (
                         <div key={idx} className="border-l-2 border-yellow-400 pl-4">
                           <p className="font-semibold mb-1">{point.point}</p>
-                          <p className="text-sm text-white/80 mb-2">
-                            <span className="text-white/60">Why:</span> {point.why}
+                          <p className="text-sm text-white/80 light:text-black/80 mb-2">
+                            <span className="text-white/60 light:text-black/60">Why:</span> {point.why}
                           </p>
                           {point.illustration && (
-                            <p className="text-sm text-white/70 italic">
+                            <p className="text-sm text-white/70 light:text-black/70 italic">
                               {point.illustration.substring(0, 150)}...
                             </p>
                           )}
@@ -128,7 +128,7 @@ export default function StyleTesterPage() {
                     </div>
 
                     {result.points?.length > 1 && (
-                      <p className="text-xs text-white/50 mt-3">
+                      <p className="text-xs text-white/50 light:text-black/50 mt-3">
                         + {result.points.length - 1} more points
                       </p>
                     )}
@@ -142,7 +142,7 @@ export default function StyleTesterPage() {
 
       {Object.keys(results).length === 0 && (
         <div className="card text-center py-12">
-          <p className="text-white/60">
+          <p className="text-white/60 light:text-black/60">
             Enter a Bible passage above and click "Test All 4 Styles" to see the differences
           </p>
         </div>
@@ -150,7 +150,7 @@ export default function StyleTesterPage() {
 
       <div className="mt-8 card">
         <h3 className="font-semibold mb-3">What to Look For:</h3>
-        <ul className="text-sm text-white/80 space-y-2">
+        <ul className="text-sm text-white/80 light:text-black/80 space-y-2">
           <li>☕ <strong>Casual Devotional:</strong> Warm, short, practical, uses "you/we"</li>
           <li>📖 <strong>Bible Student:</strong> Explains terms, includes context, balanced</li>
           <li>👨‍🏫 <strong>Pastor / Teacher:</strong> Structured, memorable, sermon-ready</li>

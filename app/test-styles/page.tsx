@@ -1,7 +1,7 @@
 // app/test-styles/page.tsx
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Playfair_Display } from "next/font/google";
 import { useSearchParams } from "next/navigation";
 
@@ -29,18 +29,17 @@ type OutlineResult =
       application?: string;
     };
 
-const styles = ["Casual Devotional", "Bible Student", "Pastor / Teacher", "Theologian"] as const;
+const styles = ["Casual Devotional", "Bible Student", "Pastor / Teacher"] as const;
 type Mode = "passage" | "theme";
 
-export default function StyleTesterPage() {
-  const params = useSearchParams(); // ✅ you were missing this
+function StyleTesterContent() {
+  const params = useSearchParams();
 
   // pick up inputs from URL: ?mode=theme&theme=... OR ?passage=...
   const urlMode = (params.get("mode") as Mode) || (params.get("theme") ? "theme" : "passage");
   const urlPassage = params.get("passage") || "";
   const urlTheme = params.get("theme") || "";
 
-  // no hardcoded default "John 3:16"
   const [mode, setMode] = useState<Mode>(urlMode);
   const [passage, setPassage] = useState<string>(urlPassage);
   const [theme, setTheme] = useState<string>(urlTheme);
@@ -282,6 +281,15 @@ export default function StyleTesterPage() {
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8">
+        <button
+  onClick={() => window.history.back()}
+  className="mb-6 flex items-center gap-2 text-sm text-white/60 hover:text-white/90 transition-colors"
+>
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+  </svg>
+  Back
+</button>
       <h1 className={`${playfair.className} text-4xl font-bold mb-2 text-white/95 text-center`}>
         Compare All Tones of Output
       </h1>
@@ -313,7 +321,7 @@ export default function StyleTesterPage() {
         </button>
       </div>
 
-      {/* Input card (no duplicates, conditional render) */}
+      {/* Input card */}
       <div className="card mb-8 max-w-2xl">
         {mode === "passage" ? (
           <>
@@ -379,7 +387,7 @@ export default function StyleTesterPage() {
         <div className="card text-center py-12 max-w-3xl">
           <p className="text-white/60 mb-4">
             Enter a {mode === "passage" ? "passage" : "theme"} above and click{" "}
-            <span className="font-semibold">“Test All 4 Styles”</span> to compare the tones
+            <span className="font-semibold">"Test All 4 Styles"</span> to compare the tones
           </p>
           <div className="text-left max-w-md mx-auto">
             <h3 className="font-semibold mb-3 text-white/90">What to Look For:</h3>
@@ -404,5 +412,17 @@ export default function StyleTesterPage() {
 
       {openStyle && <Modal style={openStyle} />}
     </main>
+  );
+}
+
+export default function StyleTesterPage() {
+  return (
+    <Suspense fallback={
+      <div className="mx-auto max-w-7xl px-4 py-8 text-center">
+        <p className="text-white/60">Loading...</p>
+      </div>
+    }>
+      <StyleTesterContent />
+    </Suspense>
   );
 }

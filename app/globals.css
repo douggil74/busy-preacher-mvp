@@ -2,119 +2,136 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ========================================
+   ROOT & DEFAULTS
+   ======================================== */
 :root {
   color-scheme: dark;
   --bc-font-scale: 1;
 }
 
-html, body, #__next {
-  height: 100%;
+html, 
+body, 
+#__next { 
+  height: 100%; 
 }
 
-/* Beautiful blue gradient background - ALWAYS visible */
+html { 
+  font-size: calc(1rem * var(--bc-font-scale, 1)); 
+}
+
 body {
   @apply bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100;
   font-family: system-ui, sans-serif;
   transition: color 0.3s;
 }
 
-/* Font scale */
-html {
-  font-size: calc(1rem * var(--bc-font-scale, 1));
+/* Better text wrapping */
+h1, h2, h3 { 
+  text-wrap: balance; 
+  hyphens: auto; 
 }
 
-/* Better wrapping for long headings on mobile */
-h1, h2, h3 {
-  text-wrap: balance;
-  hyphens: auto;
+/* ========================================
+   THEME SWITCHING (Dark/Light)
+   ======================================== */
+html.dark { 
+  color-scheme: dark; 
 }
 
-/* INPUTS – gold border */
+html.light {
+  color-scheme: light;
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* Protect media from inversion in light mode */
+html.light img,
+html.light video,
+html.light canvas,
+html.light svg,
+html.light picture,
+html.light [data-keep-colors],
+html.light .no-invert,
+html.light [data-bg] {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-border {
+  0%, 100% {
+    border-color: rgba(248, 113, 113, 0.5);
+  }
+  50% {
+    border-color: rgba(248, 113, 113, 1);
+  }
+}
+
+@keyframes bp-indeterminate {
+  0% { 
+    left: -35%; 
+    right: 100%; 
+  }
+  60% { 
+    left: 100%; 
+    right: -90%; 
+  }
+  100% { 
+    left: 100%; 
+    right: -90%; 
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out forwards;
+}
+
+.animate-pulse-border {
+  animation: pulse-border 2s ease-in-out infinite;
+}
+
+/* ========================================
+   FORM ELEMENTS
+   ======================================== */
 .input {
   @apply w-full rounded-2xl border-2 border-[#FFD966] bg-transparent px-4 py-3 text-base outline-none text-white placeholder:text-white/40 focus:ring-2 focus:ring-[#FFD966]/50 focus:border-[#FFD966] transition;
 }
 
-/* Light mode input adjustments */
-body.light-mode .input {
-  @apply text-slate-900 placeholder:text-slate-500;
-}
-
-/* BUTTONS */
+/* ========================================
+   BUTTONS
+   ======================================== */
 .btn {
   @apply inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/10 px-5 py-3 font-medium backdrop-blur hover:bg-white/15 active:scale-[0.99] transition;
 }
 
-/* CARDS - This is where light mode affects things */
+/* ========================================
+   CARDS
+   ======================================== */
 .card {
-  @apply w-full max-w-3xl mx-auto
-         rounded-2xl
-         border border-white/10 bg-white/5
-         p-6
-         shadow-soft backdrop-blur-xl;
+  @apply w-full max-w-3xl mx-auto rounded-2xl border border-white/10 bg-white/5 p-6 shadow-soft backdrop-blur-xl;
 }
 
-/* Wider cards for deep study page */
 .deep-study-card {
-  @apply w-full max-w-5xl mx-auto
-         rounded-2xl
-         border border-white/10 bg-white/5
-         p-6
-         shadow-soft backdrop-blur-xl;
+  @apply w-full max-w-5xl mx-auto rounded-2xl border border-white/10 bg-white/5 p-6 shadow-soft backdrop-blur-xl;
 }
 
-/* Light mode ONLY affects cards and their content */
-body.light-mode .card,
-body.light-mode section {
-  @apply bg-white/90 text-slate-900 border-slate-200;
-}
-
-body.light-mode .card input,
-body.light-mode section input {
-  @apply text-slate-900 placeholder:text-slate-500 border-yellow-500;
-}
-
-body.light-mode .card button,
-body.light-mode section button {
-  @apply text-slate-900;
-}
-
-body.light-mode .card .text-white\/70,
-body.light-mode section .text-white\/70,
-body.light-mode .card .text-white\/80,
-body.light-mode section .text-white\/80,
-body.light-mode .card .text-white\/60,
-body.light-mode section .text-white\/60 {
-  @apply text-slate-700;
-}
-
-body.light-mode .card .opacity-70,
-body.light-mode section .opacity-70 {
-  @apply opacity-100;
-}
-
-/* Light mode popover */
-body.light-mode .hover-popover {
-  @apply bg-white/95 text-slate-900 border-slate-300;
-}
-
-body.light-mode .hover-popover .text-white\/60 {
-  @apply text-slate-600;
-}
-
-body.light-mode .hover-popover button {
-  @apply text-slate-900;
-}
-
-/* BADGE */
+/* ========================================
+   BADGES & STATUS
+   ======================================== */
 .badge {
   @apply inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-wide text-white/70;
-}
-
-/* Status bar (indeterminate) */
-@keyframes bp-indeterminate {
-  0% { left: -35%; right: 100%; }
-  60% { left: 100%; right: -90%; }
-  100% { left: 100%; right: -90%; }
 }
 
 .statusbar {
@@ -122,7 +139,7 @@ body.light-mode .hover-popover button {
   width: 100%;
   height: 6px;
   border-radius: 9999px;
-  background: rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.08);
   overflow: hidden;
 }
 
@@ -130,12 +147,15 @@ body.light-mode .hover-popover button {
   position: absolute;
   height: 100%;
   border-radius: 9999px;
-  background: rgba(255,255,255,0.45);
+  background: rgba(255, 255, 255, 0.45);
   animation: bp-indeterminate 1.4s ease-in-out infinite;
 }
 
+/* ========================================
+   UTILITIES
+   ======================================== */
 @layer utilities {
-  /* Use safe-area on notched iPhones, fallback to small padding */
+  /* Safe area padding for notched devices */
   .px-safe {
     padding-left: max(0.75rem, env(safe-area-inset-left));
     padding-right: max(0.75rem, env(safe-area-inset-right));

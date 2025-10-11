@@ -619,7 +619,7 @@ export default function Page(): JSX.Element {
   return (
     <main className="py-8">
       <section className="mx-auto max-w-3xl rounded-2xl border border-white/10 bg-white/5 p-6 shadow-sm">
-        <p className="mb-5 text-sm text-white/70">Study faster. Stay accurate. Enjoy.</p>
+        <p className="mb-5 text-sm text-white/70 light:text-black/70">Study faster. Stay accurate. Enjoy.</p>
 
         {savedStudies.length > 0 && (
           <button
@@ -640,9 +640,9 @@ export default function Page(): JSX.Element {
                 <div key={study.timestamp} className="flex items-center justify-between gap-2 p-2 rounded hover:bg-white/5">
                   <button
                     onClick={() => loadSavedStudy(study)}
-                    className="flex-1 text-left text-sm text-white/80 hover:text-white truncate"
+                    className="flex-1 text-left text-sm text-white/80 light:text-black/80 hover:text-white light:text-black truncate"
                   >
-                    <span className="text-xs text-white/50 mr-2">
+                    <span className="text-xs text-white/50 light:text-black/50 mr-2">
                       {new Date(study.timestamp).toLocaleDateString()}
                     </span>
                     {study.reference}
@@ -662,7 +662,7 @@ export default function Page(): JSX.Element {
 
         <div className="space-y-4">
           <div>
-            <label htmlFor="mainPassage" className="mb-2 block text-sm text-white/80">
+            <label htmlFor="mainPassage" className="mb-2 block text-sm text-white/80 light:text-black/80">
               Passage (ESV)
             </label>
             <input
@@ -675,7 +675,7 @@ export default function Page(): JSX.Element {
           </div>
 
           <div>
-            <label htmlFor="theme" className="mb-2 block text-sm text-white/80">
+            <label htmlFor="theme" className="mb-2 block text-sm text-white/80 light:text-black/80">
               Topic (optional)
             </label>
             <input
@@ -728,7 +728,7 @@ export default function Page(): JSX.Element {
                 style={{ width: `${progress}%`, animation: progress > 0 ? undefined : 'none' }}
               />
             </div>
-            <div className="h-4 text-center text-xs text-white/60">{progress > 0 ? statusWord : " "}</div>
+            <div className="h-4 text-center text-xs text-white/60 light:text-black/60">{progress > 0 ? statusWord : " "}</div>
           </div>
 
           {topError && (
@@ -740,7 +740,7 @@ export default function Page(): JSX.Element {
           {combinedOutline && (
             <div className="card mt-2">
               <h3 className="text-lg font-semibold">{combinedOutline.title}</h3>
-              <p className="text-sm text-white/70">
+              <p className="text-sm text-white/70 light:text-black/70">
                 {combinedOutline.reference ? <>Text: {combinedOutline.reference}</> : null}
                 {combinedOutline.reference && combinedOutline.topic ? " • " : null}
                 {combinedOutline.topic ? <>Topic: {combinedOutline.topic}</> : null}
@@ -788,7 +788,7 @@ export default function Page(): JSX.Element {
               <h3 className="text-lg font-semibold">
                 {passageOutline.title || passageOutline.reference}
               </h3>
-              <p className="text-sm text-white/70">Text: {passageOutline.reference}</p>
+              <p className="text-sm text-white/70 light:text-black/70">Text: {passageOutline.reference}</p>
               <ol className="mt-3 list-decimal space-y-4 pl-5">
                 {passageOutline.points.map((p: any, i: number) => (
                   <li key={i} className="space-y-2">
@@ -830,7 +830,7 @@ export default function Page(): JSX.Element {
           {!combinedOutline && themeOutline && (
             <div className="card mt-2">
               <h3 className="text-lg font-semibold">{themeOutline.title || themeOutline.topic}</h3>
-              <p className="text-sm text-white/70">Topic: {themeOutline.topic}</p>
+              <p className="text-sm text-white/70 light:text-black/70">Topic: {themeOutline.topic}</p>
               <ol className="mt-3 list-decimal space-y-4 pl-5">
                 {themeOutline.points.map((p: any, i: number) => (
                   <li key={i} className="space-y-2">
@@ -928,7 +928,7 @@ export default function Page(): JSX.Element {
                       {currentRefNotes.map((note) => (
                         <div key={note.timestamp} className="rounded-lg border border-white/10 bg-white/5 p-3">
                           <div className="flex items-start justify-between gap-2">
-                            <p className="text-sm text-white/80 flex-1">{note.note}</p>
+                            <p className="text-sm text-white/80 light:text-black/80 flex-1">{note.note}</p>
                             <button
                               onClick={() => deleteNote(note.timestamp)}
                               className="text-red-400 hover:text-red-300 text-xs"
@@ -957,7 +957,7 @@ export default function Page(): JSX.Element {
       >
         <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
           <div>
-            <label htmlFor="bpPassage" className="mb-2 block text-sm text-white/80">
+            <label htmlFor="bpPassage" className="mb-2 block text-sm text-white/80 light:text-black/80">
               Passage (ESV)
             </label>
             <input
@@ -1019,7 +1019,7 @@ export default function Page(): JSX.Element {
 
         <div className="mt-5">
           {!bpText ? (
-            <p className="text-white/60 text-sm">
+            <p className="text-white/60 light:text-black/60 text-sm">
               Enter a reference and click <span className="font-semibold">Get ESV</span>. Hover any
               word for a simple, plain-English original language note; click to pin/unpin. Use{" "}
               <span className="font-semibold">Study Deeper</span> for commentaries and cross-references.
@@ -1053,7 +1053,7 @@ export default function Page(): JSX.Element {
         >
           <div className="pointer-events-auto">
             <div className="mb-1 flex items-center justify-between gap-2">
-              <div className="text-xs uppercase tracking-wide text-white/60">Word for Today</div>
+              <div className="text-xs uppercase tracking-wide text-white/60 light:text-black/60">Word for Today</div>
               <button
                 onClick={() => setPopoverPinned((p) => !p)}
                 className="btn text-xs px-2 py-1"
@@ -1064,9 +1064,9 @@ export default function Page(): JSX.Element {
 
             <div className="text-base font-semibold">{activeWord}</div>
             <div className="mt-1 grid grid-cols-[80px_1fr] gap-x-3 gap-y-1">
-              <div className="text-xs text-white/60">Lemma</div>
+              <div className="text-xs text-white/60 light:text-black/60">Lemma</div>
               <div className="text-sm">{hoverData?.lemma ?? "…"}</div>
-              <div className="text-xs text-white/60">Strong's #</div>
+              <div className="text-xs text-white/60 light:text-black/60">Strong's #</div>
               <div className="text-sm">{hoverData?.strongs ?? "…"}</div>
             </div>
 
@@ -1077,7 +1077,7 @@ export default function Page(): JSX.Element {
         </div>
       )}
 
-      <p id="disclaimer" className="mt-10 text-center text-xs italic text-white/50">
+      <p id="disclaimer" className="mt-10 text-center text-xs italic text-white/50 light:text-black/50">
         {DISCLAIMER}
       </p>
 

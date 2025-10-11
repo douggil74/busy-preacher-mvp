@@ -444,7 +444,39 @@ export default function Page(): JSX.Element {
     setTopError(null);
     setCombinedOutline(null);
   };
+}; // End of onSubmit
 
+const handleEmailSignup = async () => {
+  setEmailSubmitting(true);
+  try {
+    const response = await fetch("/api/subscribe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        email: emailInput,
+        source: "post-study-modal"
+      }),
+    });
+
+    if (response.ok) {
+      setEmailSuccess(true);
+      setTimeout(() => {
+        setShowEmailModal(false);
+        setEmailSuccess(false);
+        setEmailInput("");
+      }, 2000);
+    } else {
+      alert("Failed to subscribe. Please try again.");
+    }
+  } catch (error) {
+    alert("Failed to subscribe. Please try again.");
+  } finally {
+    setEmailSubmitting(false);
+  }
+};
+
+return (
+  // ... your JSX starts here
     // Add this function after onSubmit and before the return statement
 
     setEmailSubmitting(true);

@@ -30,6 +30,10 @@ const ESV_NOTICE =
   "Copyright © 2001 by Crossway, a publishing ministry of Good News Publishers. " +
   "Used by permission. All rights reserved. ESV® is a registered trademark of Good News Publishers.";
 
+const [showEmailModal, setShowEmailModal] = useState(false);
+const [emailInput, setEmailInput] = useState("");
+const [emailSubmitting, setEmailSubmitting] = useState(false);
+const [emailSuccess, setEmailSuccess] = useState(false);
 interface SavedStudy {
   reference: string;
   timestamp: number;
@@ -296,7 +300,7 @@ export default function Page(): JSX.Element {
       setShowCrisisModal(true);
     }
   }, [insight]);
-  
+
   const displayIcon = hydrated 
     ? (displayStyle === "Casual Devotional" ? "☕" 
        : displayStyle === "Bible Student" ? "📖" 
@@ -439,7 +443,34 @@ export default function Page(): JSX.Element {
   const onSubmit = async () => {
     setTopError(null);
     setCombinedOutline(null);
-  
+    const handleEmailSignup = async () => {
+      setEmailSubmitting(true);
+      try {
+        const response = await fetch("/api/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            email: emailInput,
+            source: "post-study-modal"
+          }),
+        });
+    
+        if (response.ok) {
+          setEmailSuccess(true);
+          setTimeout(() => {
+            setShowEmailModal(false);
+            setEmailSuccess(false);
+            setEmailInput("");
+          }, 2000);
+        } else {
+          alert("Failed to subscribe. Please try again.");
+        }
+      } catch (error) {
+        alert("Failed to subscribe. Please try again.");
+      } finally {
+        setEmailSubmitting(false);
+      }
+    };
     const wantsPassage = !!passageRef.trim();
     const wantsTheme = !!theme.trim();
     if (!wantsPassage && !wantsTheme) {
@@ -478,7 +509,15 @@ export default function Page(): JSX.Element {
       setShowCrisisModal(true);
       progressTracker.sendCrisisAlert(searchText);
     }
-  
+  // After progress tracking, check if first study
+const studies = typeof window !== 'undefined' 
+? JSON.parse(localStorage.getItem("bc-saved-studies") || "[]")
+: [];
+
+if (studies.length === 1) {
+// Show email modal after first study
+setTimeout(() => setShowEmailModal(true), 2000);
+}
     setTopLoading(true);
     try {
       if (wantsPassage && wantsTheme) {
@@ -1319,7 +1358,64 @@ export default function Page(): JSX.Element {
           Manage Your Data & Privacy
         </button>
       </div>
+{/* Email Signup Modal */}
+{showEmailModal && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="bg-white rounded-lg p-8 max-w-md w-full shadow-2xl">
+      {emailSuccess ? (
+        <div className="text-center">
+          <div className="text-6xl mb-4">✅</div>
+          <h2 className="text-2xl font-bold text-green-600 mb-2">
+            You're subscribed!
+          </h2>
+          <p className="text-gray-600">Check your email for confirmation.</p>
+        </div>
+      ) : (
+        <>
+          <div className="text-center mb-6">
+            <div className="text-5xl mb-4">🎉</div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">
+              Loved this study guide?
+            </h2>
+            <p className="text-gray-600">
+              Get notified when we add new features, translations, and tools!
+            </p>
+          </div>
 
+          <input
+            type="email"
+            placeholder="Enter your email"
+            value={emailInput}
+            onChange={(e) => setEmailInput(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={emailSubmitting}
+          />
+
+          <div className="flex gap-3">
+            <button
+              onClick={handleEmailSignup}
+              disabled={emailSubmitting || !emailInput}
+              className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+            >
+              {emailSubmitting ? "Subscribing..." : "Yes, keep me updated"}
+            </button>
+            <button
+              onClick={() => setShowEmailModal(false)}
+              disabled={emailSubmitting}
+              className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+            >
+              No thanks
+            </button>
+          </div>
+
+          <p className="text-xs text-gray-500 text-center mt-4">
+            Optional - you can still use the app anonymously. Unsubscribe anytime.
+          </p>
+        </>
+      )}
+    </div>
+  </div>
+)}
       <footer className="mt-8 text-center text-xs text-white/40">
         © Douglas M. Gilford – The Busy Christian • v{APP_VERSION}
       </footer>

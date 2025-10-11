@@ -443,7 +443,7 @@ export default function Page(): JSX.Element {
   const onSubmit = async () => {
     setTopError(null);
     setCombinedOutline(null);
-  };
+  
 }; // End of onSubmit
 
 const handleEmailSignup = async () => {

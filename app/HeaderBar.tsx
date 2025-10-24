@@ -27,19 +27,13 @@ function HeaderBarContent() {
   const [isDark, setIsDark] = useState<boolean>(true);
   const [mounted, setMounted] = useState(false);
 
-  // ✅ Single source of truth for style
   const { style, hydrated } = useStudyStyle();
-
-  // Optional passage reference chip from URL (kept)
   const searchParams = useSearchParams();
   const reference = searchParams.get("reference") || "";
 
-  // Display style safely during hydration
   const displayStyle = hydrated ? style : ("…" as typeof style);
-  const displayIcon =
-    (hydrated && studyStyleIcons[style]) || ("✨" as string);
+  const displayIcon = (hydrated && studyStyleIcons[style]) || ("✨" as string);
 
-  // Theme / font-size bootstrapping
   useEffect(() => {
     setMounted(true);
     const t = (localStorage.getItem("bc-theme") as "dark" | "light") || "dark";
@@ -87,6 +81,14 @@ function HeaderBarContent() {
   const inc = () =>
     setScale((s) => Math.min(1.4, Math.round((s + 0.1) * 10) / 10));
 
+  const handleSettingsClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setOpen(false);
+    
+    // Dispatch custom event that pages can listen to
+    window.dispatchEvent(new CustomEvent('openSettings'));
+  };
+
   return (
     <header className="sticky top-0 z-40 backdrop-blur bg-black/10 border-b border-white/10">
       <div className="mx-auto max-w-3xl px-4 py-4 flex items-center justify-between">
@@ -121,10 +123,10 @@ function HeaderBarContent() {
 
         {/* Controls */}
         <div className="flex items-center gap-2">
-          {/* ✅ Style indicator (uses context) */}
+          {/* Style indicator */}
           <Link
             href="/personalize"
-            className="hidden md:flex items-center gap-2 rounded-xl border border-white/10 px-3 h-9 hover:bg-white/10 text-sm"
+            className="hidden md:flex items-center gap-2 rounded-xl border border-white/10 px-3 h-9 hover:bg-white/10 text-sm transition-colors"
             title={`Current style: ${displayStyle}; Click to change.`}
           >
             <span className="text-base">{displayIcon}</span>
@@ -136,7 +138,7 @@ function HeaderBarContent() {
           {/* Font resize */}
           <div className="hidden sm:flex rounded-xl border border-white/10 overflow-hidden">
             <button
-              className="px-2 py-1 text-sm hover:bg-white/10"
+              className="px-2 py-1 text-sm hover:bg-white/10 transition-colors"
               onClick={dec}
               aria-label="Decrease font size"
             >
@@ -144,7 +146,7 @@ function HeaderBarContent() {
             </button>
             <div className="w-px bg-white/10" />
             <button
-              className="px-2 py-1 text-sm hover:bg-white/10"
+              className="px-2 py-1 text-sm hover:bg-white/10 transition-colors"
               onClick={inc}
               aria-label="Increase font size"
             >
@@ -155,20 +157,20 @@ function HeaderBarContent() {
           {/* Light/dark toggle */}
           <button
             onClick={() => setIsDark((v) => !v)}
-            className="rounded-xl border border-white/10 px-3 h-9 hover:bg-white/10 text-sm flex items-center gap-1"
+            className="rounded-xl border border-white/10 px-3 h-9 hover:bg-white/10 text-sm flex items-center gap-1 transition-colors"
             title="Toggle light/dark mode"
           >
             <span suppressHydrationWarning>{isDark ? "Light" : "Dark"}</span>
           </button>
 
-          {/* Menu */}
+          {/* Navigation Menu */}
           <div className="relative">
             <button
-              className="text-3xl leading-none rounded-xl border border-white/10 px-3 h-9 hover:bg-white/10"
+              className="text-3xl leading-none rounded-xl border border-white/10 px-3 h-9 hover:bg-white/10 transition-colors"
               onClick={() => setOpen((o) => !o)}
               aria-haspopup="menu"
               aria-expanded={open}
-              aria-label="Toggle menu"
+              aria-label="Toggle navigation menu"
             >
               {open ? "×" : "☰"}
             </button>
@@ -181,56 +183,101 @@ function HeaderBarContent() {
               >
                 <Link
                   href="/"
-                  className="block rounded-lg px-3 py-2 hover:bg-white/10"
+                  className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+                  onClick={() => setOpen(false)}
                 >
                   Home
                 </Link>
                 <Link
                   href="/deep-study"
-                  className="block rounded-lg px-3 py-2 hover:bg-white/10"
+                  className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+                  onClick={() => setOpen(false)}
                 >
                   Deep Study
                 </Link>
                 <Link
                   href="/library"
-                  className="block rounded-lg px-3 py-2 hover:bg-white/10"
+                  className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+                  onClick={() => setOpen(false)}
                 >
                   My Library
                 </Link>
-
                 <Link
-                  href="/test-styles"
-                  className="block rounded-lg px-3 py-2 text-white font-semibold hover:bg-white/10"
+                  href="/courses"
+                  className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+                  onClick={() => setOpen(false)}
                 >
-                  Comparison
+                  Study Courses
                 </Link>
 
                 <div className="border-t border-white/10 my-1" />
 
                 <Link
+                  href="/test-styles"
+                  className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  Comparison
+                </Link>
+                <Link
                   href="/personalize"
-                  className="block rounded-lg px-3 py-2 hover:bg-white/10"
+                  className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+                  onClick={() => setOpen(false)}
                 >
                   Personalize
                 </Link>
+                
+                <div className="border-t border-white/10 my-1" />
+                
                 <Link
                   href="/about"
-                  className="block rounded-lg px-3 py-2 hover:bg-white/10"
+                  className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+                  onClick={() => setOpen(false)}
                 >
                   About
                 </Link>
                 <Link
                   href="/help"
-                  className="block rounded-lg px-3 py-2 hover:bg-white/10"
+                  className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+                  onClick={() => setOpen(false)}
                 >
                   Help
                 </Link>
                 <Link
                   href="/contact"
-                  className="block rounded-lg px-3 py-2 hover:bg-white/10"
+                  className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+                  onClick={() => setOpen(false)}
                 >
                   Contact
                 </Link>
+
+                <div className="border-t border-white/10 my-1" />
+                
+                <button
+                  onClick={handleSettingsClick}
+                  className="w-full text-left rounded-lg px-3 py-2 hover:bg-white/10 transition-colors flex items-center gap-2"
+                >
+                  <svg 
+                    className="w-4 h-4 text-white/60" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" 
+                    />
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" 
+                    />
+                  </svg>
+                  Settings
+                </button>
               </div>
             )}
           </div>

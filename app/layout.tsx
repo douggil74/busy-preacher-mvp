@@ -1,37 +1,60 @@
-// app/layout.tsx
-"use client";
+import { StudyStyleProvider } from './hooks/useStudyStyle';
+import HeaderBar from './HeaderBar';
+import './globals.css';
 
-import "./globals.css";
-import HeaderBar from "./HeaderBar";
-import { Playfair_Display } from "next/font/google";
-import { StudyStyleProvider } from "./hooks/useStudyStyle";
+export const metadata = {
+  title: 'The Busy Christian',
+  description: 'Your daily companion for spiritual growth',
+  manifest: '/manifest.json',
+  icons: {
+    icon: '/icons/ios/32.png',
+    shortcut: '/icons/ios/32.png',
+    apple: '/icons/ios/180.png',
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'The Busy Christian',
+  },
+  themeColor: '#0f172a',
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+  },
+};
 
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  variable: "--font-brand",
-  display: "swap",
-});
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="en" className={playfair.variable}>
+    <html lang="en">
       <head>
-        <title>The Busy Christian</title>
-        <meta
-          name="description"
-          content="The Busy Christian — a personal and accurate Bible study helper."
-        />
+        {/* PWA Meta Tags */}
+        <meta name="application-name" content="The Busy Christian" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="The Busy Christian" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        
+        {/* Apple Touch Icons */}
+        <link rel="apple-touch-icon" sizes="180x180" href="/icons/ios/180.png" />
+        <link rel="apple-touch-icon" sizes="152x152" href="/icons/ios/152.png" />
+        <link rel="apple-touch-icon" sizes="120x120" href="/icons/ios/120.png" />
+        
+        {/* Standard Icons */}
+        <link rel="icon" type="image/png" sizes="32x32" href="/icons/ios/32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/icons/ios/16.png" />
+        
+        {/* Manifest */}
+        <link rel="manifest" href="/manifest.json" />
       </head>
-      <body className="min-h-screen bg-slate-950 text-white antialiased transition-colors duration-300">
-        {/* Shared source of truth for study style across Header + pages */}
+      <body>
         <StudyStyleProvider>
           <HeaderBar />
-
-          {/* Consistent page title under header (kept for spacing/consistency) */}
-          <div className="text-center mt-6 mb-8"></div>
-
-          <main className="mx-auto max-w-4xl px-4">{children}</main>
+          {children}
         </StudyStyleProvider>
       </body>
     </html>

@@ -1,61 +1,54 @@
 // app/api/subscribe/route.ts
-import { NextResponse } from "next/server";
-import { sql } from "@vercel/postgres";
+// Email yourself when someone subscribes - works everywhere!
+
+import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
-import crypto from "crypto";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
-export async function POST(request: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const { email, source = "post-study" } = await request.json();
+    const { email, source = "homepage" } = await req.json();
 
-    // Validate email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email || !emailRegex.test(email)) {
+    // Basic email validation
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json(
         { error: "Invalid email address" },
         { status: 400 }
       );
     }
 
-    // Generate unsubscribe token
-    const unsubscribeToken = crypto.randomBytes(32).toString("hex");
+    const normalizedEmail = email.toLowerCase().trim();
+    const timestamp = new Date().toISOString();
 
-    // Insert email (ignore if already exists)
-    await sql`
-      INSERT INTO email_subscribers (email, source, unsubscribe_token)
-      VALUES (${email.toLowerCase()}, ${source}, ${unsubscribeToken})
-      ON CONFLICT (email) DO NOTHING
-    `;
-
-    // Send welcome email
+    // Email yourself with the subscriber info
     await resend.emails.send({
-      from: "The Busy Christian <onboarding@resend.dev>",
-      to: email,
-      subject: "✅ You're subscribed to The Busy Christian updates!",
-      text: `
-Welcome to The Busy Christian community!
-
-You'll receive updates about:
-- New Bible translations
-- Study sharing features
-- Printable study templates
-- New features and improvements
-
-We respect your inbox - we only send important updates (usually 1-2 per month).
-
----
-Unsubscribe anytime: ${APP_URL}/unsubscribe?token=${unsubscribeToken}
-`,
+      from: "The Busy Christian <onboarding@resend.dev>", // Change this to your verified domain later
+      to: process.env.ADMIN_EMAIL || "your-email@example.com", // YOUR email here
+      subject: `🎉 New Subscriber: ${normalizedEmail}`,
+      html: `
+        <h2>New Subscriber!</h2>
+        <p><strong>Email:</strong> ${normalizedEmail}</p>
+        <p><strong>Source:</strong> ${source}</p>
+        <p><strong>Time:</strong> ${new Date(timestamp).toLocaleString()}</p>
+        <hr>
+        <p style="color: #666; font-size: 12px;">
+          Add this to your email list: ${normalizedEmail}
+        </p>
+      `,
     });
 
-    return NextResponse.json({ success: true });
-  } catch (error: any) {
+    console.log(`✅ New subscriber: ${normalizedEmail} (${source})`);
+
+    return NextResponse.json({
+      message: "Successfully subscribed! 🎉",
+      success: true
+    });
+
+  } catch (error) {
     console.error("Subscribe error:", error);
     return NextResponse.json(
-      { error: error?.message || "Failed to subscribe" },
+      { error: "Failed to subscribe. Please try again." },
       { status: 500 }
     );
   }

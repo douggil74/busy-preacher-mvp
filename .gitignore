@@ -10,3 +10,6 @@ yarn.lock
 pnpm-lock.yaml
 .vercel
 .env*.local
+
+# Email subscriber data
+data/subscribers.txt

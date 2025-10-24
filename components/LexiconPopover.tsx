@@ -28,8 +28,9 @@ type Ctx = {
   setAnchor: (a: Anchor | null) => void;
   entry: Entry | null;
   setEntry: (e: Entry | null) => void;
+  isMobile: boolean;
 
-  // cross-element hover coordination
+  // cross-element hover coordination (desktop only)
   scheduleClose: () => void;
   cancelClose: () => void;
 };
@@ -41,18 +42,38 @@ export const LexiconPopover = {
     const [openTerm, setOpenTerm] = useState<string | null>(null);
     const [anchor, setAnchor] = useState<Anchor | null>(null);
     const [entry, setEntry] = useState<Entry | null>(null);
+    const [isMobile, setIsMobile] = useState(false);
 
-    // shared close timer so Trigger and Panel can coordinate hover-out closing
+    // 🔧 FIXED: Detect mobile primarily by screen width (works in DevTools mobile mode)
+    useEffect(() => {
+      const checkMobile = () => {
+        // Primary: screen width (works in DevTools mobile emulation)
+        // Secondary: touch support (works on real devices)
+        const mobile = window.innerWidth < 768 || 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        console.log('🔍 Mobile detection:', mobile, {
+          width: window.innerWidth,
+          hasTouch: 'ontouchstart' in window,
+          touchPoints: navigator.maxTouchPoints
+        });
+        setIsMobile(mobile);
+      };
+      checkMobile();
+      window.addEventListener('resize', checkMobile);
+      return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
+    // shared close timer so Trigger and Panel can coordinate hover-out closing (desktop only)
     const closeTimer = useRef<number | null>(null);
 
     const scheduleClose = () => {
+      if (isMobile) return; // Don't auto-close on mobile
       if (closeTimer.current) window.clearTimeout(closeTimer.current);
       closeTimer.current = window.setTimeout(() => {
         setOpenTerm(null);
         setAnchor(null);
         setEntry(null);
         closeTimer.current = null;
-      }, 120); // small grace so you can move into the panel
+      }, 120);
     };
 
     const cancelClose = () => {
@@ -70,17 +91,16 @@ export const LexiconPopover = {
         setAnchor,
         entry,
         setEntry,
+        isMobile,
         scheduleClose,
         cancelClose,
       }),
-      [openTerm, anchor, entry]
+      [openTerm, anchor, entry, isMobile]
     );
 
     return <PopCtx.Provider value={value}>{children}</PopCtx.Provider>;
   },
 
-  // Renders a SPAN (not a button) to avoid nested <button> issues.
-  // Hover shows popover; leaving schedules close; clicking copies the term.
   Trigger: ({ term, children }: { term: string; children: React.ReactNode }) => {
     const ctx = useContext(PopCtx)!;
     const ref = useRef<HTMLSpanElement>(null);
@@ -97,20 +117,40 @@ export const LexiconPopover = {
       });
       ctx.setOpenTerm(term);
       ctx.setEntry(null);
+      console.log('✅ Opened popover for:', term, 'isMobile:', ctx.isMobile);
+    }
+
+    function closePopover() {
+      ctx.setOpenTerm(null);
+      ctx.setAnchor(null);
+      ctx.setEntry(null);
+      console.log('❌ Closed popover');
     }
 
     function handleMouseEnter() {
+      if (ctx.isMobile) return; // Ignore hover on mobile
       ctx.cancelClose();
       openPopover();
     }
 
     function handleMouseLeave() {
+      if (ctx.isMobile) return; // Ignore hover on mobile
       ctx.scheduleClose();
     }
 
-    function handleClick() {
-      // copy the word; keep hover behavior (not sticky)
-      navigator.clipboard.writeText(term).catch(() => {});
+    function handleClick(e: React.MouseEvent) {
+      console.log('👆 Click event, isMobile:', ctx.isMobile);
+      if (ctx.isMobile) {
+        e.preventDefault();
+        if (ctx.openTerm === term) {
+          closePopover();
+        } else {
+          openPopover();
+        }
+      } else {
+        // Desktop: copy the word on click
+        navigator.clipboard.writeText(term).catch(() => {});
+      }
     }
 
     return (
@@ -122,12 +162,16 @@ export const LexiconPopover = {
         className="underline underline-offset-4 decoration-[1.5px] hover:opacity-80 cursor-pointer"
         style={{ textDecorationColor: "#FFD966" }}
         role="button"
+        data-lexicon-trigger="true"
         tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            handleClick();
-            openPopover();
+            if (ctx.openTerm === term) {
+              closePopover();
+            } else {
+              openPopover();
+            }
           }
         }}
       >
@@ -141,6 +185,7 @@ export const LexiconPopover = {
     const panelRef = useRef<HTMLDivElement>(null);
     const [busy, setBusy] = useState(false);
     const [pos, setPos] = useState<{ top: number; left: number; width: number } | null>(null);
+    const [countdown, setCountdown] = useState(5);
 
     // Fetch entry when term opens/changes
     useEffect(() => {
@@ -176,14 +221,13 @@ export const LexiconPopover = {
         return;
       }
 
-      const padding = 12;
+      const padding = ctx.isMobile ? 16 : 12;
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-      const maxWidth = 360;
-      const width = Math.min(maxWidth, vw - 32); // 16px margins on both sides
+      const maxWidth = ctx.isMobile ? Math.min(340, vw - 32) : 360;
+      const width = Math.min(maxWidth, vw - 32);
 
       const panel = panelRef.current;
-      // Temporarily place it to measure height
       panel.style.visibility = "hidden";
       panel.style.left = "0px";
       panel.style.top = "0px";
@@ -191,33 +235,33 @@ export const LexiconPopover = {
 
       const height = panel.offsetHeight;
 
-      // Prefer below
-      let left = ctx.anchor.x - 6;
-      left = Math.min(Math.max(16 + window.scrollX, left), window.scrollX + vw - width - 16);
-
-      let top = ctx.anchor.y + ctx.anchor.h + padding; // below
-      const bottomEdge = top + height + 16;
-
-      // If falling off bottom, put it above
-      if (bottomEdge > window.scrollY + vh) {
-        top = ctx.anchor.y - height - padding; // above
+      let left = ctx.isMobile 
+        ? (vw - width) / 2 + window.scrollX
+        : ctx.anchor.x - 6;
+      
+      if (!ctx.isMobile) {
+        left = Math.min(Math.max(16 + window.scrollX, left), window.scrollX + vw - width - 16);
       }
 
-      // Clamp top to viewport padding
+      let top = ctx.anchor.y + ctx.anchor.h + padding;
+      const bottomEdge = top + height + 16;
+
+      if (bottomEdge > window.scrollY + vh) {
+        top = ctx.anchor.y - height - padding;
+      }
+
       const minTop = window.scrollY + 16;
       const maxTop = window.scrollY + vh - height - 16;
       top = Math.min(Math.max(top, minTop), maxTop);
 
       setPos({ top, left, width });
-
-      // restore; the real styles will be applied via state
       panel.style.visibility = "";
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [ctx.anchor, ctx.openTerm, ctx.entry, busy]);
+    }, [ctx.anchor, ctx.openTerm, ctx.entry, busy, ctx.isMobile]);
 
-    // Close on scroll/resize (hover UX)
+    // Desktop only: Close on scroll/resize
     useEffect(() => {
-      if (!ctx.openTerm) return;
+      if (!ctx.openTerm || ctx.isMobile) return;
       const close = () => ctx.scheduleClose();
       window.addEventListener("scroll", close, { passive: true });
       window.addEventListener("resize", close);
@@ -225,7 +269,65 @@ export const LexiconPopover = {
         window.removeEventListener("scroll", close);
         window.removeEventListener("resize", close);
       };
-    }, [ctx.openTerm, ctx.scheduleClose]);
+    }, [ctx.openTerm, ctx.isMobile, ctx.scheduleClose]);
+
+    // 🔧 FIXED: Mobile auto-fade with countdown
+    useEffect(() => {
+      if (!ctx.openTerm || !ctx.isMobile) {
+        setCountdown(5);
+        return;
+      }
+      
+      console.log('⏰ Starting 5-second auto-close timer (mobile mode)');
+      setCountdown(5);
+      
+      // Countdown display
+      const countInterval = setInterval(() => {
+        setCountdown(prev => {
+          const next = prev - 1;
+          console.log('⏱️ Countdown:', next);
+          return next;
+        });
+      }, 1000);
+      
+      // Auto-close after 5 seconds
+      const fadeTimer = setTimeout(() => {
+        console.log('⏰ 5 seconds elapsed, closing popup');
+        ctx.setOpenTerm(null);
+        ctx.setAnchor(null);
+        ctx.setEntry(null);
+      }, 5000);
+      
+      // Close on outside click
+      const handleOutsideClick = (e: MouseEvent | TouchEvent) => {
+        if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+          const target = e.target as HTMLElement;
+          const isWordTrigger = target.closest('[data-lexicon-trigger]');
+          const isActionButton = target.closest('button:not([aria-label="Close"])');
+          
+          if (!isWordTrigger && !isActionButton) {
+            console.log('👆 Outside click, closing popup');
+            ctx.setOpenTerm(null);
+            ctx.setAnchor(null);
+            ctx.setEntry(null);
+          }
+        }
+      };
+
+      const clickTimer = setTimeout(() => {
+        document.addEventListener('touchstart', handleOutsideClick);
+        document.addEventListener('mousedown', handleOutsideClick);
+      }, 100);
+
+      return () => {
+        clearInterval(countInterval);
+        clearTimeout(fadeTimer);
+        clearTimeout(clickTimer);
+        document.removeEventListener('touchstart', handleOutsideClick);
+        document.removeEventListener('mousedown', handleOutsideClick);
+        setCountdown(5);
+      };
+    }, [ctx.openTerm, ctx.isMobile, ctx]);
 
     if (!ctx.openTerm || !ctx.anchor) return null;
 
@@ -235,8 +337,8 @@ export const LexiconPopover = {
     return (
       <div
         ref={panelRef}
-        onMouseEnter={ctx.cancelClose}
-        onMouseLeave={ctx.scheduleClose}
+        onMouseEnter={ctx.isMobile ? undefined : ctx.cancelClose}
+        onMouseLeave={ctx.isMobile ? undefined : ctx.scheduleClose}
         className="z-50 max-w-[calc(100vw-2rem)] max-h-[calc(100vh-2rem)] overflow-auto break-words"
         style={{
           position: "absolute",
@@ -246,25 +348,32 @@ export const LexiconPopover = {
           width: pos?.width ?? 360,
         }}
       >
-        <div className="rounded-lg border border-white/15 bg-zinc-900 light:bg-white p-3 shadow-xl text-white light:text-black">
-          <div className="flex items-center justify-between">
+        <div className="rounded-lg border border-white/15 bg-zinc-900 light:bg-white p-3 shadow-xl text-white light:text-black relative">
+          {/* Close button - always visible */}
+          <button
+            onClick={() => {
+              ctx.setOpenTerm(null);
+              ctx.setAnchor(null);
+              ctx.setEntry(null);
+            }}
+            className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full bg-red-500 hover:bg-red-600 text-white font-bold text-lg"
+            aria-label="Close"
+          >
+            ✕
+          </button>
+
+          <div className="flex items-center justify-between pr-8">
             <div className="text-sm">
               <span className="font-semibold">Word study</span>{" "}
               <span className="text-white/60 light:text-black/60">
                 ({ctx.openTerm})
               </span>
+              {ctx.isMobile && (
+                <span className="ml-2 text-yellow-400 font-mono text-xs">
+                  {countdown}s
+                </span>
+              )}
             </div>
-            <button
-              className="text-white/60 hover:text-white light:text-black/60 light:hover:text-black"
-              onClick={() => {
-                ctx.setOpenTerm(null);
-                ctx.setAnchor(null);
-                ctx.setEntry(null);
-              }}
-              aria-label="Close"
-            >
-              ✕
-            </button>
           </div>
 
           <div className="mt-2 text-sm">
@@ -278,7 +387,7 @@ export const LexiconPopover = {
                   )}
                   {ctx.entry!.language && ctx.entry!.strongs && <span> · </span>}
                   {ctx.entry!.strongs && (
-                    <span className="font-mono">Strong’s {ctx.entry!.strongs}</span>
+                    <span className="font-mono">Strong's {ctx.entry!.strongs}</span>
                   )}
                 </p>
                 {ctx.entry!.definition && (
@@ -291,6 +400,12 @@ export const LexiconPopover = {
             )}
             {!busy && (!ctx.entry || ctx.entry.needsMoreInfo) && !ctx.entry?.error && (
               <p className="text-white/70 light:text-black/60">No entry found.</p>
+            )}
+            
+            {ctx.isMobile && !busy && (
+              <p className="text-white/50 light:text-black/50 text-xs mt-3 pt-2 border-t border-white/10">
+                Auto-closes in {countdown}s • Tap outside to close now
+              </p>
             )}
           </div>
         </div>

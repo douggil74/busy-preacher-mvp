@@ -94,6 +94,21 @@ html.light [data-bg] {
   }
 }
 
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.3),
+      0 0 40px rgba(255, 217, 102, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+  50% {
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.3),
+      0 0 60px rgba(255, 217, 102, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+}
+
 .animate-fade-in {
   animation: fade-in 0.4s ease-out forwards;
 }
@@ -117,14 +132,84 @@ html.light [data-bg] {
 }
 
 /* ========================================
-   CARDS
+   CARDS WITH GLOW EFFECT
    ======================================== */
 .card {
   @apply w-full max-w-3xl mx-auto rounded-2xl border border-white/10 bg-white/5 p-6 shadow-soft backdrop-blur-xl;
+  position: relative;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 50px rgba(255, 217, 102, 0.2),
+    0 0 80px rgba(255, 165, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255, 217, 102, 0.3), rgba(255, 165, 0, 0.1), transparent);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.4),
+    0 0 70px rgba(255, 217, 102, 0.3),
+    0 0 100px rgba(255, 165, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 217, 102, 0.25);
+}
+
+.card:hover::before {
+  opacity: 1;
 }
 
 .deep-study-card {
   @apply w-full max-w-5xl mx-auto rounded-2xl border border-white/10 bg-white/5 p-6 shadow-soft backdrop-blur-xl;
+  position: relative;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 50px rgba(255, 217, 102, 0.2),
+    0 0 80px rgba(255, 165, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.deep-study-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255, 217, 102, 0.3), rgba(255, 165, 0, 0.1), transparent);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.deep-study-card:hover {
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.4),
+    0 0 70px rgba(255, 217, 102, 0.3),
+    0 0 100px rgba(255, 165, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 217, 102, 0.25);
+}
+
+.deep-study-card:hover::before {
+  opacity: 1;
 }
 
 /* ========================================
@@ -152,8 +237,46 @@ html.light [data-bg] {
 }
 
 /* ========================================
+   SCROLLBAR
+   ======================================== */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #FFD966 0%, #FFA500 100%);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #FFD966;
+}
+
+/* ========================================
    UTILITIES
    ======================================== */
+
+/* Container - centers content */
+.container {
+  width: 100%;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
 @layer utilities {
   /* Safe area padding for notched devices */
   .px-safe {

@@ -4,7 +4,7 @@
 import type { JSX } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import jsPDF from "jspdf";
-import { Playfair_Display } from "next/font/google";
+import { Playfair_Display, Nunito_Sans } from "next/font/google";
 import Link from "next/link";
 import { useStudyStyle } from "./hooks/useStudyStyle";
 import { useStudyJourney } from "./hooks/useStudyJourney";
@@ -16,6 +16,11 @@ import { JourneyDashboard } from "./components/JourneyDashboard";
 import { SettingsModal } from "./components/SettingsModal";
 import { CrisisModal } from "./components/CrisisModal";
 import { progressTracker } from '@/lib/progressTracker';
+import { DailyDevotional } from './devotional/DailyDevotional';
+import { DevotionalModal } from "./components/DevotionalModal";
+import { NotificationService } from '@/lib/notificationService';
+import { StudyReminderBanner } from './components/StudyReminderBanner';
+import { RelatedCoursesPanel } from './components/RelatedCoursesPanel';
 
 const playfair = Playfair_Display({
   weight: ["600", "700"],
@@ -23,17 +28,19 @@ const playfair = Playfair_Display({
   display: "swap",
 });
 
-const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? "2.1";
+const nunitoSans = Nunito_Sans({
+  weight: ["400", "600", "700"],
+  subsets: ["latin"],
+  display: "swap",
+});
+
+import { APP_VERSION } from "@/lib/version";
 const DISCLAIMER = "AI-assisted, human-directed. Always think for yourself.";
 const ESV_NOTICE =
   "Scripture quotations are from The Holy Bible, English Standard Version (ESV)®. " +
   "Copyright © 2001 by Crossway, a publishing ministry of Good News Publishers. " +
   "Used by permission. All rights reserved. ESV® is a registered trademark of Good News Publishers.";
 
-const [showEmailModal, setShowEmailModal] = useState(false);
-const [emailInput, setEmailInput] = useState("");
-const [emailSubmitting, setEmailSubmitting] = useState(false);
-const [emailSuccess, setEmailSuccess] = useState(false);
 interface SavedStudy {
   reference: string;
   timestamp: number;
@@ -260,6 +267,10 @@ export default function Page(): JSX.Element {
   const [savedStudies, setSavedStudies] = useState<SavedStudy[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [notes, setNotes] = useState<StudyNote[]>([]);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailInput, setEmailInput] = useState("");
+  const [emailSubmitting, setEmailSubmitting] = useState(false);
+  const [emailSuccess, setEmailSuccess] = useState(false);
   const [currentNote, setCurrentNote] = useState("");
   const [showNotes, setShowNotes] = useState(false);
   const [topLoading, setTopLoading] = useState(false);
@@ -289,6 +300,8 @@ export default function Page(): JSX.Element {
   const [showJourney, setShowJourney] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showCrisisModal, setShowCrisisModal] = useState(false);
+  const [showDevotionalModal, setShowDevotionalModal] = useState(false);
+  const [showStudyReminder, setShowStudyReminder] = useState(false);
   const hoverTimer = useRef<NodeJS.Timeout | null>(null);
   const statusWords = ["Fetching…", "Researching…", "Synthesizing…", "Formatting…", "Ready"];
 
@@ -311,6 +324,18 @@ export default function Page(): JSX.Element {
     localStorage.setItem("bc-style", style);
     window.location.reload();
   };
+
+useEffect(() => {
+  const handleOpenSettings = () => {
+    setShowSettings(true);
+  };
+
+  window.addEventListener('openSettings', handleOpenSettings);
+  
+  return () => {
+    window.removeEventListener('openSettings', handleOpenSettings);
+  };
+}, []);
 
   useEffect(() => {
     const saved = localStorage.getItem("bc-saved-studies");
@@ -377,6 +402,29 @@ export default function Page(): JSX.Element {
     }
   }, []);
 
+  useEffect(() => {
+    const wantsDevotional = localStorage.getItem("bc-show-devotional") === "true";
+    if (!wantsDevotional) return;
+
+    const lastShown = localStorage.getItem("bc-devotional-last-shown");
+    const today = new Date().toDateString();
+
+    if (lastShown !== today) {
+      const timer = setTimeout(() => {
+        setShowDevotionalModal(true);
+        localStorage.setItem("bc-devotional-last-shown", today);
+      }, 1500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isOnboarded]);
+
+  useEffect(() => {
+    if (isOnboarded && NotificationService.shouldShowReminder()) {
+      setShowStudyReminder(true);
+    }
+  }, [isOnboarded]);
+
   const currentRefNotes = useMemo(() => {
     const ref = passageRef.trim() || theme.trim();
     return notes.filter((n) => n.reference === ref);
@@ -400,7 +448,7 @@ export default function Page(): JSX.Element {
     localStorage.setItem("bc-saved-studies", JSON.stringify(updated));
   };
 
-  const loadSavedStudy = (study: SavedStudy) => {
+  const loadSavedStudy = async (study: SavedStudy) => {
     if (study.type === "passage" || study.type === "combined") {
       setPassageRef(study.reference);
     }
@@ -409,8 +457,7 @@ export default function Page(): JSX.Element {
     }
     setShowHistory(false);
     
-    // ✅ Track progress when loading saved studies
-    progressTracker.checkAndNotifyProgress();
+    await progressTracker.checkAndNotifyProgress();
   };
 
   const deleteSavedStudy = (timestamp: number) => {
@@ -443,92 +490,14 @@ export default function Page(): JSX.Element {
   const onSubmit = async () => {
     setTopError(null);
     setCombinedOutline(null);
-  
-}; // End of onSubmit
 
-const handleEmailSignup = async () => {
-  setEmailSubmitting(true);
-  try {
-    const response = await fetch("/api/subscribe", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        email: emailInput,
-        source: "post-study-modal"
-      }),
-    });
-
-    if (response.ok) {
-      setEmailSuccess(true);
-      setTimeout(() => {
-        setShowEmailModal(false);
-        setEmailSuccess(false);
-        setEmailInput("");
-      }, 2000);
-    } else {
-      alert("Failed to subscribe. Please try again.");
-    }
-  } catch (error) {
-    alert("Failed to subscribe. Please try again.");
-  } finally {
-    setEmailSubmitting(false);
-  }
-};
-
-return (
-  // ... your JSX starts here
-    // Add this function after onSubmit and before the return statement
-
-    setEmailSubmitting(true);
-  try {
-    const response = await fetch("/api/subscribe", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        email: emailInput,
-        source: "post-study-modal"
-      }),
-    });
-
-    if (response.ok) {
-      setEmailSuccess(true);
-      setTimeout(() => {
-        setShowEmailModal(false);
-        setEmailSuccess(false);
-        setEmailInput("");
-      }, 2000);
-    } else {
-      alert("Failed to subscribe. Please try again.");
-    }
-  } catch (error) {
-    alert("Failed to subscribe. Please try again.");
-  } finally {
-    setEmailSubmitting(false);
-  }
-};
-        if (response.ok) {
-          setEmailSuccess(true);
-          setTimeout(() => {
-            setShowEmailModal(false);
-            setEmailSuccess(false);
-            setEmailInput("");
-          }, 2000);
-        } else {
-          alert("Failed to subscribe. Please try again.");
-        }
-      } catch (error) {
-        alert("Failed to subscribe. Please try again.");
-      } finally {
-        setEmailSubmitting(false);
-      }
-    };
     const wantsPassage = !!passageRef.trim();
     const wantsTheme = !!theme.trim();
     if (!wantsPassage && !wantsTheme) {
       setTopError("Enter a Passage and/or a Theme.");
       return;
     }
-  
+
     const crisisKeywords = [
       "suicide", 
       "suicidal", 
@@ -560,15 +529,11 @@ return (
       setShowCrisisModal(true);
       progressTracker.sendCrisisAlert(searchText);
     }
-  // After progress tracking, check if first study
-const studies = typeof window !== 'undefined' 
-? JSON.parse(localStorage.getItem("bc-saved-studies") || "[]")
-: [];
 
-if (studies.length === 1) {
-// Show email modal after first study
-setTimeout(() => setShowEmailModal(true), 2000);
-}
+    const studies = typeof window !== 'undefined' 
+      ? JSON.parse(localStorage.getItem("bc-saved-studies") || "[]")
+      : [];
+
     setTopLoading(true);
     try {
       if (wantsPassage && wantsTheme) {
@@ -576,7 +541,7 @@ setTimeout(() => setShowEmailModal(true), 2000);
           setBpRef(passageRef.trim());
           setBpText(r.text);
         });
-  
+
         try {
           const combined = await outlineFetchCombined({
             passage: passageRef.trim(),
@@ -592,53 +557,105 @@ setTimeout(() => setShowEmailModal(true), 2000);
           ]);
           setCombinedOutline(mergeOutlines(po, to));
         }
-  
+
         setPassageOutline(null);
         setThemeOutline(null);
         refreshJourney();
         
         await progressTracker.checkAndNotifyProgress();
-        return;
+        NotificationService.updateLastStudyDate();
+        progressTracker.trackOutlineGeneration(passageRef.trim(), theme.trim());
+        
+        // ✅ Check if this is first study - show email modal
+        if (studies.length === 0) {
+          const hasSubscribed = localStorage.getItem("bc-subscribed");
+          if (!hasSubscribed) {
+            setTimeout(() => setShowEmailModal(true), 2000);
+          }
+        }
+        
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        const nextOutlines: { passage?: any; theme?: any } = {};
+        const tasks: Promise<any>[] = [];
+
+        if (wantsPassage) {
+          tasks.push(
+            outlineFetch({ mode: "passage", passage: passageRef.trim() }).then((o) => {
+              nextOutlines.passage = o;
+            })
+          );
+          tasks.push(
+            esvFetch(passageRef.trim()).then((r) => {
+              setBpRef(passageRef.trim());
+              setBpText(r.text);
+            })
+          );
+        }
+        if (wantsTheme) {
+          tasks.push(
+            outlineFetch({ mode: "theme", theme: theme.trim() }).then((o) => {
+              nextOutlines.theme = o;
+            })
+          );
+        }
+
+        await Promise.all(tasks);
+        setPassageOutline(nextOutlines.passage ?? null);
+        setThemeOutline(nextOutlines.theme ?? null);
+        refreshJourney();
+        
+        await progressTracker.checkAndNotifyProgress();
+        NotificationService.updateLastStudyDate();
+        
+        // ✅ Check if this is first study - show email modal
+        if (studies.length === 0) {
+          const hasSubscribed = localStorage.getItem("bc-subscribed");
+          if (!hasSubscribed) {
+            setTimeout(() => setShowEmailModal(true), 2000);
+          }
+        }
+        
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
-  
-      const nextOutlines: { passage?: any; theme?: any } = {};
-      const tasks: Promise<any>[] = [];
-  
-      if (wantsPassage) {
-        tasks.push(
-          outlineFetch({ mode: "passage", passage: passageRef.trim() }).then((o) => {
-            nextOutlines.passage = o;
-          })
-        );
-        tasks.push(
-          esvFetch(passageRef.trim()).then((r) => {
-            setBpRef(passageRef.trim());
-            setBpText(r.text);
-          })
-        );
-      }
-      if (wantsTheme) {
-        tasks.push(
-          outlineFetch({ mode: "theme", theme: theme.trim() }).then((o) => {
-            nextOutlines.theme = o;
-          })
-        );
-      }
-  
-      await Promise.all(tasks);
-      setPassageOutline(nextOutlines.passage ?? null);
-      setThemeOutline(nextOutlines.theme ?? null);
-      refreshJourney();
-      
-      await progressTracker.checkAndNotifyProgress();
-      
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (e: any) {
       setTopError(e?.message ?? "Failed to generate outline.");
     } finally {
       setTopLoading(false);
     }
   };
+
+  const handleEmailSignup = async () => {
+  setEmailSubmitting(true);
+  try {
+    const response = await fetch("/api/subscribe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        email: emailInput,
+        source: "post-study-modal"
+      }),
+    });
+
+    if (response.ok) {
+      // ✅ MARK AS SUBSCRIBED - won't show popup again
+      localStorage.setItem("bc-subscribed", "true");
+      
+      setEmailSuccess(true);
+      setTimeout(() => {
+        setShowEmailModal(false);
+        setEmailSuccess(false);
+        setEmailInput("");
+      }, 2000);
+    } else {
+      alert("Failed to subscribe. Please try again.");
+    }
+  } catch (error) {
+    alert("Failed to subscribe. Please try again.");
+  } finally {
+    setEmailSubmitting(false);
+  }
+};
   const onExportPDFTop = () => {
     const outlines = combinedOutline ? [combinedOutline] : ([passageOutline, themeOutline].filter(Boolean) as any[]);
     if (!outlines.length) return;
@@ -671,6 +688,7 @@ setTimeout(() => setShowEmailModal(true), 2000);
   };
 
   const onCrossRefClick = (ref: string) => {
+    progressTracker.trackCrossRefClick(ref);
     setBpRef(ref);
     setEsvLoading(true);
     esvFetch(ref)
@@ -778,11 +796,14 @@ setTimeout(() => setShowEmailModal(true), 2000);
     }
   };
 
-  const bpFetch = () => {
+  const bpFetch = async () => {
     const cleaned = bpRef.trim();
     if (!cleaned) return;
     setBpError(null);
     setEsvLoading(true);
+    await progressTracker.checkAndNotifyProgress();
+    NotificationService.updateLastStudyDate();
+
     esvFetch(cleaned)
       .then((out) => setBpText(out.text))
       .catch((e) => setBpError(e?.message ?? "Failed to fetch ESV."))
@@ -805,10 +826,23 @@ setTimeout(() => setShowEmailModal(true), 2000);
     setTimeout(() => setSaveSuccess(false), 3000);
   };
 
-  const handleOnboardingComplete = (name: string, style: string) => {
-    localStorage.setItem("bc-user-name", name);
+  const capitalizeName = (name: string) => {
+    return name
+      .trim()
+      .split(' ')
+      .map(word => {
+        if (word.length === 0) return word;
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      })
+      .join(' ');
+  };
+
+  const handleOnboardingComplete = (name: string, style: string, showDevotional: boolean) => {
+    const capitalizedName = capitalizeName(name);
+    localStorage.setItem("bc-user-name", capitalizedName);
     localStorage.setItem("bc-style", style);
-    setUserName(name);
+    localStorage.setItem("bc-show-devotional", String(showDevotional));
+    setUserName(capitalizedName);
     setIsOnboarded(true);
     setShowOnboarding(false);
     window.location.reload();
@@ -825,10 +859,26 @@ setTimeout(() => setShowEmailModal(true), 2000);
         />
       )}
 
+      {showStudyReminder && isOnboarded && (
+        <StudyReminderBanner
+          userName={userName}
+          daysSinceLastStudy={NotificationService.getDaysSinceLastStudy()}
+          onDismiss={() => {
+            setShowStudyReminder(false);
+            NotificationService.markReminderShown();
+          }}
+          onStartStudy={() => {
+            setShowStudyReminder(false);
+            NotificationService.markReminderShown();
+            document.getElementById('mainPassage')?.focus();
+          }}
+        />
+      )}
+
       {isOnboarded && !passageRef && !theme && !passageOutline && !themeOutline && !combinedOutline && (
         <section className="card mb-8 border-2 border-yellow-400/30">
           <div className="text-center mb-6">
-            <h2 className={`${playfair.className} text-3xl font-semibold mb-2 text-yellow-400`}>
+            <h2 className={`${nunitoSans.className} text-3xl font-semibold mb-2 text-white`}>
               Welcome back, {userName}! 👋
             </h2>
             <p className="text-white/80 text-lg">
@@ -1165,28 +1215,34 @@ setTimeout(() => setShowEmailModal(true), 2000);
             </div>
           )}
 
-          {(combinedOutline || passageOutline || themeOutline) && (
-            <div className="mt-4 pt-4 border-t border-white/10 flex gap-2">
-              <button
-                onClick={onExportPDFTop}
-                disabled={topLoading}
-                className="rounded-lg bg-yellow-400/20 border border-yellow-400 px-4 py-2 text-sm hover:bg-yellow-400/30 disabled:opacity-50 transition-colors flex items-center gap-1"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Export PDF
-              </button>
-              <button onClick={copyOutline} className="btn flex items-center gap-1">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-                {copied ? "Copied!" : "Copy"}
-              </button>
-            </div>
-          )}
 
-          {(passageRef || theme) && (
+{(combinedOutline || passageOutline || themeOutline) && (
+  <div className="mt-4 pt-4 border-t border-white/10 flex gap-2">
+    <button
+      onClick={onExportPDFTop}
+      disabled={topLoading}
+      className="rounded-lg bg-yellow-400/20 border border-yellow-400 px-4 py-2 text-sm hover:bg-yellow-400/30 disabled:opacity-50 transition-colors flex items-center gap-1"
+    >
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      Export PDF
+    </button>
+    <button onClick={copyOutline} className="btn flex items-center gap-1">
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+      </svg>
+      {copied ? "Copied!" : "Copy"}
+    </button>
+  </div>
+)}
+
+{(combinedOutline || passageOutline || themeOutline) && (
+  <RelatedCoursesPanel 
+    passageRef={passageRef}
+    theme={theme}
+  />
+)}          {(passageRef || theme) && (
             <div className="mt-4 pt-4 border-t border-white/10">
               <button
                 onClick={() => setShowNotes(!showNotes)}
@@ -1334,6 +1390,8 @@ setTimeout(() => setShowEmailModal(true), 2000);
         </div>
       </section>
 
+      <DailyDevotional />
+
       {activeWord && popoverPos && (
         <div
           className="hover-popover pointer-events-none fixed z-50 w-[360px] max-w-[90vw] rounded-lg border border-white/15 bg-slate-950/95 p-3 text-sm shadow-xl backdrop-blur"
@@ -1394,6 +1452,70 @@ setTimeout(() => setShowEmailModal(true), 2000);
         onClose={() => setShowCrisisModal(false)}
       />
 
+      <DevotionalModal
+        isOpen={showDevotionalModal}
+        userName={userName}
+        onClose={() => setShowDevotionalModal(false)}
+      />
+
+      {showEmailModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-8 max-w-md w-full shadow-2xl">
+            {emailSuccess ? (
+              <div className="text-center">
+                <div className="text-6xl mb-4">✅</div>
+                <h2 className="text-2xl font-bold text-green-600 mb-2">
+                  You're subscribed!
+                </h2>
+                <p className="text-gray-600">Check your email for confirmation.</p>
+              </div>
+            ) : (
+              <>
+                <div className="text-center mb-6">
+                  <div className="text-5xl mb-4">🎉</div>
+                  <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                    Loved this study guide?
+                  </h2>
+                  <p className="text-gray-600">
+                    Get notified when we add new features, translations, and tools!
+                  </p>
+                </div>
+
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={emailInput}
+                  onChange={(e) => setEmailInput(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={emailSubmitting}
+                />
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleEmailSignup}
+                    disabled={emailSubmitting || !emailInput}
+                    className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {emailSubmitting ? "Subscribing..." : "Yes, keep me updated"}
+                  </button>
+                  <button
+                    onClick={() => setShowEmailModal(false)}
+                    disabled={emailSubmitting}
+                    className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+                  >
+                    No thanks
+                  </button>
+                </div>
+
+                <p className="text-xs text-gray-500 text-center mt-4">
+                  Optional - you can still use the app anonymously. Unsubscribe anytime.
+                </p>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       <p id="disclaimer" className="mt-10 text-center text-xs italic text-white/50">
         {DISCLAIMER}
       </p>
@@ -1409,66 +1531,9 @@ setTimeout(() => setShowEmailModal(true), 2000);
           Manage Your Data & Privacy
         </button>
       </div>
-{/* Email Signup Modal */}
-{showEmailModal && (
-  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-    <div className="bg-white rounded-lg p-8 max-w-md w-full shadow-2xl">
-      {emailSuccess ? (
-        <div className="text-center">
-          <div className="text-6xl mb-4">✅</div>
-          <h2 className="text-2xl font-bold text-green-600 mb-2">
-            You're subscribed!
-          </h2>
-          <p className="text-gray-600">Check your email for confirmation.</p>
-        </div>
-      ) : (
-        <>
-          <div className="text-center mb-6">
-            <div className="text-5xl mb-4">🎉</div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">
-              Loved this study guide?
-            </h2>
-            <p className="text-gray-600">
-              Get notified when we add new features, translations, and tools!
-            </p>
-          </div>
 
-          <input
-            type="email"
-            placeholder="Enter your email"
-            value={emailInput}
-            onChange={(e) => setEmailInput(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            disabled={emailSubmitting}
-          />
-
-          <div className="flex gap-3">
-            <button
-              onClick={handleEmailSignup}
-              disabled={emailSubmitting || !emailInput}
-              className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-            >
-              {emailSubmitting ? "Subscribing..." : "Yes, keep me updated"}
-            </button>
-            <button
-              onClick={() => setShowEmailModal(false)}
-              disabled={emailSubmitting}
-              className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
-            >
-              No thanks
-            </button>
-          </div>
-
-          <p className="text-xs text-gray-500 text-center mt-4">
-            Optional - you can still use the app anonymously. Unsubscribe anytime.
-          </p>
-        </>
-      )}
-    </div>
-  </div>
-)}
       <footer className="mt-8 text-center text-xs text-white/40">
-        © Douglas M. Gilford – The Busy Christian • v{APP_VERSION}
+        © Douglas M. Gilford – The Busy Christian • v {APP_VERSION}
       </footer>
     </main>
   );

@@ -1,0 +1,30 @@
+/* iOS-Specific Optimizations */
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+input, textarea, select, button {
+  font-size: 16px !important;
+}
+
+button, a, input[type="submit"], input[type="button"] {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+html {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+body {
+  overscroll-behavior-y: contain;
+}
+
+.verse-text, .commentary-text {
+  -webkit-user-select: text;
+  user-select: text;
+}

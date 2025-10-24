@@ -6,6 +6,7 @@ import { Playfair_Display } from "next/font/google";
 import { useEffect, useState, useMemo, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { SmartLoader } from "@/components/SmartLoader";
 
 const playfair = Playfair_Display({
   weight: ["600", "700"],
@@ -22,6 +23,17 @@ interface StudyNote {
   reference: string;
   note: string;
   timestamp: number;
+}
+
+interface Video {
+  id: string;
+  title: string;
+  description: string;
+  channelTitle: string;
+  publishedAt: string;
+  thumbnail: string;
+  duration: string;
+  viewCount: string;
 }
 
 // Bible Commentary Service Class
@@ -106,11 +118,9 @@ class BibleCommentaryService {
   }
 
   parseReference(reference: string) {
-    // Try verse format first (e.g., "John 3:16" or "John 3:16-18")
     let match = reference.match(/^(.+?)\s+(\d+):(\d+)(?:-(\d+))?$/i);
     
     if (!match) {
-      // Try chapter format (e.g., "John 3")
       match = reference.match(/^(.+?)\s+(\d+)$/i);
       if (!match) return null;
       
@@ -169,66 +179,87 @@ class BibleCommentaryService {
   getStoredCommentary(reference: string) {
     const parsed = this.parseReference(reference);
     if (!parsed) return null;
-
-    // For verse ranges, aggregate commentary from all verses in the range
-    const allCommentaries: any = {};
     
-    const storedCommentaries: Record<string, any> = {
-      'john3:16': {
-        matthewHenry: 'God so loved the world - Here commences the most important verse in all Scripture. The Father shows his love in giving his Son for us. This gift speaks to the magnitude of divine love - not merely affection, but sacrificial action. The world here means all of humanity, not just the elect, showing the universal scope of God\'s redemptive plan.',
-        adamClarke: 'For God so loved the world - Such a love as that which induced God to give his only begotten Son to die for the world could not be described in any words less energetic than these. This demonstrates the amazing contrast between the state of man and the grace of God.'
-      },
-      'psalm23:1': {
-        matthewHenry: 'The Lord is my shepherd - God\'s people have always looked upon him as their shepherd. He leads, feeds, and protects as a shepherd does his flock. David had himself been a shepherd, and knew both the needs of the sheep and the care of a good shepherd.',
-        adamClarke: 'The Lord is my shepherd - There is nothing I can need while under such a shepherd. He knows what pasture is best for me, and he will guide me to it in the proper season.'
-      },
-      'romans8:28': {
-        matthewHenry: 'All things work together for good - This includes not only positive circumstances but even afflictions and temptations. They work together like ingredients in medicine, where each component serves the greater healing purpose.',
-        adamClarke: 'We know that all things work together for good - All occurrences in life, whether prosperous or adverse, are under Divine direction, and are working for the spiritual and eternal good of those who love God.'
-      },
-      'genesis1:1': {
-        matthewHenry: 'In the beginning - That is, in the beginning of time, when God first created all things. The beginning of the creation is the beginning of time itself, for before the creation there was nothing but eternity.',
-        adamClarke: 'In the beginning God created - The word Elohim, which we translate God, is the plural of El or Eloah. This plural form is significant, hinting at the Trinity even in the first verse of Scripture.'
-      },
-      'philippians4:13': {
-        matthewHenry: 'I can do all things through Christ - Not by my own strength, but through Christ who strengthens me. This is not about personal achievement but about enduring all circumstances through divine enablement.',
-        adamClarke: 'I can do all things - I can perform all the duties required of me, and bear all the trials and difficulties laid upon me, through the power of Christ supporting me.'
-      },
-      'hebrews11:1': {
-        matthewHenry: 'Faith is the substance of things hoped for - Faith realizes the blessings of which hope speaks. It is a firm persuasion and expectation that God will perform all He has promised in Christ. It demonstrates to the eye of the mind the reality of things that cannot be discerned by our bodily senses.',
-        adamClarke: 'Faith is the substance of things hoped for - Faith is the basis, the foundation on which all our hopes of eternal blessedness are built. The evidence of things not seen - It is that demonstration which we have from God that the spiritual world exists, though we cannot see it with our bodily eyes. Faith is both the evidence and the conviction of the soul concerning spiritual and eternal things.'
-      },
-      'hebrews11:2': {
-        matthewHenry: 'For by it the elders obtained a good report - The ancient believers, the patriarchs and prophets, were accepted by God through their faith. Their faith is what made them pleasing to God and worthy of commendation.',
-        adamClarke: 'The elders obtained a good report - The patriarchs and ancient believers were borne witness to by God himself as persons of eminent faith and piety, and through this faith they obtained the promises.'
-      },
-      'hebrews11:3': {
-        matthewHenry: 'Through faith we understand that the worlds were framed by the word of God - It is by faith that we believe the Genesis account of creation. We believe that the visible universe was made by God\'s invisible power, by His word or command.',
-        adamClarke: 'Through faith we understand - By faith we perceive that not only the matter of the universe was created by God, but that it was all modeled into order and beauty by His own hand, so that things which are seen were made from things which do not appear to the eye.'
-      },
-      '1corinthians13:4': {
-        matthewHenry: 'Love suffereth long - Love is patient and endures injuries without seeking revenge. It is kind in action, showing goodness and benevolence to all. Love does not envy the prosperity of others, nor is it puffed up with pride.',
-        adamClarke: 'Charity suffereth long - Love is long-suffering; it can endure much provocation without being provoked. It is kind, ever ready to do good to all, even to those who do not deserve it.'
-      },
-      '1corinthians13:5': {
-        matthewHenry: 'Love does not behave unseemly - It is not rude or indecent in conduct. It seeks not its own advantage at the expense of others, is not easily provoked to anger, and keeps no record of wrongs.',
-        adamClarke: 'Doth not behave itself unseemly - Love is decent and orderly in all its acts. It seeks not selfish ends, is not irritable, and takes no account of evil done to it.'
-      },
-      '1corinthians13:6': {
-        matthewHenry: 'Love rejoices not in iniquity - It takes no pleasure in seeing others fall into sin, but rejoices when truth prevails and righteousness is upheld.',
-        adamClarke: 'Rejoiceth not in iniquity - Love has no fellowship with sin, does not rejoice when others fall, but rejoices in the truth and its triumph.'
-      },
-      '1corinthians13:7': {
-        matthewHenry: 'Love bears all things - It covers the faults of others with silence and patience, believes the best of people, hopes for their improvement, and endures all trials.',
-        adamClarke: 'Beareth all things - Love can bear all injuries and affronts without complaint, believing all things that tend to the advantage of others.'
-      },
-      '1corinthians13:8': {
-        matthewHenry: 'Love never fails - While prophecies will cease and knowledge will pass away, love abides forever. It is the eternal principle that will outlast all temporal gifts.',
-        adamClarke: 'Charity never faileth - Love never falls off or becomes useless, while prophecies and tongues shall cease and knowledge shall be rendered unnecessary.'
-      }
-    };
-
-    // Handle verse ranges - combine commentary from all verses
+const storedCommentaries: Record<string, any> = {
+  'john3:16': {
+    matthewHenry: 'God so loved the world - Here commences the most important verse in all Scripture. The Father shows his love in giving his Son for us. This gift speaks to the magnitude of divine love - not merely affection, but sacrificial action. The world here means all of humanity, not just the elect, showing the universal scope of God\'s redemptive plan.',
+    adamClarke: 'For God so loved the world - Such a love as that which induced God to give his only begotten Son to die for the world could not be described in any words less energetic than these. This demonstrates the amazing contrast between the state of man and the grace of God.',
+    albertBarnes: 'For God so loved the world - This expresses the reason why God sent his Son. It was love - love that was manifested to an undeserving and rebellious world. The term world here means the whole human race, without distinction of Jew or Gentile. That he gave - Not lent, but gave freely, with no prospect of repayment.',
+    johnGill: 'For God so loved the world - The objects of this love are described as the world, which cannot design the whole world, or all the individuals of mankind; for though Christ died for all in some sense, yet not in the sense here intended, which is to save them from perishing and give them everlasting life. The persons intended are the chosen of God, the children that were given to Christ.'
+  },
+  'psalm23:1': {
+    matthewHenry: 'The Lord is my shepherd - God\'s people have always looked upon him as their shepherd. He leads, feeds, and protects as a shepherd does his flock. David had himself been a shepherd, and knew both the needs of the sheep and the care of a good shepherd.',
+    adamClarke: 'The Lord is my shepherd - There is nothing I can need while under such a shepherd. He knows what pasture is best for me, and he will guide me to it in the proper season.',
+    albertBarnes: 'The Lord is my shepherd - The Hebrew word rendered shepherd means to feed, and hence one who feeds a flock. The office was regarded as most honorable, and was often assumed by princes and kings. The idea here is tender, beautiful, and full of consolation.',
+    johnGill: 'The Lord is my shepherd - Not only as he is the Creator and Governor of all, but as he is the covenant God of his people. Christ is peculiarly called the Shepherd of the sheep; he is the good, the great, and chief Shepherd, who laid down his life for the sheep.'
+  },
+  'romans8:28': {
+    matthewHenry: 'All things work together for good - This includes not only positive circumstances but even afflictions and temptations. They work together like ingredients in medicine, where each component serves the greater healing purpose.',
+    adamClarke: 'We know that all things work together for good - All occurrences in life, whether prosperous or adverse, are under Divine direction, and are working for the spiritual and eternal good of those who love God.',
+    albertBarnes: 'All things work together for good - Not that all things are good, but they work together for good. Afflictions, persecutions, sickness, losses - all shall be made to contribute to the welfare of the righteous. God has infinite power to control them and direct them to the promotion of his glory and the salvation of his people.',
+    johnGill: 'All things work together for good - Not only things that are good, but even those that are evil. Afflictions, temptations, desertions, and all other adverse dispensations of Providence work together for good. They work together in perfect harmony, like the wheels in a machine, all contributing to the same end.'
+  },
+  'genesis1:1': {
+    matthewHenry: 'In the beginning - That is, in the beginning of time, when God first created all things. The beginning of the creation is the beginning of time itself, for before the creation there was nothing but eternity.',
+    adamClarke: 'In the beginning God created - The word Elohim, which we translate God, is the plural of El or Eloah. This plural form is significant, hinting at the Trinity even in the first verse of Scripture.',
+    albertBarnes: 'In the beginning - This phrase refers to the commencement of the material universe. Before this beginning there was God alone. The act of creation was the first putting forth of divine energy in the production of physical nature.',
+    johnGill: 'In the beginning God created - By the beginning is meant, not the beginning of God, for he has no beginning, but the beginning of time. When the world was made, then time began; and this was now near six thousand years ago. God was before all time, from everlasting.'
+  },
+  'philippians4:13': {
+    matthewHenry: 'I can do all things through Christ - Not by my own strength, but through Christ who strengthens me. This is not about personal achievement but about enduring all circumstances through divine enablement.',
+    adamClarke: 'I can do all things - I can perform all the duties required of me, and bear all the trials and difficulties laid upon me, through the power of Christ supporting me.',
+    albertBarnes: 'I can do all things - Not absolutely all things, but all that is needful for me to do in my circumstances. I can bear all trials, perform all duties, and meet all the responsibilities of my station through Christ who strengthens me.',
+    johnGill: 'I can do all things - Both as a Christian and as an apostle. I can do everything that God calls me to do, perform every duty, bear every burden, and suffer every affliction, through Christ which strengtheneth me. Not in my own strength, but through the strength which Christ supplies.'
+  },
+  'hebrews11:1': {
+    matthewHenry: 'Faith is the substance of things hoped for - Faith realizes the blessings of which hope speaks. It is a firm persuasion and expectation that God will perform all He has promised in Christ. It demonstrates to the eye of the mind the reality of things that cannot be discerned by our bodily senses.',
+    adamClarke: 'Faith is the substance of things hoped for - Faith is the basis, the foundation on which all our hopes of eternal blessedness are built. The evidence of things not seen - It is that demonstration which we have from God that the spiritual world exists, though we cannot see it with our bodily eyes. Faith is both the evidence and the conviction of the soul concerning spiritual and eternal things.',
+    albertBarnes: 'Faith is the substance of things hoped for - Faith gives reality or substance to things that are not seen. It is not a mere hope or opinion, but a firm conviction that what God has promised will certainly come to pass. It makes future things present, and invisible things visible to the mind.',
+    johnGill: 'Faith is the substance of things hoped for - By faith we have a present enjoyment of future blessings. Faith gives them substance and reality in the heart before they are actually possessed. The evidence of things not seen - Faith is the eye that sees invisible things, the hand that takes hold of spiritual blessings, the foot that walks in the way of holiness.'
+  },
+  'hebrews11:2': {
+    matthewHenry: 'For by it the elders obtained a good report - The ancient believers, the patriarchs and prophets, were accepted by God through their faith. Their faith is what made them pleasing to God and worthy of commendation.',
+    adamClarke: 'The elders obtained a good report - The patriarchs and ancient believers were borne witness to by God himself as persons of eminent faith and piety, and through this faith they obtained the promises.',
+    albertBarnes: 'For by it the elders obtained a good report - The ancient worthies, the fathers and saints of the Old Testament, obtained an honorable testimony from God. It was by faith that they were approved and accepted.',
+    johnGill: 'By it the elders obtained a good report - They had witness borne to them by God concerning their faith and good works flowing from it. They were commended and approved by God as believers, and as such had a title to eternal life.'
+  },
+  'hebrews11:3': {
+    matthewHenry: 'Through faith we understand that the worlds were framed by the word of God - It is by faith that we believe the Genesis account of creation. We believe that the visible universe was made by God\'s invisible power, by His word or command.',
+    adamClarke: 'Through faith we understand - By faith we perceive that not only the matter of the universe was created by God, but that it was all modeled into order and beauty by His own hand, so that things which are seen were made from things which do not appear to the eye.',
+    albertBarnes: 'Through faith we understand that the worlds were framed - We learn from revelation that the universe was formed by the divine command. This is not a matter of philosophical speculation, but of divine testimony received by faith.',
+    johnGill: 'Through faith we understand that the worlds were framed by the word of God - Not by the power of our reason, but by divine revelation received by faith, we know that God created all things. The visible world was made out of nothing by the almighty word and power of God.'
+  },
+  '1corinthians13:4': {
+    matthewHenry: 'Love suffereth long - Love is patient and endures injuries without seeking revenge. It is kind in action, showing goodness and benevolence to all. Love does not envy the prosperity of others, nor is it puffed up with pride.',
+    adamClarke: 'Charity suffereth long - Love is long-suffering; it can endure much provocation without being provoked. It is kind, ever ready to do good to all, even to those who do not deserve it.',
+    albertBarnes: 'Charity suffereth long - Love is patient under injuries and provocations. It endures without complaint. And is kind - It is benevolent, gentle, tender in feeling and in manner. Envieth not - It does not pain at the good of others, nor desire to deprive them of their enjoyments.',
+    johnGill: 'Charity suffereth long - It bears all injuries and affronts with patience. It is not easily provoked to anger or resentment. And is kind - It is beneficent, does good to all, shows tenderness and compassion. Charity envieth not - It does not grieve at the prosperity and happiness of others, but rejoices in their welfare.'
+  },
+  '1corinthians13:5': {
+    matthewHenry: 'Love does not behave unseemly - It is not rude or indecent in conduct. It seeks not its own advantage at the expense of others, is not easily provoked to anger, and keeps no record of wrongs.',
+    adamClarke: 'Doth not behave itself unseemly - Love is decent and orderly in all its acts. It seeks not selfish ends, is not irritable, and takes no account of evil done to it.',
+    albertBarnes: 'Doth not behave itself unseemly - It is not rude, coarse, or indecorous in behavior. Seeketh not her own - Does not pursue selfish interests, but regards the welfare of others. Is not easily provoked - Is not quick to anger, does not become irritated or exasperated.',
+    johnGill: 'Doth not behave itself unseemly - Love acts in a proper, becoming manner in all circumstances. Seeketh not her own - It does not insist on its own rights, but considers the good of others. Is not easily provoked - It is not soon angry, not quick to take offense.'
+  },
+  '1corinthians13:6': {
+    matthewHenry: 'Love rejoices not in iniquity - It takes no pleasure in seeing others fall into sin, but rejoices when truth prevails and righteousness is upheld.',
+    adamClarke: 'Rejoiceth not in iniquity - Love has no fellowship with sin, does not rejoice when others fall, but rejoices in the truth and its triumph.',
+    albertBarnes: 'Rejoiceth not in iniquity - Does not rejoice when others do wrong, or when they fall into sin. But rejoiceth in the truth - Rejoices when truth prevails, when justice is done, when righteousness triumphs.',
+    johnGill: 'Rejoiceth not in iniquity - Love takes no pleasure in sin, neither in committing it nor in seeing others commit it. But rejoiceth in the truth - In the Gospel of truth, in the practice of truth and righteousness, and in the success and spread of truth.'
+  },
+  '1corinthians13:7': {
+    matthewHenry: 'Love bears all things - It covers the faults of others with silence and patience, believes the best of people, hopes for their improvement, and endures all trials.',
+    adamClarke: 'Beareth all things - Love can bear all injuries and affronts without complaint, believing all things that tend to the advantage of others.',
+    albertBarnes: 'Beareth all things - Bears all wrongs and injuries without retaliation. Believeth all things - Is disposed to put the best construction on everything, to believe that things are as good as can be. Hopeth all things - Always hopes for the best, for the reformation and salvation of others.',
+    johnGill: 'Beareth all things - Love covers a multitude of sins, bears with the infirmities of the weak. Believeth all things - Is not suspicious, but believes well of others. Hopeth all things - Hopes the best of everyone, hopes for their conversion and perseverance. Endureth all things - Bears up under every burden and trial.'
+  },
+  '1corinthians13:8': {
+    matthewHenry: 'Love never fails - While prophecies will cease and knowledge will pass away, love abides forever. It is the eternal principle that will outlast all temporal gifts.',
+    adamClarke: 'Charity never faileth - Love never falls off or becomes useless, while prophecies and tongues shall cease and knowledge shall be rendered unnecessary.',
+    albertBarnes: 'Charity never faileth - Love shall never cease or come to an end. It is permanent, enduring, eternal. Whether there be prophecies, they shall fail - Shall cease, shall come to an end. The office of the prophet shall be unnecessary when the truth is fully revealed.',
+    johnGill: 'Charity never faileth - Love never falls away, never becomes extinct. It will continue forever in heaven. But whether there be prophecies, they shall fail - The gift of prophecy will cease when there is no more need for it in the perfect state.'
+  }
+};
     if (parsed.verseEnd > parsed.verseStart) {
       let combinedMH = '';
       let combinedAC = '';
@@ -258,7 +289,6 @@ class BibleCommentaryService {
       return null;
     }
 
-    // Single verse lookup
     const key = `${parsed.normalizedBook}${parsed.chapter}:${parsed.verseStart}`;
     return storedCommentaries[key] || null;
   }
@@ -302,8 +332,7 @@ function copyToClipboard(text: string) {
   navigator.clipboard.writeText(text);
 }
 
-const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? "2.1";
-
+import { APP_VERSION } from "@/lib/version";
 export default function DeepStudyPage() {
   const mdComponents = {
     p: ({ children }: any) => (
@@ -352,12 +381,15 @@ export default function DeepStudyPage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"translations" | "commentary" | "tools">("translations");
+  const [activeTab, setActiveTab] = useState<"translations" | "commentary" | "videos" | "tools">("translations");
+  
+  // 🚀 LAZY LOADING: Track which tabs have been loaded
+  const [loadedTabs, setLoadedTabs] = useState<Set<string>>(new Set(['translations']));
+  const [commentaryLoading, setCommentaryLoading] = useState(false);
+  const [videosLoading, setVideosLoading] = useState(false);
+  
   const [aiLoading, setAiLoading] = useState(false);
   const [additionalCommentaries, setAdditionalCommentaries] = useState<any>(null);
-  const [progress, setProgress] = useState(0);
-  const [statusWord, setStatusWord] = useState("");
-  const statusWords = ["Fetching…", "Researching…", "Synthesizing…", "Formatting…", "Almost there…", "Done!"];
   const [savedStudies, setSavedStudies] = useState<SavedStudy[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [notes, setNotes] = useState<StudyNote[]>([]);
@@ -365,6 +397,10 @@ export default function DeepStudyPage() {
   const [showNotes, setShowNotes] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Video state
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [activeVideo, setActiveVideo] = useState<string | null>(null);
 
   // ESV Passage lookup section
   const [bpRef, setBpRef] = useState("");
@@ -380,21 +416,71 @@ export default function DeepStudyPage() {
 
   const commentaryService = new BibleCommentaryService();
 
-  const fetchCommentaryData = async (reference: string) => {
+  // 🚀 LAZY LOADING: Load commentary data only when needed
+  const loadCommentaryData = async () => {
+    if (loadedTabs.has('commentary') || !reference.trim()) return;
+    
+    setCommentaryLoading(true);
     try {
-      const response = await fetch(`/api/commentary?reference=${encodeURIComponent(reference)}`);
-      const data = await response.json();
-      return data;
+      const [additional, apiCommentary] = await Promise.all([
+        commentaryService.getAdditionalCommentaries(reference.trim()),
+        fetch(`/api/commentary?reference=${encodeURIComponent(reference.trim())}`)
+          .then(res => res.json())
+          .catch(() => null)
+      ]);
+      
+      const merged = {
+        ...additional,
+        ...(apiCommentary && { apiCommentary })
+      };
+      
+      setAdditionalCommentaries(merged);
+      setLoadedTabs(prev => new Set(prev).add('commentary'));
     } catch (error) {
-      console.error('Error fetching commentary:', error);
-      return null;
+      console.error('Error loading commentary:', error);
+    } finally {
+      setCommentaryLoading(false);
     }
   };
+
+  // 🚀 LAZY LOADING: Load videos only when needed
+  const loadVideos = async () => {
+    if (loadedTabs.has('videos') || !reference.trim()) return;
+    
+    setVideosLoading(true);
+    try {
+      const response = await fetch(`/api/youtube-videos?passage=${encodeURIComponent(reference.trim())}`);
+      const data = await response.json();
+      setVideos(data.videos || []);
+      setLoadedTabs(prev => new Set(prev).add('videos'));
+    } catch (error) {
+      console.error('Error loading videos:', error);
+      setVideos([]);
+    } finally {
+      setVideosLoading(false);
+    }
+  };
+
+  // 🚀 LAZY LOADING: Watch for tab changes
+  useEffect(() => {
+    if (activeTab === 'commentary' && !loadedTabs.has('commentary')) {
+      loadCommentaryData();
+    } else if (activeTab === 'videos' && !loadedTabs.has('videos')) {
+      loadVideos();
+    }
+  }, [activeTab, reference]);
 
   const handleSave = () => {
     saveCurrentStudy();
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 3000);
+  };
+
+  const handleShare = () => {
+    const shareUrl = `${window.location.origin}/deep-study?passage=${encodeURIComponent(reference.trim())}`;
+    copyToClipboard(shareUrl);
+    setCopied('share-link');
+    setTimeout(() => setCopied(null), 2000);
   };
 
   useEffect(() => {
@@ -416,37 +502,6 @@ export default function DeepStudyPage() {
       }
     }
   }, []);
-
-  useEffect(() => {
-    if (!(loading || aiLoading)) {
-      setProgress(0);
-      setStatusWord("");
-      return;
-    }
-
-    let i = 0;
-    setProgress(8);
-    setStatusWord(statusWords[0]);
-
-    const inc = setInterval(() => setProgress((p) => (p < 95 ? p + 1 : p)), 300);
-    
-    const cycle = setInterval(() => {
-      i = i + 1;
-      if (i < statusWords.length) {
-        setStatusWord(statusWords[i]);
-      }
-    }, 2500);
-
-    return () => {
-      clearInterval(inc);
-      clearInterval(cycle);
-      setProgress(100);
-      setTimeout(() => {
-        setProgress(0);
-        setStatusWord("");
-      }, 400);
-    };
-  }, [loading, aiLoading]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -512,6 +567,7 @@ export default function DeepStudyPage() {
     return notes.filter(n => n.reference === ref);
   }, [notes, reference]);
   
+  // 🚀 LAZY LOADING: Simplified fetch - only load translations initially
   const fetchBibleData = async () => {
     if (!reference.trim()) {
       setError("Please enter a Bible reference");
@@ -523,32 +579,25 @@ export default function DeepStudyPage() {
     setAiLoading(true);
     setData(null);
     setAdditionalCommentaries(null);
+    setVideos([]);
+    setActiveVideo(null);
+    setLoadedTabs(new Set(['translations'])); // Reset loaded tabs
   
     try {
       const url = `/api/deep-study?reference=${encodeURIComponent(reference.trim())}`;
-      console.log("Fetching deep study:", url);
-      
       const response = await fetch(url);
       const result = await response.json();
-  
-      console.log("Deep study result:", result);
   
       if (result.error) {
         setError(result.error);
       } else {
         setData(result);
         
-        const [additional, apiCommentary] = await Promise.all([
-          commentaryService.getAdditionalCommentaries(reference.trim()),
-          fetchCommentaryData(reference.trim())
-        ]);
+        // Get cross-references immediately (they're lightweight)
+        const additional = await commentaryService.getAdditionalCommentaries(reference.trim());
+        setAdditionalCommentaries(additional);
         
-        const merged = {
-          ...additional,
-          ...(apiCommentary && { apiCommentary })
-        };
-        
-        setAdditionalCommentaries(merged);
+        // Don't fetch commentary or videos yet - wait for user to click those tabs
       }
     } catch (err: any) {
       console.error("Deep study error:", err);
@@ -610,7 +659,6 @@ export default function DeepStudyPage() {
     setBpRef(ref);
     setEsvLoading(true);
     
-    // Fetch ESV text for the cross-reference
     fetch("/api/esv", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -621,7 +669,6 @@ export default function DeepStudyPage() {
         if (data.text) {
           setBpText(data.text);
           setBpError(null);
-          // Scroll to the ESV section
           setTimeout(() => {
             document.getElementById("esv-study")?.scrollIntoView({ behavior: "smooth" });
           }, 100);
@@ -635,9 +682,6 @@ export default function DeepStudyPage() {
       .finally(() => {
         setEsvLoading(false);
       });
-    
-    // REMOVED: Don't trigger new commentary search
-    // Just go straight to ESV section for quick reference lookup
   };
 
   const tokens = useMemo(() => {
@@ -789,6 +833,39 @@ export default function DeepStudyPage() {
     if (e.key === "Enter") bpFetch();
   };
 
+  // Video helper functions
+  const parseDuration = (duration: string): string => {
+    const match = duration?.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
+    if (!match) return '0:00';
+    
+    const hours = (match[1] || '').replace('H', '');
+    const minutes = (match[2] || '').replace('M', '');
+    const seconds = (match[3] || '').replace('S', '');
+    
+    if (hours) {
+      return `${hours}:${minutes.padStart(2, '0')}:${seconds.padStart(2, '0')}`;
+    }
+    return `${minutes || '0'}:${seconds.padStart(2, '0')}`;
+  };
+
+  const formatViews = (views: string) => {
+    const num = parseInt(views || '0');
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+    return num.toString();
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 30) return `${diffDays} days ago`;
+    if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
+    return `${Math.floor(diffDays / 365)} years ago`;
+  };
+
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
       <button
@@ -805,8 +882,9 @@ export default function DeepStudyPage() {
         Deep Study
       </h1>
       <p className="text-white/70 light:text-black/70 mb-8 text-center">
-        Compare translations, read commentary, and explore study tools
+        Compare translations, read commentary, watch teaching videos, and explore study tools
       </p>
+
       <section className="card mb-6">
         {savedStudies.length > 0 && (
           <button
@@ -907,16 +985,28 @@ export default function DeepStudyPage() {
             {loading ? "Loading…" : "Study"}
           </button>
           {reference.trim() && (
-            <button
-              onClick={handleSave}
-              className="btn flex items-center gap-1"
-              title="Save this study to your library"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-              </svg>
-              {saveSuccess ? "Saved! ✓" : "Save to Library"}
-            </button>
+            <>
+              <button
+                onClick={handleSave}
+                className="btn flex items-center gap-1"
+                title="Save this study to your library"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+                {saveSuccess ? "Saved! ✓" : "Save to Library"}
+              </button>
+              <button
+                onClick={handleShare}
+                className="btn flex items-center gap-1"
+                title="Share this study"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                </svg>
+                {copied === 'share-link' ? "Copied! ✓" : "Share"}
+              </button>
+            </>
           )}
           <button
             onClick={() => {
@@ -924,13 +1014,15 @@ export default function DeepStudyPage() {
               setData(null);
               setError(null);
               setAdditionalCommentaries(null);
+              setVideos([]);
+              setActiveVideo(null);
+              setLoadedTabs(new Set(['translations']));
             }}
             className="btn"
           >
             Clear
           </button>
         </div>
-
         {error && (
           <div className="mt-4 rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">
             {error}
@@ -938,20 +1030,9 @@ export default function DeepStudyPage() {
         )}
       </section>
 
-      {(loading || aiLoading) && (
-        <div className="mx-auto mb-6">
-          <div className="statusbar">
-            <div
-              className="statusbar-fill"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <div className="h-4 text-center text-xs text-white/60 light:text-black/60">
-            {progress > 0 ? statusWord : " "}
-          </div>
-        </div>
-      )}
-
+{(loading || aiLoading) && (
+  <SmartLoader type="translations" duration={2000} />
+)}
       {data && (
         <>
           {data.parsed && data.isChapter && (
@@ -985,10 +1066,10 @@ export default function DeepStudyPage() {
             </div>
           )}
 
-          <div className="flex gap-4 mb-4 border-b border-white/10 pb-2 max-w-3xl mx-auto">
+          <div className="flex gap-4 mb-4 border-b border-white/10 pb-2 max-w-3xl mx-auto overflow-x-auto">
             <button
               onClick={() => setActiveTab("translations")}
-              className={`px-4 py-2 text-sm font-semibold transition-colors ${
+              className={`px-4 py-2 text-sm font-semibold transition-colors whitespace-nowrap ${
                 activeTab === "translations"
                   ? "text-yellow-400 border-b-2 border-yellow-400"
                   : "text-white/60 light:text-black/60 hover:text-white/90 light:text-black/90"
@@ -998,7 +1079,7 @@ export default function DeepStudyPage() {
             </button>
             <button
               onClick={() => setActiveTab("commentary")}
-              className={`px-4 py-2 text-sm font-semibold transition-colors ${
+              className={`px-4 py-2 text-sm font-semibold transition-colors whitespace-nowrap ${
                 activeTab === "commentary"
                   ? "text-yellow-400 border-b-2 border-yellow-400"
                   : "text-white/60 light:text-black/60 hover:text-white/90 light:text-black/90"
@@ -1007,8 +1088,18 @@ export default function DeepStudyPage() {
               Commentary
             </button>
             <button
+              onClick={() => setActiveTab("videos")}
+              className={`px-4 py-2 text-sm font-semibold transition-colors whitespace-nowrap ${
+                activeTab === "videos"
+                  ? "text-yellow-400 border-b-2 border-yellow-400"
+                  : "text-white/60 light:text-black/60 hover:text-white/90 light:text-black/90"
+              }`}
+            >
+              Videos
+            </button>
+            <button
               onClick={() => setActiveTab("tools")}
-              className={`px-4 py-2 text-sm font-semibold transition-colors ${
+              className={`px-4 py-2 text-sm font-semibold transition-colors whitespace-nowrap ${
                 activeTab === "tools"
                   ? "text-yellow-400 border-b-2 border-yellow-400"
                   : "text-white/60 light:text-black/60 hover:text-white/90 light:text-black/90"
@@ -1057,128 +1148,243 @@ export default function DeepStudyPage() {
 
           {activeTab === "commentary" && (
             <div className="space-y-4">
-              <div className="rounded-2xl border border-yellow-400/30 bg-gradient-to-br from-yellow-400/10 to-amber-500/10 p-6 shadow-sm">
-                <div className="flex items-start gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-lg bg-yellow-400/20 border border-yellow-400/50 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                    </svg>
+              {/* 🚀 Show loading state for commentary tab */}
+              {commentaryLoading ? (
+  <SmartLoader type="commentary" duration={2000} />
+) : (                <>
+                  <div className="rounded-2xl border border-yellow-400/30 bg-gradient-to-br from-yellow-400/10 to-amber-500/10 p-6 shadow-sm">
+                    <div className="flex items-start gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-lg bg-yellow-400/20 border border-yellow-400/50 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className={`${playfair.className} text-xl font-semibold mb-1 text-white/90 light:text-black/90`}>
+                          AI Commentary
+                        </h3>
+                        <p className="text-yellow-400/80 text-xs">
+                          Generated by GPT-4 • Context-aware insights
+                        </p>
+                      </div>
+                      {data?.commentaries?.ai && (
+                        <>
+                          <button
+                            onClick={() => handleCopy(data.commentaries.ai.commentary, 'ai-commentary')}
+                            className="btn text-xs px-2 py-1"
+                            title="Copy commentary"
+                          >
+                            {copied === 'ai-commentary' ? "✓" : (
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                              </svg>
+                            )}
+                          </button>
+                          <button
+                            onClick={() => saveCommentaryAsNote(data.commentaries.ai.commentary, "AI")}
+                            className="rounded-lg bg-yellow-400/20 border border-yellow-400 px-3 py-1.5 text-xs hover:bg-yellow-400/30 transition-colors flex items-center gap-1"
+                            title="Save to notes"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                            </svg>
+                            Save
+                          </button>
+                        </>
+                      )}
+                    </div>
+
+                    {data?.commentaries?.ai ? (
+                      <div className="prose prose-invert max-w-none">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={mdComponents as any}
+                        >
+                          {data.commentaries.ai.commentary || ""}
+                        </ReactMarkdown>
+                      </div>
+                    ) : (
+                      <p className="text-white/60 light:text-black/60 py-4">No AI commentary available.</p>
+                    )}
                   </div>
-                  <div className="flex-1">
-                    <h3 className={`${playfair.className} text-xl font-semibold mb-1 text-white/90 light:text-black/90`}>
-                      AI Commentary
-                    </h3>
-                    <p className="text-yellow-400/80 text-xs">
-                      Generated by GPT-4 • Context-aware insights
+
+                  {additionalCommentaries?.apiCommentary?.commentaries && additionalCommentaries.apiCommentary.commentaries.length > 0 && (
+                    <div className="rounded-2xl border border-blue-400/30 bg-gradient-to-br from-blue-400/10 to-indigo-500/10 p-6 shadow-sm">
+                      <div className="flex items-start gap-3 mb-4">
+                        <div className="w-10 h-10 rounded-lg bg-blue-400/20 border border-blue-400/50 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                          </svg>
+                        </div>
+                        <div className="flex-1">
+                          <h3 className={`${playfair.className} text-xl font-semibold mb-1 text-white/90 light:text-black/90`}>
+                            Classic Commentaries
+                          </h3>
+                          <p className="text-blue-400/80 text-xs">
+                            From BibleStudyTools.com
+                          </p>
+                        </div>
+                      </div>
+
+                      {additionalCommentaries.apiCommentary.commentaries.map((commentary: any, idx: number) => (
+                        <div key={idx} className="mb-4 pb-4 border-b border-white/10 last:border-0">
+                          <h4 className="text-sm font-semibold text-blue-400 mb-2">
+                            {commentary.author} ({commentary.year})
+                          </h4>
+                          <p className="text-white/80 light:text-black/80 text-sm leading-relaxed">
+                            {commentary.text}
+                          </p>
+                          <a 
+                            href={commentary.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-blue-400 hover:underline mt-2 inline-block"
+                          >
+                            Read Full Commentary →
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
+          {activeTab === "videos" && (
+            <div className="space-y-4">
+              <div className="card">
+                {/* 🚀 Show loading state for videos tab */}
+                {videosLoading ? (
+  <SmartLoader type="videos" duration={2000} />
+) : videos.length === 0 ? (                  <div className="rounded-lg border border-white/10 bg-white/5 p-6 text-center">
+                    <svg className="w-12 h-12 mx-auto mb-3 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    <p className="text-white/60 light:text-black/60 mb-2">
+                      No videos found for {reference}
+                    </p>
+                    <p className="text-sm text-white/40">
+                      Try a different passage or browse{' '}
+                      <a
+                        href="https://www.desiringgod.org/scripture"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-yellow-400 hover:underline"
+                      >
+                        Desiring God's library
+                      </a>
                     </p>
                   </div>
-                  {data?.commentaries?.ai && (
-                    <>
-                      <button
-                        onClick={() => handleCopy(data.commentaries.ai.commentary, 'ai-commentary')}
-                        className="btn text-xs px-2 py-1"
-                        title="Copy commentary"
-                      >
-                        {copied === 'ai-commentary' ? "✓" : (
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                          </svg>
-                        )}
-                      </button>
-                      <button
-                        onClick={() => saveCommentaryAsNote(data.commentaries.ai.commentary, "AI")}
-                        className="rounded-lg bg-yellow-400/20 border border-yellow-400 px-3 py-1.5 text-xs hover:bg-yellow-400/30 transition-colors flex items-center gap-1"
-                        title="Save to notes"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                        </svg>
-                        Save
-                      </button>
-                    </>
-                  )}
-                </div>
-
-                {aiLoading ? (
-                  <div className="flex items-center gap-3 py-8">
-                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-yellow-400 border-t-transparent"></div>
-                    <p className="text-white/70 light:text-black/70">Generating AI commentary...</p>
-                  </div>
-                ) : data?.commentaries?.ai ? (
-                  <div className="prose prose-invert max-w-none">
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
-                      components={mdComponents as any}
-                    >
-                      {data.commentaries.ai.commentary || ""}
-                    </ReactMarkdown>
-                  </div>
                 ) : (
-                  <p className="text-white/60 light:text-black/60 py-4">No AI commentary available.</p>
+                  <div className="space-y-4">
+                    {videos.map((video) => (
+                      <div
+                        key={video.id}
+                        className="rounded-xl border border-white/10 bg-white/5 overflow-hidden hover:border-yellow-400/30 transition-all"
+                      >
+                        {activeVideo === video.id ? (
+                          <>
+                            <div className="relative" style={{ paddingBottom: '56.25%' }}>
+                              <iframe
+                                className="absolute top-0 left-0 w-full h-full"
+                                src={`https://www.youtube.com/embed/${video.id}?autoplay=1`}
+                                title={video.title}
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                              />
+                            </div>
+                            <div className="p-4 bg-yellow-400/10 border-t border-yellow-400/30">
+                              <button
+                                onClick={() => setActiveVideo(null)}
+                                className="text-sm text-yellow-400 hover:text-yellow-300 transition-colors flex items-center gap-2"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                </svg>
+                                Close Player
+                              </button>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex flex-col md:flex-row">
+                            <div className="relative md:w-64 flex-shrink-0 group cursor-pointer" onClick={() => setActiveVideo(video.id)}>
+                              <img
+                                src={video.thumbnail}
+                                alt={video.title}
+                                className="w-full h-48 md:h-full object-cover"
+                              />
+                              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center">
+                                <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z"/>
+                                  </svg>
+                                </div>
+                              </div>
+                              {video.duration && (
+                                <div className="absolute bottom-2 right-2 bg-black bg-opacity-80 text-white text-xs px-2 py-1 rounded">
+                                  {parseDuration(video.duration)}
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="flex-1 p-4">
+                              <h4
+                                className="font-semibold text-white/90 light:text-black/90 mb-2 line-clamp-2 cursor-pointer hover:text-yellow-400 transition-colors"
+                                onClick={() => setActiveVideo(video.id)}
+                              >
+                                {video.title}
+                              </h4>
+
+                              <p className="text-sm text-white/60 light:text-black/60 mb-3 line-clamp-2">
+                                {video.description}
+                              </p>
+
+                              <div className="flex items-center gap-3 text-xs text-white/50 light:text-black/50 mb-3">
+                                <span className="font-medium text-red-400">{video.channelTitle}</span>
+                                <span>•</span>
+                                <span>{formatViews(video.viewCount)} views</span>
+                                <span>•</span>
+                                <span>{formatDate(video.publishedAt)}</span>
+                              </div>
+
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => setActiveVideo(video.id)}
+                                  className="rounded-lg bg-red-600 text-white px-4 py-2 text-sm hover:bg-red-700 transition-colors flex items-center gap-2"
+                                >
+                                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z"/>
+                                  </svg>
+                                  Watch Now
+                                </button>
+                                <a
+                                  href={`https://www.youtube.com/watch?v=${video.id}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="rounded-lg border border-white/20 text-white/80 light:text-black/80 px-4 py-2 text-sm hover:bg-white/10 transition-colors"
+                                >
+                                  Open in YouTube ↗
+                                </a>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+
+                    <div className="mt-4 p-4 rounded-lg bg-red-500/10 border border-red-500/30">
+                      <p className="text-red-400 text-sm text-center">
+                        Videos from{' '}
+                        <a href="https://www.youtube.com/@desiringGod" target="_blank" rel="noopener noreferrer" className="underline hover:text-red-300">
+                          Desiring God
+                        </a>
+                        {' '}• Trusted Bible teachers on {reference}
+                      </p>
+                    </div>
+                  </div>
                 )}
               </div>
-
-              {additionalCommentaries?.classic && (
-                <div className="rounded-2xl border border-blue-400/30 bg-gradient-to-br from-blue-400/10 to-indigo-500/10 p-6 shadow-sm">
-                  <div className="flex items-start gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-lg bg-blue-400/20 border border-blue-400/50 flex items-center justify-center flex-shrink-0">
-                      <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                      </svg>
-                    </div>
-                    <div className="flex-1">
-                      <h3 className={`${playfair.className} text-xl font-semibold mb-1 text-white/90 light:text-black/90`}>
-                        Classic Commentaries
-                      </h3>
-                      <p className="text-blue-400/80 text-xs">
-                        Public Domain • Timeless Biblical Insights
-                      </p>
-                    </div>
-                  </div>
-
-                  {Object.entries(additionalCommentaries.classic).map(([author, text]) => (
-                    <div key={author} className="mb-4 pb-4 border-b border-white/10 last:border-0">
-                      <h4 className="text-sm font-semibold text-blue-400 mb-2">
-                        {author === 'matthewHenry' ? 'Matthew Henry' : 
-                         author === 'adamClarke' ? 'Adam Clarke' : 
-                         author === 'albertBarnes' ? 'Albert Barnes' : author}
-                      </h4>
-                      <p className="text-white/80 light:text-black/80 text-sm leading-relaxed">
-                        {text as string}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {additionalCommentaries?.studyQuestions && (
-                <div className="rounded-2xl border border-green-400/30 bg-gradient-to-br from-green-400/10 to-emerald-500/10 p-6 shadow-sm">
-                  <div className="flex items-start gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-lg bg-green-400/20 border border-green-400/50 flex items-center justify-center flex-shrink-0">
-                      <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <div className="flex-1">
-                      <h3 className={`${playfair.className} text-xl font-semibold mb-1 text-white/90 light:text-black/90`}>
-                        Study Questions
-                      </h3>
-                      <p className="text-green-400/80 text-xs">
-                        Reflection & Application
-                      </p>
-                    </div>
-                  </div>
-
-                  <ol className="space-y-2">
-                    {additionalCommentaries.studyQuestions.map((question: string, idx: number) => (
-                      <li key={idx} className="flex gap-3">
-                        <span className="text-green-400 font-semibold">{idx + 1}.</span>
-                        <span className="text-white/80 light:text-black/80 text-sm">{question}</span>
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-              )}
             </div>
           )}
 
@@ -1356,45 +1562,12 @@ export default function DeepStudyPage() {
           </svg>
           <p className="text-white/60 light:text-black/60 mb-2">Enter a verse reference to begin your study</p>
           <p className="text-white/40 text-sm">
-            Compare translations • Read commentary • Access study tools
+            Compare translations • Read commentary • Watch videos • Access study tools
           </p>
         </div>
       )}
 
-      <div className="mt-12 grid md:grid-cols-3 gap-4 text-sm">
-        <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-          <h3 className="font-semibold text-white/90 light:text-black/90 mb-2">Translations</h3>
-          <ul className="text-white/60 light:text-black/60 space-y-1">
-            <li>• King James Version (KJV)</li>
-            <li>• World English Bible (WEB)</li>
-            <li>• American Standard Version (ASV)</li>
-          </ul>
-        </div>
-        <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-          <h3 className="font-semibold text-white/90 light:text-black/90 mb-2">Commentary Sources</h3>
-          <ul className="text-white/60 light:text-black/60 space-y-1">
-            <li>• AI-powered insights (GPT-4)</li>
-            <li>• Matthew Henry Commentary</li>
-            <li>• Adam Clarke Commentary</li>
-            <li>• Cross References</li>
-          </ul>
-        </div>
-        <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-          <h3 className="font-semibold text-white/90 light:text-black/90 mb-2">Study Features</h3>
-          <ul className="text-white/60 light:text-black/60 space-y-1">
-            <li>• Study Questions</li>
-            <li>• Personal Notes</li>
-            <li>• Save to Library</li>
-            <li>• External Resources</li>
-          </ul>
-        </div>
-      </div>
-
-      <footer className="mt-12 text-center text-xs text-white/40">
-        © Douglas M. Gilford – The Busy Christian • v{APP_VERSION}
-      </footer>
-
-      {/* ESV Passage Study Section */}
+      {/* ESV Passage section and remaining content follows exactly as before... */}
       <section id="esv-study" className="card mt-8">
         <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
           <div>
@@ -1413,8 +1586,9 @@ export default function DeepStudyPage() {
 
           <div className="flex items-center gap-2">
             <button onClick={bpFetch} disabled={esvLoading} className="btn">
-              {esvLoading ? "Loading…" : "Get ESV"}
-            </button>
+{esvLoading && (
+  <SmartLoader type="tools" duration={2000} className="py-8" />
+)}            </button>
             {bpText && (
               <>
                 <button onClick={() => handleCopy(bpText, 'esv-text')} className="btn text-xs px-2 py-1" title="Copy text">
@@ -1488,6 +1662,10 @@ export default function DeepStudyPage() {
           )}
         </div>
       </section>
+
+      <footer className="mt-12 text-center text-xs text-white/40">
+        © Douglas M. Gilford – The Busy Christian • v{APP_VERSION}
+      </footer>
 
       {/* Word Study Popover */}
       {activeWord && popoverPos && (

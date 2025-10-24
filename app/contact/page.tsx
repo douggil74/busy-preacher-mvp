@@ -10,7 +10,7 @@ const playfair = Playfair_Display({
   display: "swap",
 });
 
-const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? "2.1";
+import { APP_VERSION } from "@/lib/version";
 
 export default function ContactPage() {
   return (

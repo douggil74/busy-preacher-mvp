@@ -1,0 +1,1024 @@
+export const spiritualFoundationsCourse = {
+  id: 'spiritual-foundations',
+  title: 'Spiritual Foundations',
+  description:
+    "Build a strong foundation in Christ through 16 essential biblical principles. Grow by leaps and bounds as you commit to these core teachings.",
+  instructor: 'Pastor Doug Gilford',
+  duration: '16 Lessons',
+  level: 'Foundational',
+  category: 'Discipleship',
+  image: '/courses/spiritual-foundations.jpg',
+
+  lessons: [
+    {
+      id: 1,
+      title: 'What Does It Mean to Be Saved?',
+      description:
+        "Understanding salvation, God's part and your part in being born again",
+      duration: '45 min',
+      content: {
+        introduction:
+          `By now you have decided to make Jesus your Lord and Savior. In doing so, you have been born again (John 3:3). We rejoice with you that you have been saved.
+
+When we talk about being "born again" or being "saved" we are essentially saying the same thing. A person is SAVED when he turns from sin to God, which is done by repentance. He is then saved from sin and given a new life, saved from eternal hell and given eternal life.`,
+        sections: [
+          {
+            title: 'What Are You Saved From?',
+            content:
+              'In this life, you are saved from the bondage of sin and the destruction, guilt, and loss of purpose it brings…and in the afterlife, saved from God’s wrath and eternal punishment.',
+            scripture:
+              'John 10:28 (ESV) — I give them eternal life, and they will never perish, and no one will snatch them out of my hand.',
+          },
+          {
+            title: 'What Are You Saved To?',
+            content:
+              'You have been born again into abundant life in God’s family as His child — with access to His righteousness, peace, joy, healing, and provision — and, above all, eternal life with Him.',
+          },
+          {
+            title: "God's Part in Salvation",
+            subsections: [
+              {
+                title: 'God Loves You',
+                content:
+                  'God loves all people and desires to be their Father (John 3:16). He loves sinners yet hates sin.',
+                scripture:
+                  'Romans 3:23 — for all have sinned and fall short of the glory of God.',
+              },
+              {
+                title: 'God Sent Jesus to Die for You',
+                content:
+                  'Jesus, the sinless One, became our substitute, bearing the penalty for our sin.',
+                scripture:
+                  '2 Corinthians 5:21 — For our sake he made him to be sin who knew no sin, so that in him we might become the righteousness of God.',
+              },
+              {
+                title: 'God Sends His Holy Spirit',
+                content:
+                  'The Spirit convicts of sin, leads to repentance, and testifies that Jesus is the only way to the Father.',
+                scripture:
+                  'John 16:7–8 — … if I do not go away, the Helper will not come to you. But if I go, I will send him to you. And when he comes, he will convict the world…',
+              },
+              {
+                title: 'God Forgives You',
+                content:
+                  'When you believe in Jesus, confess your sins, and receive Him as Lord, God forgives you and receives you as His own.',
+                scripture:
+                  'Romans 10:9–10 — … if you confess with your mouth that Jesus is Lord and believe in your heart that God raised him from the dead, you will be saved…',
+              },
+              {
+                title: 'God Gives You New Life',
+                content:
+                  'God indwells you by His Spirit and imparts His life and nature.',
+                scripture:
+                  'Revelation 3:20 — Behold, I stand at the door and knock…',
+              },
+              {
+                title: 'God Accepts You Into His Family',
+                content:
+                  'By new birth and adoption you become an heir of God and co-heir with Christ.',
+                scripture:
+                  'Romans 8:17 — and if children, then heirs—heirs of God and fellow heirs with Christ…',
+              },
+            ],
+          },
+          {
+            title: 'Your Part in Salvation',
+            subsections: [
+              {
+                title: 'Admit You Are a Sinner',
+                content:
+                  'Acknowledge your sin, inability to save yourself, and your need for a Savior.',
+                scripture: 'Romans 3:23',
+              },
+              {
+                title: 'Repent and Turn to God',
+                content:
+                  "Forsake sin and choose God's way over your own.",
+                scripture: '2 Peter 3:9',
+              },
+              {
+                title: 'Believe',
+                content:
+                  'Trust fully in Christ’s finished work on the cross and His resurrection.',
+                scripture: '1 Corinthians 1:18',
+              },
+              {
+                title: 'Ask and Receive',
+                content:
+                  'Ask God to forgive you; receive Jesus as Lord and Savior.',
+                scripture: '1 John 1:9',
+              },
+              {
+                title: 'Confess Jesus as Lord',
+                content:
+                  'Confess openly with your mouth what you believe in your heart.',
+                scripture: 'Romans 10:9–10',
+              },
+              {
+                title: 'Obedience in Baptism',
+                content:
+                  'Be water-baptized in obedience to Christ’s command.',
+                scripture: 'Mark 16:16',
+              },
+            ],
+          },
+        ],
+        keyTakeaways: [
+          'Salvation is God’s free gift, received by grace through faith.',
+          'God has a part and you have a part; both matter.',
+          'Saved FROM sin and wrath; saved TO life with God now and forever.',
+          'Repentance, faith, confession, and obedience are essential responses.',
+          'In Christ you are a new creation and a child of God.',
+        ],
+        reflectionQuestions: [
+          'How would you explain “born again” in your own words?',
+          'What is God’s part in your salvation? What is your part?',
+          'Have you confessed Jesus as Lord publicly?',
+          'Are you ready to obey Christ in water baptism?',
+        ],
+      },
+    },
+
+    {
+      id: 2,
+      title: 'Prayer and Bible Study',
+      description: 'The most important thing you can do—spending daily time with God',
+      duration: '40 min',
+      content: {
+        introduction:
+          'To live the overcoming life God intends, build a daily rhythm of PRAYER (you talk to God) and BIBLE STUDY (God talks to you). Your quiet time becomes anchor and joy.',
+        sections: [
+          {
+            title: 'Part I: Prayer',
+            subsections: [
+              {
+                title: 'Helpful Hints for Prayer',
+                points: [
+                  'Pray early; meet God before the day meets you (Psalm 5:3).',
+                  'Find a quiet, distraction-free place (Matthew 14:23).',
+                  'Use a posture that helps you focus; pray aloud if needed (Psalm 3:4).',
+                  'Be sincere; avoid empty phrases (Matthew 6:5–7).',
+                  'Learn to recognize the Shepherd’s voice (John 10:3–4).',
+                  'Pray in your understanding and in the Spirit (1 Corinthians 14:15).',
+                  'Pray to the Father in Jesus’ name (John 15:16).',
+                  'Pray in faith (Mark 11:24).',
+                ],
+              },
+              {
+                title: "The Lord's Prayer — A Model",
+                content:
+                  'Jesus provided a pattern of priorities and movements in prayer (Matthew 6:9–13).',
+                points: [
+                  'Praise & Thanksgiving — “Our Father…hallowed be your name.”',
+                  'Submission — “Your kingdom come; your will be done.”',
+                  'Petition — “Give us this day our daily bread.”',
+                  'Cleansing — “Forgive us…as we forgive…”',
+                  'Spiritual Warfare — “Lead us not into temptation, but deliver us…”',
+                  'Worship — “Yours is the kingdom and the power and the glory…”',
+                ],
+              },
+            ],
+          },
+          {
+            title: 'Part II: Bible Study',
+            subsections: [
+              {
+                title: 'Why Study the Bible?',
+                points: [
+                  'Reveals the way of salvation (Romans 1:17).',
+                  'Shows God’s character (Psalm 119:15).',
+                  'Teaches our benefits in Christ (1 Corinthians 2:12).',
+                  'Guides relationships (Ephesians 5:22–6:9).',
+                  'Keeps us from error (2 Timothy 3:16–17).',
+                  'Feeds the inner person (1 Peter 2:2).',
+                  'Leads to success when obeyed (Joshua 1:8).',
+                  'Lights our path (Psalm 119:105).',
+                  'Points to heaven (John 14:6).',
+                ],
+              },
+              {
+                title: 'Tips for Effective Study',
+                points: [
+                  'Give Scripture first place daily.',
+                  'Set a regular time.',
+                  'Start alert — wake mind and heart.',
+                  'Pray for illumination.',
+                  'Begin with Mark; then read the NT.',
+                  'Aim for at least two chapters or 15 minutes.',
+                  'Mark verses that speak to you and keep a journal.',
+                ],
+              },
+            ],
+          },
+        ],
+        keyTakeaways: [
+          'Prayer and Scripture intake are daily essentials for growth.',
+          "Use the Lord's Prayer as a flexible model.",
+          'God’s Word nourishes, guides, corrects, and equips you.',
+          'Consistency beats intensity — build a habit.',
+        ],
+        reflectionQuestions: [
+          'What time of day will you consistently meet with God?',
+          'Which element of the Lord’s Prayer do you tend to skip?',
+          'What practical steps will you start this week to build a quiet-time habit?',
+        ],
+      },
+    },
+
+    {
+      id: 3,
+      title: 'Your Relationship to the Local Church',
+      description: 'Why church membership matters and how to find your place',
+      duration: '45 min',
+      content: {
+        introduction:
+          'A believer’s relationship to a local church often reflects spiritual health. Scripture and experience show every Christian should be joined to a local body.',
+        sections: [
+          {
+            title: 'Why Commit to a Local Church?',
+            subsections: [
+              {
+                title: 'Scripture Warns Against Neglecting Fellowship',
+                content:
+                  'We are commanded not to forsake assembling together; isolation invites drift.',
+                scripture: 'Hebrews 10:25',
+              },
+              {
+                title: 'Pastoral Care',
+                content:
+                  'God appoints shepherds who watch over souls and will give account.',
+                scripture: 'Hebrews 13:17',
+              },
+              {
+                title: 'Families Are Strengthened',
+                content:
+                  'Teaching, worship, ministry to children and youth, and counseling stabilize homes.',
+                scripture: 'Psalm 127:1',
+              },
+              {
+                title: 'Belonging & Mutual Care',
+                content:
+                  'Love, hospitality, generosity, and shared life flourish in the church.',
+                scripture: 'Acts 2:44–46',
+              },
+              {
+                title: 'We Need Each Other',
+                content:
+                  'No member can say to another, “I have no need of you.”',
+                scripture: '1 Corinthians 12:21',
+              },
+              {
+                title: 'Protection & Growth',
+                content:
+                  'Faithful preaching and oversight guard and nourish the flock.',
+                scripture: 'Acts 20:28–29',
+              },
+              {
+                title: 'Corporate Anointing',
+                content:
+                  'United worship brings unique power and freedom (Psalm 133).',
+              },
+              {
+                title: 'Missions Base',
+                content:
+                  'Local churches send and support workers to fulfill the Great Commission.',
+                scripture: 'Matthew 28:19–20',
+              },
+            ],
+          },
+          {
+            title: 'What to Look For in a Church',
+            points: [
+              'Biblically qualified, godly leadership (1 Timothy 3:1–7; Titus 1:6–9).',
+              'Full, faithful teaching of God’s Word (2 Timothy 3:16–17).',
+              'Active missions (Acts 13:1–3).',
+              'Gifts of the Spirit in order (1 Corinthians 12:4–11; 14:40).',
+              'Freedom in worship (Ephesians 5:19; John 4:24).',
+              'Equipping for ministry (Ephesians 4:11–12).',
+              'Abounding love (Revelation 2:4 warns when love grows cold).',
+            ],
+            warning:
+              'Avoid groups that oppose Scripture or claim “new/hidden” revelation superior to the Bible (2 Corinthians 11:12–15).',
+          },
+          {
+            title: 'What God Wants From You in Your Church',
+            points: [
+              'Commitment and loyalty (Acts 2:44, 46).',
+              'Submission to leaders (Hebrews 13:17).',
+              'Tithes and offerings (Malachi 3:10; 2 Corinthians 9:7–8).',
+              'Prayer for leaders, ministries, one another, and the lost.',
+              'Missions support (prayer and giving).',
+              'Service according to your gifts (Romans 12:6–8).',
+              'Spiritual preparation before gatherings (1 Corinthians 14:26–33, 40).',
+            ],
+          },
+          {
+            title: 'Finding Your Place',
+            content:
+              'Every believer has a unique assignment. Fulfillment comes by serving the Body in love.',
+            practicalSteps: [
+              'Submit to the Lord and be available.',
+              'Be faithful in small things.',
+              'Pray for clarity about your place.',
+              'Serve wherever needed; then specialize.',
+              'Consider your gifts, passions, and opportunities.',
+            ],
+          },
+        ],
+        keyTakeaways: [
+          'You won’t grow as you should apart from a local church.',
+          'Look for sound doctrine, loving community, and equipping.',
+          'The church needs your presence, prayers, giving, and gifts.',
+          'God has a place for you to serve and flourish.',
+        ],
+        reflectionQuestions: [
+          'Are you committed to a local church? Why or why not?',
+          'What gifts or abilities could you offer this month?',
+          'How can you strengthen your church through prayer and giving?',
+          'Where do you sense God inviting you to serve?',
+        ],
+      },
+    },
+
+    {
+      id: 4,
+      title: 'Spiritual Warfare',
+      description: 'Understanding your enemy and how to walk in victory',
+      duration: '50 min',
+      content: {
+        introduction:
+          'Because of Christ’s victory over sin, death, and the devil, believers can walk in freedom from guilt, fear, and bondage. God leads us in triumph in Christ (2 Corinthians 2:14).',
+        sections: [
+          {
+            title: "God's Will: Victory",
+            content:
+              'God has granted all things needed for life and godliness (2 Peter 1:3). The One in you is greater than the one in the world.',
+            scripture: '1 John 4:4',
+          },
+          {
+            title: 'Resist and Overcome',
+            content:
+              'Submit to God, resist the devil, and he will flee (James 4:7). Believers overcome by the blood of the Lamb and the word of their testimony.',
+            scripture: 'Revelation 12:11',
+          },
+          {
+            title: 'Know Your Enemy: Three Roles, Three Weapons',
+            subsections: [
+              {
+                title: 'Weapon #1: Temptation (Tempter)',
+                content:
+                  'Satan cannot force you to sin but entices you to act independently from God (Matthew 4:3). Temptation itself is not sin; yielding is.',
+                howItWorks:
+                  'From James 1:12–15: desire → enticement → sin → death, unless interrupted by repentance.',
+                threeAreas: [
+                  '**Lust of the Flesh** — disordered bodily appetites.',
+                  '**Lust of the Eyes** — greed and covetousness.',
+                  '**Pride of Life** — self at the center: pride, strife, envy, idolatry.',
+                ],
+                howToOvercome: [
+                  'Put on the full armor of God (Ephesians 6:10–18).',
+                  'Strengthen yourself through prayer and Scripture.',
+                  'Avoid evil influences and flee youthful passions (2 Timothy 2:22).',
+                  'Use the Word against lies (Matthew 4:1–11; Ephesians 6:17).',
+                  'Stay in close fellowship (Hebrews 10:25).',
+                  'Remember God’s way of escape (1 Corinthians 10:13).',
+                  'After submitting to God, resist the devil (James 4:7).',
+                ],
+              },
+              {
+                title: 'Weapon #2: Condemnation (Accuser)',
+                content:
+                  'Satan accuses believers to paralyze them with shame and regret (Revelation 12:10).',
+                threeWalls: [
+                  {
+                    title: 'First Wall — The Blood',
+                    content:
+                      'Trust the cleansing power of Christ’s blood (1 John 1:7).',
+                  },
+                  {
+                    title: 'Second Wall — The Spoken Word',
+                    content:
+                      'Answer accusations with God’s Word — your testimony aligned with Scripture.',
+                  },
+                  {
+                    title: 'Third Wall — Commitment',
+                    content:
+                      'A settled “yes” to Jesus disarms threats and fear.',
+                  },
+                ],
+              },
+              {
+                title: 'Weapon #3: Devastation (Destroyer)',
+                content:
+                  'The enemy seeks to devour through sickness, mental/emotional attack, financial strain, and family conflict (1 Peter 5:8–10; John 10:10).',
+                majorAreas: [
+                  'Physical sickness',
+                  'Mental & emotional attack',
+                  'Financial pressure',
+                  'Family turmoil',
+                ],
+                howToResist: [
+                  'Find God’s promises for your situation.',
+                  'Speak the Word to the need and the enemy.',
+                  'Walk in obedience to known truth (Malachi 3:10–11).',
+                  'Bind the enemy; loose God’s purposes (Matthew 12:28–29).',
+                  'Raise the shield of faith (Ephesians 6:16).',
+                  'Stand firm; do not retreat (Ephesians 6:11–13).',
+                ],
+              },
+            ],
+          },
+        ],
+        keyTakeaways: [
+          'Victory is God’s will for you in Christ.',
+          'Satan tempts, accuses, and destroys — but is defeated in Jesus.',
+          'Your weapons: God’s Word, Christ’s blood, faith, prayer, and steadfast obedience.',
+          'Stand firm and resist; do not fight alone.',
+        ],
+        reflectionQuestions: [
+          'Which of Satan’s tactics trips you most often?',
+          'What Scriptures will you memorize to answer temptation?',
+          'Where do you need to stand firm today?',
+          'Who can stand with you in prayer and accountability?',
+        ],
+      },
+    },
+
+    // ===== Remaining lessons completed in full =====
+
+    {
+      id: 5,
+      title: 'Living the Christian Life',
+      description: 'Practical principles for finishing the race',
+      duration: '35 min',
+      content: {
+        introduction:
+          'The Christian life is a marathon of faith, not a sprint. We lay aside hindrances and run with endurance the race set before us, looking to Jesus (Hebrews 12:1–2).',
+        sections: [
+          {
+            title: 'Go to Jesus for Mercy and Help',
+            content:
+              'Jesus, our sympathetic High Priest, invites us to draw near for mercy when we fail and grace to help in time of need.',
+            scripture: 'Hebrews 4:14–16',
+          },
+          {
+            title: 'Live by Faith',
+            content:
+              'We begin and continue in faith. Unbelief hardens the heart; faith keeps us close and responsive to God.',
+            scripture: 'Hebrews 3:12; Hebrews 11',
+          },
+          {
+            title: 'Stay in Fellowship',
+            content:
+              'We need mutual encouragement and accountability, especially as the Day draws near.',
+            scripture: 'Hebrews 10:25',
+          },
+          {
+            title: 'Submit to God’s Discipline',
+            content:
+              'The Father’s loving correction trains us to share His holiness and bear peaceful fruit.',
+            scripture: 'Hebrews 12:5–11',
+          },
+          {
+            title: 'Guard Your Heart from Bitterness',
+            content:
+              'A root of bitterness defiles many; choose forgiveness and grace.',
+            scripture: 'Hebrews 12:15',
+          },
+          {
+            title: 'Honor Spiritual Authority',
+            content:
+              'Imitate the faith of godly leaders and submit to those who keep watch over your soul.',
+            scripture: 'Hebrews 13:7, 17',
+          },
+        ],
+        keyTakeaways: [
+          'Keep coming to Jesus — for mercy after sin and grace before temptation.',
+          'Faith is how we start and how we finish.',
+          'Community is essential; isolation is dangerous.',
+          'God’s discipline is love in action, producing holiness and fruit.',
+        ],
+        reflectionQuestions: [
+          'Where do you need mercy today? Where do you need empowering grace?',
+          'What weight or sin do you need to lay aside?',
+          'Who are your “run-with” people in this race?',
+        ],
+      },
+    },
+
+    {
+      id: 6,
+      title: 'Repentance',
+      description: 'Understanding true repentance and its role in salvation and growth',
+      duration: '30 min',
+      content: {
+        introduction:
+          'Repentance—literally a change of mind that results in a changed life—is the first foundation stone (Hebrews 6:1–2). It marks conversion and continues throughout discipleship.',
+        sections: [
+          {
+            title: 'What is Repentance?',
+            content:
+              'More than emotion or penance, repentance is a Spirit-wrought turn: from sin to God, from self-rule to Christ’s lordship.',
+            scripture: 'Acts 26:20; Matthew 3:8; 2 Corinthians 7:9–10',
+          },
+          {
+            title: 'Why Repentance is Foundational',
+            points: [
+              'Necessary for forgiveness and conversion (Acts 3:19).',
+              'Necessary for believers who stray (Revelation 2–3; James 5:19–20).',
+            ],
+          },
+          {
+            title: 'Repentance and Saving Faith',
+            content:
+              'Saving faith includes repentance; it is impossible to cling to sin and truly trust Christ at the same time.',
+            scripture: 'Mark 1:15; Acts 20:21; Hebrews 6:1; James 2:14–26',
+          },
+          {
+            title: 'Still Required Today',
+            content:
+              'God now commands all people everywhere to repent.',
+            scripture: 'Acts 17:30',
+          },
+          {
+            title: 'Reasons that Lead Us to Repent',
+            points: [
+              'To avoid perishing (Luke 13:3, 5).',
+              'So sins may be blotted out and times of refreshing come (Acts 3:19).',
+              'God’s kindness (Romans 2:4).',
+              'Godly sorrow (2 Corinthians 7:10).',
+              'Christ’s loving reproof (Revelation 3:19).',
+            ],
+          },
+        ],
+        keyTakeaways: [
+          'Repentance is a change of mind that changes life.',
+          'It is essential for initial salvation and ongoing restoration.',
+          'God’s kindness and godly sorrow lead us to repent.',
+        ],
+        reflectionQuestions: [
+          'What “change of mind” is the Spirit prompting in you right now?',
+          'Where do you need to bear fruit in keeping with repentance?',
+          'Who can walk with you in repentance and renewal?',
+        ],
+      },
+    },
+
+    {
+      id: 7,
+      title: 'Water Baptism',
+      description: 'The biblical command and meaning of baptism',
+      duration: '35 min',
+      content: {
+        introduction:
+          'In the Great Commission Jesus commands disciple-making and baptism. Baptism is not optional; it is obedience and powerful identification with Christ (Matthew 28:19–20).',
+        sections: [
+          {
+            title: 'Who Should Be Baptized?',
+            content:
+              'Those who have repented and believed the gospel — disciples of Jesus. Baptism follows faith.',
+            scripture: 'Acts 2:38; Acts 8:36–37',
+          },
+          {
+            title: 'What is the Purpose?',
+            content:
+              'Baptism pictures union with Christ in His death, burial, and resurrection; we rise to walk in newness of life.',
+            scripture: 'Romans 6:3–5; 1 Peter 3:21',
+          },
+          {
+            title: 'What Baptism Declares',
+            points: [
+              'My old life has been buried with Christ.',
+              'I have a clean conscience toward God.',
+              'I now live under Jesus’ lordship.',
+            ],
+          },
+        ],
+        keyTakeaways: [
+          'Baptism is a command for disciples, following repentance and faith.',
+          'It powerfully portrays our union with Christ.',
+          'It marks a break with the old and a beginning of the new.',
+        ],
+        reflectionQuestions: [
+          'Have you been baptized since believing?',
+          'Who can you invite to witness your baptism?',
+          'What “old ways” are you leaving in the water?',
+        ],
+      },
+    },
+
+    {
+      id: 8,
+      title: 'Laying On of Hands',
+      description: 'Biblical significance and proper use of this practice',
+      duration: '30 min',
+      content: {
+        introduction:
+          '“Laying on of hands” is a foundational doctrine (Hebrews 6:1–2) used throughout Scripture for blessing, healing, impartation, identification, and commissioning.',
+        sections: [
+          {
+            title: 'Purposes in Scripture',
+            points: [
+              'Blessing and identification (Genesis 48:14).',
+              'Healing of the sick (Mark 16:18; Acts 28:8).',
+              'Receiving the Holy Spirit/charismata in ministry contexts (Acts 8:17; 19:6).',
+              'Commissioning and setting apart (Acts 13:2–3; 1 Timothy 4:14).',
+            ],
+          },
+          {
+            title: 'Practiced with Wisdom',
+            content:
+              'Hands should be laid on prayerfully and wisely. Do not be hasty in commissioning leaders.',
+            scripture: '1 Timothy 5:22',
+          },
+          {
+            title: 'Heart Posture',
+            points: [
+              'Faith in Jesus as the source, not in a ritual.',
+              'Humility and submission to God’s will.',
+              'Love and order in the gathered church.',
+            ],
+          },
+        ],
+        keyTakeaways: [
+          'Laying on of hands is biblical and multifaceted.',
+          'Use it for blessing, healing, impartation, and commissioning.',
+          'Exercise discernment, humility, and love.',
+        ],
+        reflectionQuestions: [
+          'Where in your life do you need prayer with laying on of hands?',
+          'How can you prepare your heart to receive from God through this practice?',
+        ],
+      },
+    },
+
+    {
+      id: 9,
+      title: 'Faith',
+      description: 'What faith is and how to operate in it',
+      duration: '40 min',
+      content: {
+        introduction:
+          'Faith is assurance of things hoped for, conviction of things not seen (Hebrews 11:1). Without faith it is impossible to please God.',
+        sections: [
+          {
+            title: 'What Faith Is',
+            content:
+              'Faith trusts God’s character, believes His Word, and obeys accordingly.',
+            scripture: 'Hebrews 11:1–6; Romans 10:17',
+          },
+          {
+            title: 'Faith and Works',
+            content:
+              'Living faith acts; works demonstrate genuine trust.',
+            scripture: 'James 2:14–26',
+          },
+          {
+            title: 'How Faith Grows',
+            points: [
+              'Hearing God’s Word (Romans 10:17).',
+              'Praying and asking in faith (Mark 11:24).',
+              'Obeying quickly with what you have (Hebrews 11).',
+              'Persevering through trials (1 Peter 1:6–7).',
+            ],
+          },
+          {
+            title: 'Common Hindrances',
+            points: [
+              'Unbelief and double-mindedness (James 1:6–8).',
+              'Fear of man.',
+              'Harboring unforgiveness (Mark 11:25).',
+            ],
+          },
+        ],
+        keyTakeaways: [
+          'Faith rests on who God is and what He has said.',
+          'Real faith works through love and obedience.',
+          'Feed faith with Scripture; starve doubt with prayerful obedience.',
+        ],
+        reflectionQuestions: [
+          'Where is God inviting you to trust Him next?',
+          'Which Scripture will you meditate on to strengthen faith?',
+          'What step of obedience will you take this week?',
+        ],
+      },
+    },
+
+    {
+      id: 10,
+      title: 'Worship',
+      description: 'Biblical worship and why we worship the way we do',
+      duration: '45 min',
+      content: {
+        introduction:
+          'Worship is our whole-person response to God’s worth — in Spirit and truth (John 4:24). It includes private devotion and corporate praise.',
+        sections: [
+          {
+            title: 'Why We Worship',
+            points: [
+              'God is worthy (Psalm 96:4).',
+              'We are created and redeemed for His praise (1 Peter 2:9).',
+              'Worship transforms us (2 Corinthians 3:18).',
+            ],
+          },
+          {
+            title: 'Expressions of Worship',
+            points: [
+              'Singing, thanksgiving, and psalms, hymns, spiritual songs (Ephesians 5:19).',
+              'Clapping, lifting hands, kneeling, and shouting (Psalm 47:1; 95:6; 63:4).',
+              'Generosity and obedience as worship (Romans 12:1; Hebrews 13:15–16).',
+            ],
+          },
+          {
+            title: 'Order and Freedom',
+            content:
+              'Worship should be both free and orderly, reflecting love and edification.',
+            scripture: '1 Corinthians 14:26–40',
+          },
+        ],
+        keyTakeaways: [
+          'Worship is God-centered and Scripture-shaped.',
+          'Both heart and body can express adoration.',
+          'Corporate worship builds up the church and glorifies God.',
+        ],
+        reflectionQuestions: [
+          'How can you prepare your heart before gathered worship?',
+          'Which biblical expressions of worship stretch you?',
+          'What would “living sacrifice” worship look like in your week?',
+        ],
+      },
+    },
+
+    {
+      id: 11,
+      title: 'Your Gifts',
+      description: 'Discovering and using your spiritual gifts',
+      duration: '40 min',
+      content: {
+        introduction:
+          'The Spirit gives diverse gifts for the common good. Every believer is needed; no one has them all (1 Corinthians 12).',
+        sections: [
+          {
+            title: 'Purpose of Gifts',
+            content:
+              'Gifts equip the saints, build up the body, and advance the mission.',
+            scripture: 'Ephesians 4:11–16; 1 Corinthians 12:7',
+          },
+          {
+            title: 'Identifying Your Gifts',
+            points: [
+              'Pray and ask the Lord to reveal areas of grace.',
+              'Try serving in different ways; fruit and joy often reveal gifts.',
+              'Receive feedback from mature believers and leaders.',
+            ],
+          },
+          {
+            title: 'Using Gifts in Love and Order',
+            content:
+              'Love is the “more excellent way”; gifts must edify and submit to order.',
+            scripture: '1 Corinthians 13; 14:26–33, 40',
+          },
+        ],
+        keyTakeaways: [
+          'You are gifted by God for the good of others.',
+          'Gifts flourish through service, feedback, and faithfulness.',
+          'Love governs all gift use.',
+        ],
+        reflectionQuestions: [
+          'Where do you sense grace and fruit as you serve?',
+          'Who can affirm and help develop your gifts?',
+          'How will you use your gifts this month to build others up?',
+        ],
+      },
+    },
+
+    {
+      id: 12,
+      title: 'Baptism of the Holy Spirit',
+      description: 'Understanding and receiving the baptism with the Holy Spirit',
+      duration: '40 min',
+      content: {
+        introduction:
+          'Jesus is the One who baptizes with the Holy Spirit (Matthew 3:11). The Father’s promise empowers believers for witness and ministry (Acts 1:8).',
+        sections: [
+          {
+            title: 'Promise and Purpose',
+            content:
+              'The Spirit empowers for bold witness, gifts, and holy living; He magnifies Jesus.',
+            scripture: 'Luke 24:49; Acts 1:8',
+          },
+          {
+            title: 'Patterns in Acts',
+            points: [
+              'Believers receive the Spirit’s power in various settings (Acts 2; 8; 10; 19).',
+              'Accompanied by praise, boldness, and spiritual gifts as the Spirit wills.',
+            ],
+          },
+          {
+            title: 'How to Receive',
+            points: [
+              'Ask in faith, with a surrendered heart (Luke 11:13).',
+              'Receive through prayer and laying on of hands (Acts 8:17).',
+              'Yield your whole self — mind, mouth, and members — to God.',
+            ],
+          },
+        ],
+        keyTakeaways: [
+          'The Spirit’s empowering is a gift for effective witness.',
+          'God fills hungry hearts; keep asking and yielding.',
+          'Expect growth in boldness, love, and spiritual gifts.',
+        ],
+        reflectionQuestions: [
+          'Have you asked Jesus to baptize you with the Holy Spirit?',
+          'What hinders your expectancy?',
+          'Who can pray with you to receive?',
+        ],
+      },
+    },
+
+    {
+      id: 13,
+      title: 'Our Eternity',
+      description: 'What happens after this life — Heaven and Hell',
+      duration: '45 min',
+      content: {
+        introduction:
+          'Eternity is real. To be away from the body is to be at home with the Lord for believers; for those who refuse Christ, eternal separation remains (2 Corinthians 5:8; John 3:36).',
+        sections: [
+          {
+            title: 'The Hope of Heaven',
+            points: [
+              'To be with Christ is far better (Philippians 1:23).',
+              'No more death, mourning, crying, or pain (Revelation 21:4).',
+              'Inheritance kept in heaven (1 Peter 1:3–5).',
+            ],
+          },
+          {
+            title: 'The Reality of Hell',
+            content:
+              'Hell is conscious, eternal separation from God’s presence for those who reject the gospel.',
+            scripture: 'Matthew 25:41, 46; 2 Thessalonians 1:8–9',
+          },
+          {
+            title: 'Living in Light of Eternity',
+            points: [
+              'We aim to please Him (2 Corinthians 5:9–10).',
+              'We share the gospel urgently.',
+              'We lay up treasures in heaven (Matthew 6:19–21).',
+            ],
+          },
+        ],
+        keyTakeaways: [
+          'Heaven with Christ is the believer’s sure hope.',
+          'Hell is real; the gospel matters infinitely.',
+          'Eternal perspective reshapes priorities and mission.',
+        ],
+        reflectionQuestions: [
+          'How does eternity shape your choices this week?',
+          'Who is one person you will pray for and engage with the gospel?',
+        ],
+      },
+    },
+
+    {
+      id: 14,
+      title: 'Resurrection of the Dead',
+      description: 'Understanding the resurrection and our future bodies',
+      duration: '35 min',
+      content: {
+        introduction:
+          'The resurrection is central to Christian hope: as Christ was raised, so we too will be raised imperishable (1 Corinthians 15).',
+        sections: [
+          {
+            title: 'Christ the Firstfruits',
+            content:
+              'Jesus’ bodily resurrection guarantees ours.',
+            scripture: '1 Corinthians 15:20–23',
+          },
+          {
+            title: 'Nature of the Resurrection Body',
+            points: [
+              'Imperishable, glorious, powerful, spiritual (1 Corinthians 15:42–44).',
+              'Like Christ’s glorious body (Philippians 3:20–21).',
+            ],
+          },
+          {
+            title: 'Comfort and Steadfastness',
+            content:
+              'Therefore be steadfast, immovable, always abounding in the work of the Lord.',
+            scripture: '1 Corinthians 15:58; 1 Thessalonians 4:13–18',
+          },
+        ],
+        keyTakeaways: [
+          'Resurrection hope rests on Jesus’ empty tomb.',
+          'Our future bodies will be incorruptible and Christlike.',
+          'Hope fuels steadfast work in the Lord now.',
+        ],
+        reflectionQuestions: [
+          'Which aspect of the resurrection most encourages you?',
+          'How does this hope motivate your service today?',
+        ],
+      },
+    },
+
+    {
+      id: 15,
+      title: 'Marriage and the Home',
+      description: "God's design for marriage and family",
+      duration: '50 min',
+      content: {
+        introduction:
+          'Marriage is God’s covenantal design for mutual help, holiness, and mission. Households become little churches where Christ is honored.',
+        sections: [
+          {
+            title: 'God’s Blueprint',
+            points: [
+              'Leave, cleave, and become one flesh (Genesis 2:24).',
+              'Covenant faithfulness and mutual honor (Malachi 2:14–16).',
+            ],
+          },
+          {
+            title: 'Gospel-Shaped Roles',
+            content:
+              'Husbands love sacrificially like Christ; wives respect and support; children obey; parents disciple with tenderness and truth.',
+            scripture: 'Ephesians 5:22–6:4; Colossians 3:18–21',
+          },
+          {
+            title: 'Communication, Purity, and Reconciliation',
+            points: [
+              'Speak truth in love; be quick to forgive (Ephesians 4:15, 32).',
+              'Honor marital purity (Hebrews 13:4).',
+              'Pray together; resist bitterness.',
+            ],
+          },
+          {
+            title: 'Households on Mission',
+            content:
+              'Practice hospitality, generosity, and prayer — shining as a witness in your community.',
+            scripture: 'Romans 12:9–13; 1 Peter 4:8–10',
+          },
+        ],
+        keyTakeaways: [
+          'Marriage mirrors Christ and the church.',
+          'Healthy homes grow from sacrificial love and mutual honor.',
+          'Families are disciple-making outposts.',
+        ],
+        reflectionQuestions: [
+          'Where can you show Christlike love at home this week?',
+          'What practices will keep short accounts and quick forgiveness?',
+          'How can your household serve others together?',
+        ],
+      },
+    },
+
+    {
+      id: 16,
+      title: 'What God Says About Money',
+      description: 'Biblical principles for finances and stewardship',
+      duration: '40 min',
+      content: {
+        introduction:
+          'God owns everything; we are stewards. Faithful stewardship frees us from greed and funds God’s work (Psalm 24:1; 1 Corinthians 4:1–2).',
+        sections: [
+          {
+            title: 'Heart Before Habits',
+            content:
+              'You cannot serve God and money. Seek first the kingdom; trust your Father’s provision.',
+            scripture: 'Matthew 6:24–34',
+          },
+          {
+            title: 'Give, Save, Live',
+            points: [
+              'Give first and cheerfully (2 Corinthians 9:6–8; Proverbs 3:9–10).',
+              'Save with wisdom and margin (Proverbs 21:20).',
+              'Live within means; flee debt slavery (Proverbs 22:7).',
+            ],
+          },
+          {
+            title: 'Tithes, Offerings, and Mission',
+            content:
+              'Honor the Lord with your wealth; support gospel work at home and abroad.',
+            scripture: 'Malachi 3:10; Philippians 4:15–19',
+          },
+          {
+            title: 'Integrity and Contentment',
+            points: [
+              'Handle money honestly (Proverbs 11:1).',
+              'Be content in Christ (1 Timothy 6:6–10; Hebrews 13:5).',
+            ],
+          },
+        ],
+        keyTakeaways: [
+          'Stewardship is worship — God first.',
+          'Generosity, wisdom, and contentment mark kingdom finance.',
+          'Giving fuels mission; integrity guards witness.',
+        ],
+        reflectionQuestions: [
+          'What step will you take to put God first in finances?',
+          'Where can you create margin (spend less / save more) this month?',
+          'How will you participate in funding the Great Commission?',
+        ],
+      },
+    },
+  ],
+};

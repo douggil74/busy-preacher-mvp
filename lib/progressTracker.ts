@@ -1,260 +1,257 @@
 // lib/progressTracker.ts
 "use client";
 
-interface ProgressMilestone {
-  level: number;
-  name: string;
-  requiredStudies: number;
-  description: string;
+export interface StudyAction {
+  type: 
+    | "outline_generated"
+    | "passage_lookup"
+    | "cross_ref_click"
+    | "note_created"
+    | "note_deleted"
+    | "deep_study_visit"
+    | "word_lookup"
+    | "pdf_export"
+    | "study_loaded"
+    | "study_saved"
+    | "devotional_viewed";
+  reference?: string;
+  theme?: string;
+  details?: string;
+  timestamp: number;
 }
 
-const MILESTONES: ProgressMilestone[] = [
-  { level: 1, name: "First Steps", requiredStudies: 1, description: "Completed first study" },
-  { level: 2, name: "Getting Started", requiredStudies: 5, description: "Completed 5 studies" },
-  { level: 3, name: "Building Momentum", requiredStudies: 10, description: "Completed 10 studies" },
-  { level: 4, name: "Devoted Seeker", requiredStudies: 25, description: "Completed 25 studies" },
-  { level: 5, name: "Faithful Student", requiredStudies: 50, description: "Completed 50 studies" },
-  { level: 6, name: "Scripture Scholar", requiredStudies: 100, description: "Completed 100 studies" },
-  { level: 7, name: "Master Teacher", requiredStudies: 250, description: "Completed 250 studies" },
-];
-
-const STREAK_MILESTONES = [3, 7, 14, 30, 60, 90, 180, 365];
+export interface UserProgress {
+  totalActions: number;
+  lastStudyDate: string;
+  studyStreak: number;
+  actions: StudyAction[];
+}
 
 class ProgressTracker {
-  async checkAndNotifyProgress() {
-    if (typeof window === 'undefined') return;
-    
-    const studies = this.getStudyHistory();
-    const totalStudies = studies.length;
-    
-    if (totalStudies === 0) return;
+  private STORAGE_KEY = "bc-study-actions";
+  private MAX_ACTIONS = 500; // Keep last 500 actions
 
-    const anonymousId = this.getOrCreateAnonymousId();
-    const lastNotifiedMilestones = this.getNotifiedMilestones();
-
-    for (const milestone of MILESTONES) {
-      const key = `level-${milestone.level}`;
-      if (totalStudies >= milestone.requiredStudies && !lastNotifiedMilestones.has(key)) {
-        await this.sendProgressNotification({
-          type: "milestone",
-          anonymousId,
-          milestone: milestone.name,
-          level: milestone.level,
-          description: milestone.description,
-          totalStudies,
-        });
-        this.saveNotifiedMilestone(key, lastNotifiedMilestones);
-      }
-    }
-
-    const currentStreak = this.calculateStreak(studies);
-    for (const streakDay of STREAK_MILESTONES) {
-      const key = `streak-${streakDay}`;
-      if (currentStreak >= streakDay && !lastNotifiedMilestones.has(key)) {
-        await this.sendProgressNotification({
-          type: "streak",
-          anonymousId,
-          streakDays: streakDay,
-          description: `Maintained ${streakDay}-day study streak`,
-          totalStudies,
-        });
-        this.saveNotifiedMilestone(key, lastNotifiedMilestones);
-      }
-    }
-
-    const uniqueThemes = this.countUniqueThemes(studies);
-    const themeKey = `themes-${uniqueThemes}`;
-    if (uniqueThemes >= 5 && !lastNotifiedMilestones.has(themeKey)) {
-      await this.sendProgressNotification({
-        type: "exploration",
-        anonymousId,
-        uniqueThemes,
-        description: `Explored ${uniqueThemes} different biblical themes`,
-        totalStudies,
-      });
-      this.saveNotifiedMilestone(themeKey, lastNotifiedMilestones);
-    }
-
-    const deepDives = this.findDeepDives(studies);
-    for (const [passage, count] of Object.entries(deepDives)) {
-      const key = `deep-dive-${passage}`;
-      if (count >= 5 && !lastNotifiedMilestones.has(key)) {
-        await this.sendProgressNotification({
-          type: "deep-dive",
-          anonymousId,
-          passage,
-          studyCount: count,
-          description: `Studied ${passage} ${count} times`,
-          totalStudies,
-        });
-        this.saveNotifiedMilestone(key, lastNotifiedMilestones);
-      }
-    }
-  }
-
-  async sendCrisisAlert(searchText: string) {
-    if (typeof window === 'undefined') return;
-    
-    const anonymousId = this.getOrCreateAnonymousId();
-    
-    // Check if we already sent a crisis alert for this user today
-    const lastAlertKey = 'bc-last-crisis-alert';
-    const lastAlert = localStorage.getItem(lastAlertKey);
-    const now = Date.now();
-    
-    if (lastAlert) {
-      const hoursSince = (now - parseInt(lastAlert)) / (1000 * 60 * 60);
-      // Only send one alert per 24 hours per user
-      if (hoursSince < 24) {
-        console.log('Crisis alert already sent in last 24 hours');
-        return;
-      }
-    }
-    
-    try {
-      await fetch("/api/progress-notify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "crisis",
-          anonymousId,
-          searchText: searchText.substring(0, 100), // Limit length for privacy
-          timestamp: new Date().toISOString(),
-          appVersion: process.env.NEXT_PUBLIC_APP_VERSION || "2.1",
-        }),
-      });
-      
-      // Mark that we sent an alert
-      localStorage.setItem(lastAlertKey, now.toString());
-      console.log('🆘 Crisis alert sent to developer');
-    } catch (error) {
-      console.error("Failed to send crisis alert:", error);
-    }
-  }
-
-  private getOrCreateAnonymousId(): string {
-    if (typeof window === 'undefined') return "";
-    
-    let id = localStorage.getItem("bc-anonymous-id");
-    if (!id) {
-      const randomNum = Math.floor(1000 + Math.random() * 9000);
-      id = `Cloaked-User-${randomNum}`;
-      localStorage.setItem("bc-anonymous-id", id);
-    }
-    return id;
-  }
-
-  private getNotifiedMilestones(): Set<string> {
-    if (typeof window === 'undefined') return new Set();
-    
-    const stored = localStorage.getItem("bc-notified-milestones");
-    return stored ? new Set(JSON.parse(stored)) : new Set();
-  }
-
-  private saveNotifiedMilestone(key: string, milestones: Set<string>) {
-    if (typeof window === 'undefined') return;
-    
-    milestones.add(key);
-    localStorage.setItem(
-      "bc-notified-milestones",
-      JSON.stringify([...milestones])
-    );
-  }
-
-  private getStudyHistory(): any[] {
-    if (typeof window === 'undefined') return [];
-    
-    const saved = localStorage.getItem("bc-saved-studies");
-    return saved ? JSON.parse(saved) : [];
-  }
-
-  private calculateStreak(studies: any[]): number {
-    if (studies.length === 0) return 0;
-    const sorted = [...studies].sort((a, b) => b.timestamp - a.timestamp);
-    let currentStreak = 0;
-    let checkDate = new Date();
-    checkDate.setHours(0, 0, 0, 0);
-
-    for (const entry of sorted) {
-      const entryDate = new Date(entry.timestamp);
-      entryDate.setHours(0, 0, 0, 0);
-      const dayDiff = Math.floor((checkDate.getTime() - entryDate.getTime()) / (1000 * 60 * 60 * 24));
-      
-      if (dayDiff <= 1) {
-        currentStreak++;
-        checkDate = new Date(entryDate.getTime() - 1000 * 60 * 60 * 24);
-      } else {
-        break;
-      }
-    }
-    return currentStreak;
-  }
-
-  private countUniqueThemes(studies: any[]): number {
-    const themes = new Set();
-    const THEME_KEYWORDS = [
-      "anxiety", "grief", "joy", "leadership", "marriage", "parenting",
-      "forgiveness", "prayer", "suffering", "hope", "love", "faith", "wisdom"
-    ];
-
-    studies.forEach(study => {
-      const ref = (study.reference || "").toLowerCase();
-      THEME_KEYWORDS.forEach(theme => {
-        if (ref.includes(theme)) themes.add(theme);
-      });
+  // Track outline generation
+  trackOutlineGeneration(reference?: string, theme?: string): void {
+    this.addAction({
+      type: "outline_generated",
+      reference,
+      theme,
+      timestamp: Date.now(),
     });
-
-    return themes.size;
+    this.updateLastStudyDate();
   }
 
-  private findDeepDives(studies: any[]): Record<string, number> {
+  // Track manual passage lookup
+  trackPassageLookup(reference: string): void {
+    this.addAction({
+      type: "passage_lookup",
+      reference,
+      timestamp: Date.now(),
+    });
+  }
+
+  // Track cross-reference clicks
+  trackCrossRefClick(reference: string): void {
+    this.addAction({
+      type: "cross_ref_click",
+      reference,
+      timestamp: Date.now(),
+    });
+  }
+
+  // Track note creation
+  trackNoteCreated(reference: string, noteLength: number): void {
+    this.addAction({
+      type: "note_created",
+      reference,
+      details: `${noteLength} characters`,
+      timestamp: Date.now(),
+    });
+  }
+
+  // Track note deletion
+  trackNoteDeleted(reference: string): void {
+    this.addAction({
+      type: "note_deleted",
+      reference,
+      timestamp: Date.now(),
+    });
+  }
+
+  // Track deep study page visits
+  trackDeepStudyVisit(reference: string): void {
+    this.addAction({
+      type: "deep_study_visit",
+      reference,
+      timestamp: Date.now(),
+    });
+  }
+
+  // Track word lookups (hover/click)
+  trackWordLookup(word: string, book?: string): void {
+    this.addAction({
+      type: "word_lookup",
+      details: `${word}${book ? ` in ${book}` : ""}`,
+      timestamp: Date.now(),
+    });
+  }
+
+  // Track PDF exports
+  trackPDFExport(reference?: string, theme?: string): void {
+    this.addAction({
+      type: "pdf_export",
+      reference,
+      theme,
+      timestamp: Date.now(),
+    });
+  }
+
+  // Track loading saved studies
+  trackStudyLoaded(reference: string): void {
+    this.addAction({
+      type: "study_loaded",
+      reference,
+      timestamp: Date.now(),
+    });
+  }
+
+  // Track saving studies
+  trackStudySaved(reference: string): void {
+    this.addAction({
+      type: "study_saved",
+      reference,
+      timestamp: Date.now(),
+    });
+  }
+
+  // Track devotional views
+  trackDevotionalViewed(): void {
+    this.addAction({
+      type: "devotional_viewed",
+      timestamp: Date.now(),
+    });
+  }
+
+  // Add action to storage
+  private addAction(action: StudyAction): void {
+    if (typeof window === "undefined") return;
+
+    const actions = this.getAllActions();
+    actions.unshift(action); // Add to beginning
+
+    // Keep only last MAX_ACTIONS
+    const trimmed = actions.slice(0, this.MAX_ACTIONS);
+
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(trimmed));
+  }
+
+  // Get all actions
+  getAllActions(): StudyAction[] {
+    if (typeof window === "undefined") return [];
+
+    const stored = localStorage.getItem(this.STORAGE_KEY);
+    if (!stored) return [];
+
+    try {
+      return JSON.parse(stored);
+    } catch {
+      return [];
+    }
+  }
+
+  // Get actions by type
+  getActionsByType(type: StudyAction["type"]): StudyAction[] {
+    return this.getAllActions().filter((a) => a.type === type);
+  }
+
+  // Get actions from last N days
+  getRecentActions(days: number = 7): StudyAction[] {
+    const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+    return this.getAllActions().filter((a) => a.timestamp > cutoff);
+  }
+
+  // Get most looked up passages
+  getMostStudiedPassages(limit: number = 10): { reference: string; count: number }[] {
+    const actions = this.getAllActions();
     const passageCounts: Record<string, number> = {};
-    studies.forEach(study => {
-      if (study.type === "passage" && study.reference) {
-        const normalized = study.reference.trim().toLowerCase();
-        passageCounts[normalized] = (passageCounts[normalized] || 0) + 1;
+
+    actions.forEach((action) => {
+      if (action.reference && 
+          (action.type === "outline_generated" || 
+           action.type === "passage_lookup" || 
+           action.type === "cross_ref_click")) {
+        passageCounts[action.reference] = (passageCounts[action.reference] || 0) + 1;
       }
     });
-    return Object.fromEntries(
-      Object.entries(passageCounts).filter(([_, count]) => count >= 5)
-    );
+
+    return Object.entries(passageCounts)
+      .map(([reference, count]) => ({ reference, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, limit);
   }
 
-  private async sendProgressNotification(data: any) {
-    if (typeof window === 'undefined') return;
-    
-    try {
-      await fetch("/api/progress-notify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...data,
-          timestamp: new Date().toISOString(),
-          appVersion: process.env.NEXT_PUBLIC_APP_VERSION || "2.1",
-        }),
-      });
-    } catch (error) {
-      console.error("Failed to send progress notification:", error);
+  // Get study statistics
+  getStatistics() {
+    const actions = this.getAllActions();
+    const last7Days = this.getRecentActions(7);
+    const last30Days = this.getRecentActions(30);
+
+    return {
+      totalActions: actions.length,
+      totalOutlines: this.getActionsByType("outline_generated").length,
+      totalPassageLookups: this.getActionsByType("passage_lookup").length,
+      totalNotes: this.getActionsByType("note_created").length,
+      totalWordLookups: this.getActionsByType("word_lookup").length,
+      totalPDFExports: this.getActionsByType("pdf_export").length,
+      totalDeepStudies: this.getActionsByType("deep_study_visit").length,
+      actionsLast7Days: last7Days.length,
+      actionsLast30Days: last30Days.length,
+      mostStudiedPassages: this.getMostStudiedPassages(5),
+      lastActivity: actions[0]?.timestamp || null,
+    };
+  }
+
+  // Update last study date for streak tracking
+  private updateLastStudyDate(): void {
+    localStorage.setItem("bc-last-study-date", new Date().toISOString());
+  }
+
+  // Check for progress milestones and show notifications
+  async checkAndNotifyProgress(): Promise<void> {
+    const stats = this.getStatistics();
+
+    // Check for milestones
+    if (stats.totalOutlines === 1) {
+      console.log("🎉 First outline generated!");
+    } else if (stats.totalOutlines === 10) {
+      console.log("🎉 10 outlines milestone!");
+    } else if (stats.totalOutlines === 50) {
+      console.log("🎉 50 outlines milestone!");
+    } else if (stats.totalOutlines === 100) {
+      console.log("🎉 100 outlines milestone!");
     }
+
+    if (stats.totalNotes === 10) {
+      console.log("📝 10 notes milestone!");
+    }
+
+    if (stats.totalWordLookups === 50) {
+      console.log("📖 50 word lookups milestone!");
+    }
+  }
+
+  // Send crisis alert (for safety features)
+  sendCrisisAlert(searchText: string): void {
+    console.warn("🆘 CRISIS ALERT:", searchText);
+    // In production, this could send to a monitoring service
+  }
+
+  // Clear all tracking data
+  clearAllData(): void {
+    localStorage.removeItem(this.STORAGE_KEY);
   }
 }
 
-// Export a singleton instance
-let instance: ProgressTracker | null = null;
-
-export const progressTracker = {
-  checkAndNotifyProgress: () => {
-    if (typeof window === 'undefined') return Promise.resolve();
-    if (!instance) {
-      instance = new ProgressTracker();
-    }
-    return instance.checkAndNotifyProgress();
-  },
-  sendCrisisAlert: (searchText: string) => {
-    if (typeof window === 'undefined') return Promise.resolve();
-    if (!instance) {
-      instance = new ProgressTracker();
-    }
-    return instance.sendCrisisAlert(searchText);
-  }
-};
+// Export singleton instance
+export const progressTracker = new ProgressTracker();

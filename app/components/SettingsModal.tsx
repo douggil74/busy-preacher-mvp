@@ -1,8 +1,9 @@
 // app/components/SettingsModal.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Playfair_Display } from "next/font/google";
+import { NotificationService } from '@/lib/notificationService';
 
 const playfair = Playfair_Display({
   weight: ["600", "700"],
@@ -24,15 +25,34 @@ export function SettingsModal({ isOpen, onClose, userName, currentStyle }: Setti
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteOption, setDeleteOption] = useState<DeleteOption>(null);
   const [confirmText, setConfirmText] = useState("");
+  const [showDevotional, setShowDevotional] = useState(true);
+  const [notificationPrefs, setNotificationPrefs] = useState(NotificationService.getPreferences());
+
+  useEffect(() => {
+    if (isOpen) {
+      const saved = localStorage.getItem("bc-show-devotional");
+      setShowDevotional(saved === "true" || saved === null);
+      setNotificationPrefs(NotificationService.getPreferences());
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
+
+  const handleToggleDevotional = () => {
+    const newValue = !showDevotional;
+    setShowDevotional(newValue);
+    localStorage.setItem("bc-show-devotional", String(newValue));
+    
+    if (newValue) {
+      localStorage.removeItem("bc-devotional-last-shown");
+    }
+  };
 
   const handleDelete = () => {
     if (!deleteOption) return;
 
     switch (deleteOption) {
       case "all":
-        // Delete everything and reload
         localStorage.clear();
         window.location.reload();
         break;
@@ -151,6 +171,154 @@ export function SettingsModal({ isOpen, onClose, userName, currentStyle }: Setti
                       All your data is stored locally in your browser. Nothing is sent to our servers.
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Devotional Preference Section */}
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-4">Preferences</h3>
+                
+                <div className="rounded-lg border border-white/10 bg-white/5 p-5">
+                  <label className="flex items-start gap-4 cursor-pointer group">
+                    <div className="relative flex items-center pt-1">
+                      <input
+                        type="checkbox"
+                        checked={showDevotional}
+                        onChange={handleToggleDevotional}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-white/20 rounded-full peer peer-checked:bg-yellow-400 transition-colors"></div>
+                      <div className="absolute left-1 top-1.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-white mb-1 flex items-center gap-2">
+                        Daily Devotional Popup
+                        <span className="text-base">📖</span>
+                      </div>
+                      <div className="text-sm text-white/70">
+                        See a new devotional message each day when you visit. Shows once per day and can be dismissed anytime.
+                      </div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* Notification & Reminders Section */}
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-4">Study Reminders</h3>
+                
+                <div className="space-y-4">
+                  {/* Enable Reminders */}
+                  <div className="rounded-lg border border-white/10 bg-white/5 p-5">
+                    <label className="flex items-start gap-4 cursor-pointer group">
+                      <div className="relative flex items-center pt-1">
+                        <input
+                          type="checkbox"
+                          checked={notificationPrefs.enabled}
+                          onChange={(e) => {
+                            const updated = { ...notificationPrefs, enabled: e.target.checked };
+                            setNotificationPrefs(updated);
+                            NotificationService.savePreferences(updated);
+                          }}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-white/20 rounded-full peer peer-checked:bg-yellow-400 transition-colors"></div>
+                        <div className="absolute left-1 top-1.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-semibold text-white mb-1 flex items-center gap-2">
+                          Enable Study Reminders
+                          <span className="text-base">🔔</span>
+                        </div>
+                        <div className="text-sm text-white/70">
+                          Get gentle reminders if you haven't studied in a while
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+
+                  {/* Inactivity Days */}
+                  {notificationPrefs.enabled && (
+                    <div className="rounded-lg border border-white/10 bg-white/5 p-5">
+                      <label className="block">
+                        <div className="font-semibold text-white mb-2">
+                          Remind me after
+                        </div>
+                        <select
+                          value={notificationPrefs.inactivityDays}
+                          onChange={(e) => {
+                            const updated = { ...notificationPrefs, inactivityDays: Number(e.target.value) };
+                            setNotificationPrefs(updated);
+                            NotificationService.savePreferences(updated);
+                          }}
+                          className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                        >
+                          <option value="1">1 day without studying</option>
+                          <option value="2">2 days without studying</option>
+                          <option value="3">3 days without studying</option>
+                          <option value="5">5 days without studying</option>
+                          <option value="7">1 week without studying</option>
+                        </select>
+                      </label>
+                    </div>
+                  )}
+
+                  {/* Browser Notifications */}
+                  {notificationPrefs.enabled && (
+                    <div className="rounded-lg border border-white/10 bg-white/5 p-5">
+                      <label className="flex items-start gap-4 cursor-pointer group">
+                        <div className="relative flex items-center pt-1">
+                          <input
+                            type="checkbox"
+                            checked={notificationPrefs.browserNotifications}
+                            onChange={async (e) => {
+                              if (e.target.checked) {
+                                const granted = await NotificationService.requestBrowserPermission();
+                                if (granted) {
+                                  const updated = { ...notificationPrefs, browserNotifications: true };
+                                  setNotificationPrefs(updated);
+                                  NotificationService.savePreferences(updated);
+                                } else {
+                                  alert("Please enable notifications in your browser settings to use this feature.");
+                                }
+                              } else {
+                                const updated = { ...notificationPrefs, browserNotifications: false };
+                                setNotificationPrefs(updated);
+                                NotificationService.savePreferences(updated);
+                              }
+                            }}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-white/20 rounded-full peer peer-checked:bg-yellow-400 transition-colors"></div>
+                          <div className="absolute left-1 top-1.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-semibold text-white mb-1 flex items-center gap-2">
+                            Browser Notifications
+                            <span className="text-base">💬</span>
+                          </div>
+                          <div className="text-sm text-white/70">
+                            Receive notifications even when the app isn't open (requires browser permission)
+                          </div>
+                        </div>
+                      </label>
+                    </div>
+                  )}
+
+                  {/* Test Notification Button */}
+                  {notificationPrefs.enabled && notificationPrefs.browserNotifications && (
+                    <button
+                      onClick={() => {
+                        NotificationService.sendBrowserNotification(
+                          "Test Notification 📖",
+                          "This is how your study reminders will look!"
+                        );
+                      }}
+                      className="w-full px-4 py-2 rounded-lg bg-white/10 hover:bg-white/15 text-white text-sm transition-colors"
+                    >
+                      Send Test Notification
+                    </button>
+                  )}
                 </div>
               </div>
 

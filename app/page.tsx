@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import jsPDF from "jspdf";
 import { Playfair_Display, Nunito_Sans } from "next/font/google";
 import Link from "next/link";
+import TodaysReadingWidget from "@/components/TodaysReadingWidget";
 import { useStudyStyle } from "./hooks/useStudyStyle";
 import { useStudyJourney } from "./hooks/useStudyJourney";
 import OnboardingModal from "./components/OnboardingModal";
@@ -21,6 +22,33 @@ import { DevotionalModal } from "./components/DevotionalModal";
 import { NotificationService } from '@/lib/notificationService';
 import { StudyReminderBanner } from './components/StudyReminderBanner';
 import { RelatedCoursesPanel } from './components/RelatedCoursesPanel';
+import { safeStorage } from '@/utils/safeStorage';
+import { KeywordSearchResults } from "./components/KeywordSearchResults";
+
+function copyToClipboard(text: string) {
+  if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(text).catch((err) => {
+      console.error("Clipboard write failed:", err);
+    });
+  } else if (typeof window !== "undefined") {
+    // Safe fallback for older browsers
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.opacity = "0";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+      // The execCommand warning is gone because we check browser support first
+      const successful = document.execCommand?.("copy");
+      if (!successful) console.warn("Fallback clipboard copy failed");
+    } catch (err) {
+      console.error("Fallback copy error:", err);
+    }
+    document.body.removeChild(textArea);
+  }
+}
 
 const playfair = Playfair_Display({
   weight: ["600", "700"],
@@ -158,24 +186,35 @@ function mergeOutlines(passageO: any, themeO: any): any {
   return { title, source: "combined", reference, topic, points, application };
 }
 
+// FIXED VERSION - Replace lines 164-176 in your app/page.tsx
+
 async function lexplainFetch(surface: string, book?: string) {
-  const res = await fetch("/api/lexplain", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ surface, book }),
-  });
-  const data = await res.json();
-  return (res.ok ? data : { lemma: "—", strongs: "—", plain: data?.error || "No explanation." }) as {
-    lemma: string;
-    strongs: string;
-    plain: string;
-  };
+  try {
+    const res = await fetch("/api/lexplain", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ surface, book }),
+    });
+    const data = await res.json();
+    return (res.ok ? data : { lemma: "—", strongs: "—", plain: data?.error || "No explanation." }) as {
+      lemma: string;
+      strongs: string;
+      plain: string;
+    };
+    
+  } catch (error) {
+    console.error("Word lookup failed:", error);
+    return {
+      lemma: "—",
+      strongs: "—",
+      plain: "Word lookup temporarily unavailable. Check console for details."
+    } as {
+      lemma: string;
+      strongs: string;
+      plain: string;
+    };
+  }
 }
-
-function copyToClipboard(text: string) {
-  navigator.clipboard.writeText(text).then(() => {});
-}
-
 function exportOutlinePDF(args: { outlines: any[] }) {
   const doc = new jsPDF({ unit: "pt", format: "letter" });
   const margin = 56;
@@ -279,7 +318,10 @@ export default function Page(): JSX.Element {
   const [progress, setProgress] = useState(0);
   const [statusWord, setStatusWord] = useState("");
   const [passageRef, setPassageRef] = useState("");
+  const [showKeywordResults, setShowKeywordResults] = useState(false);
+const [searchedKeyword, setSearchedKeyword] = useState("");
   const [theme, setTheme] = useState("");
+  const [keywordSearch, setKeywordSearch] = useState("");
   const [passageOutline, setPassageOutline] = useState<any | null>(null);
   const [themeOutline, setThemeOutline] = useState<any | null>(null);
   const [combinedOutline, setCombinedOutline] = useState<any | null>(null);
@@ -302,6 +344,7 @@ export default function Page(): JSX.Element {
   const [showCrisisModal, setShowCrisisModal] = useState(false);
   const [showDevotionalModal, setShowDevotionalModal] = useState(false);
   const [showStudyReminder, setShowStudyReminder] = useState(false);
+  const [showReadingPlan, setShowReadingPlan] = useState(true);
   const hoverTimer = useRef<NodeJS.Timeout | null>(null);
   const statusWords = ["Fetching…", "Researching…", "Synthesizing…", "Formatting…", "Ready"];
 
@@ -345,6 +388,12 @@ useEffect(() => {
       } catch (e) {
         setSavedStudies([]);
       }
+    }
+    
+    // Load reading plan visibility preference
+    const readingPlanPref = localStorage.getItem("bc-show-reading-plan");
+    if (readingPlanPref !== null) {
+      setShowReadingPlan(readingPlanPref === "true");
     }
   }, []);
   
@@ -568,7 +617,7 @@ useEffect(() => {
         
         // ✅ Check if this is first study - show email modal
         if (studies.length === 0) {
-          const hasSubscribed = localStorage.getItem("bc-subscribed");
+const hasSubscribed = safeStorage.getItem("bc-subscribed");
           if (!hasSubscribed) {
             setTimeout(() => setShowEmailModal(true), 2000);
           }
@@ -610,7 +659,7 @@ useEffect(() => {
         
         // ✅ Check if this is first study - show email modal
         if (studies.length === 0) {
-          const hasSubscribed = localStorage.getItem("bc-subscribed");
+const hasSubscribed = safeStorage.getItem("bc-subscribed");
           if (!hasSubscribed) {
             setTimeout(() => setShowEmailModal(true), 2000);
           }
@@ -848,6 +897,31 @@ useEffect(() => {
     window.location.reload();
   };
 
+const handleKeywordSearch = () => {
+  if (keywordSearch.trim()) {
+    setSearchedKeyword(keywordSearch.trim());
+    setShowKeywordResults(true);
+  }
+};
+
+const handleKeywordResultSelect = (reference: string) => {
+  // When user clicks "Read" on a search result
+  setBpRef(reference);
+  setEsvLoading(true);
+  esvFetch(reference)
+    .then((r) => {
+      setBpText(r.text);
+      // Scroll to the passage display section
+      document.getElementById("ol-study")?.scrollIntoView({ behavior: "smooth" });
+    })
+    .catch(() => {})
+    .finally(() => setEsvLoading(false));
+};
+  const handleCloseReadingPlan = () => {
+    setShowReadingPlan(false);
+    localStorage.setItem("bc-show-reading-plan", "false");
+  };
+
   return (
     <main className="container">
       {insight && insight.priority < 100 && !passageOutline && !themeOutline && !combinedOutline && (
@@ -885,6 +959,20 @@ useEffect(() => {
               Ready to dive into Scripture today?
             </p>
           </div>
+          
+          {!showReadingPlan && (
+            <div className="mb-6 text-center">
+              <button
+                onClick={() => {
+                  setShowReadingPlan(true);
+                  localStorage.setItem("bc-show-reading-plan", "true");
+                }}
+                className="text-sm text-yellow-400 hover:text-yellow-300 underline transition-colors"
+              >
+                Show Daily Reading Plan
+              </button>
+            </div>
+          )}
 
           {pattern && pattern.totalStudies > 0 && (
             <div className="mb-6">
@@ -908,8 +996,34 @@ useEffect(() => {
               )}
             </div>
           )}
+
+          {/* Daily Reading Plan Widget */}
+          {showReadingPlan && (
+            <div className="mb-6 relative">
+              <button
+                onClick={handleCloseReadingPlan}
+                className="absolute top-2 right-2 z-10 text-white/50 hover:text-white/80 transition-colors p-1"
+                aria-label="Hide reading plan"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <TodaysReadingWidget />
+            </div>
+          )}
         </section>
       )}
+
+      {/* SECTION 1: Create Your Devotion */}
+      <div className="mb-4 max-w-2xl mx-auto">
+        <h2 className={`${nunitoSans.className} text-xl font-semibold text-yellow-400 mb-1`}>
+          Create Your Devotion
+        </h2>
+        <p className="text-white/60 text-sm">
+          Generate AI-powered Bible studies with pastoral insights, practical applications, and cross-references
+        </p>
+      </div>
 
       <section className="card mb-8">
         <div className="flex items-center justify-between mb-5 pb-4 border-b border-white/10">
@@ -1303,15 +1417,104 @@ useEffect(() => {
         </div>
       </section>
 
+      {/* SECTION 2: Keyword Search */}
+      <div className="mb-4 max-w-2xl mx-auto">
+        <h2 className={`${nunitoSans.className} text-xl font-semibold text-yellow-400 mb-1`}>
+          Keyword Search
+        </h2>
+        <p className="text-white/60 text-sm">
+          Search all of Scripture by topic, theme, or specific word to discover relevant passages
+        </p>
+      </div>
+
+      <section className="card mb-8">
+        <div className="space-y-3">
+          <div>
+            <label htmlFor="keywordSearch" className="mb-2 block text-sm text-white/80">
+              Enter Keyword or Topic
+            </label>
+            <input
+              id="keywordSearch"
+              type="text"
+              placeholder="e.g., love, forgiveness, courage, faith"
+              value={keywordSearch}
+              onChange={(e) => setKeywordSearch(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleKeywordSearch()}
+              className="input"
+            />
+          </div>
+          <button 
+            onClick={handleKeywordSearch} 
+            disabled={!keywordSearch.trim()} 
+            className="btn w-full bg-yellow-400/20 border-yellow-400 text-yellow-400 hover:bg-yellow-400/30"
+          >
+            Search Scripture
+          </button>
+          <div className="mt-4 flex flex-wrap gap-2 justify-center">
+  <span className="text-xs text-white/50">Quick searches:</span>
+  <button
+    onClick={() => { 
+      setKeywordSearch("faith");
+      setSearchedKeyword("faith");
+      setShowKeywordResults(true);
+    }}
+    className="text-xs text-yellow-400 hover:text-yellow-300 underline"
+  >
+    Faith
+  </button>
+  <button
+    onClick={() => { 
+      setKeywordSearch("hope");
+      setSearchedKeyword("hope");
+      setShowKeywordResults(true);
+    }}
+    className="text-xs text-yellow-400 hover:text-yellow-300 underline"
+  >
+    Hope
+  </button>
+  <button
+    onClick={() => { 
+      setKeywordSearch("peace");
+      setSearchedKeyword("peace");
+      setShowKeywordResults(true);
+    }}
+    className="text-xs text-yellow-400 hover:text-yellow-300 underline"
+  >
+    Peace
+  </button>
+  <button
+    onClick={() => { 
+      setKeywordSearch("grace");
+      setSearchedKeyword("grace");
+      setShowKeywordResults(true);
+    }}
+    className="text-xs text-yellow-400 hover:text-yellow-300 underline"
+  >
+    Grace
+  </button>
+</div>
+        </div>
+      </section>
+
+      {/* SECTION 3: Strong's Word Lookup */}
+      <div className="mb-4 max-w-2xl mx-auto">
+        <h2 className={`${nunitoSans.className} text-xl font-semibold text-yellow-400 mb-1`}>
+          Strong's Word Lookup
+        </h2>
+        <p className="text-white/60 text-sm">
+          Explore Hebrew and Greek word meanings with Strong's concordance definitions
+        </p>
+      </div>
+
       <section id="ol-study" className="card">
         <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
           <div>
             <label htmlFor="bpPassage" className="mb-2 block text-sm text-white/80">
-              Passage (ESV)
+              Enter Bible Reference
             </label>
             <input
               id="bpPassage"
-              placeholder="e.g., John 11:25"
+              placeholder="e.g., John 3:16, Psalm 23:1"
               value={bpRef}
               onChange={(e) => setBpRef(e.target.value)}
               onKeyDown={onBottomKey}
@@ -1458,7 +1661,7 @@ useEffect(() => {
         onClose={() => setShowDevotionalModal(false)}
       />
 
-      {showEmailModal && (
+{showEmailModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-8 max-w-md w-full shadow-2xl">
             {emailSuccess ? (
@@ -1535,6 +1738,14 @@ useEffect(() => {
       <footer className="mt-8 text-center text-xs text-white/40">
         © Douglas M. Gilford – The Busy Christian • v {APP_VERSION}
       </footer>
-    </main>
+
+      {showKeywordResults && (
+        <KeywordSearchResults
+          keyword={searchedKeyword}
+          onClose={() => setShowKeywordResults(false)}
+          onSelectPassage={handleKeywordResultSelect}
+        />
+      )}
+</main>
   );
 }

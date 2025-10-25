@@ -975,12 +975,12 @@ export default function DeepStudyPage() {
           </div>
         </div>
 
-        <div className="flex gap-3">
+<div className="flex flex-wrap gap-2 sm:gap-3 justify-center">
           <button
             id="fetch-btn"
             onClick={() => fetchBibleData()}
             disabled={loading || !reference.trim()}
-            className="rounded-lg bg-yellow-400/20 border border-yellow-400 px-6 py-2 text-sm hover:bg-yellow-400/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex-1 min-w-[120px] max-w-[160px] rounded-lg bg-yellow-400/20 border border-yellow-400 px-4 py-2 text-sm hover:bg-yellow-400/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? "Loading…" : "Study"}
           </button>
@@ -988,7 +988,7 @@ export default function DeepStudyPage() {
             <>
               <button
                 onClick={handleSave}
-                className="btn flex items-center gap-1"
+                className="flex-1 min-w-[140px] max-w-[180px] btn flex items-center justify-center gap-1"
                 title="Save this study to your library"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -998,7 +998,7 @@ export default function DeepStudyPage() {
               </button>
               <button
                 onClick={handleShare}
-                className="btn flex items-center gap-1"
+                className="flex-1 min-w-[100px] max-w-[140px] btn flex items-center justify-center gap-1"
                 title="Share this study"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1018,12 +1018,12 @@ export default function DeepStudyPage() {
               setActiveVideo(null);
               setLoadedTabs(new Set(['translations']));
             }}
-            className="btn"
+            className="flex-1 min-w-[100px] max-w-[140px] btn"
           >
             Clear
           </button>
         </div>
-        {error && (
+                {error && (
           <div className="mt-4 rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">
             {error}
           </div>
@@ -1585,10 +1585,13 @@ export default function DeepStudyPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <button onClick={bpFetch} disabled={esvLoading} className="btn">
-{esvLoading && (
-  <SmartLoader type="tools" duration={2000} className="py-8" />
-)}            </button>
+<button onClick={bpFetch} disabled={esvLoading} className="btn">
+  {esvLoading ? (
+    <SmartLoader type="tools" duration={2000} className="py-8" />
+  ) : (
+    "Get ESV"
+  )}
+</button>
             {bpText && (
               <>
                 <button onClick={() => handleCopy(bpText, 'esv-text')} className="btn text-xs px-2 py-1" title="Copy text">

@@ -1,0 +1,318 @@
+📝 Generating report: reading-plans-diagnostic-20251027-231141.txt
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 1. CURRENT DIRECTORY & GIT STATUS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+▸ Current working directory:
+/Users/doug/busy-preacher-mvp
+
+▸ Current git branch:
+main
+
+▸ Git status:
+ M app/HeaderBar.tsx
+?? Fix-widget.sh
+?? app/components/KeywordSearchResults.tsx
+?? app/reading-plan/
+?? components/TodaysReadingWidget.tsx
+?? reading-plans-diagnostic-20251027-231141.txt
+?? solve-mystery.sh
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 2. LOCAL FILE SYSTEM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+▸ Contents of app/ directory:
+drwxr-xr-x@  3 doug  staff     96 Oct 27 22:49 reading-plan
+
+▸ Checking for reading-plan folder:
+✅ app/reading-plan EXISTS
+total 8
+drwxr-xr-x@  3 doug  staff    96 Oct 27 22:49 .
+drwxr-xr-x  29 doug  staff   928 Oct 27 22:49 ..
+-rw-r--r--@  1 doug  staff  1377 Oct 27 22:52 page.tsx
+
+▸ Checking for reading-plans folder (plural):
+❌ app/reading-plans DOES NOT EXIST
+
+▸ Searching for ALL reading-related files:
+./reading-plans-diagnostic-20251027-231141.txt
+./app/reading-plan
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 3. GIT REMOTE CONFIGURATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+▸ Git remote URLs:
+origin	https://github.com/douggil74/busy-preacher-mvp.git (fetch)
+origin	https://github.com/douggil74/busy-preacher-mvp.git (push)
+
+▸ Git config (user and remote):
+doug
+doug.cag@gmail.com
+https://github.com/douggil74/busy-preacher-mvp.git
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 4. BRANCH INFORMATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+▸ All local branches:
+* main
+  remotes/origin/HEAD -> origin/main
+  remotes/origin/main
+  remotes/origin/polish/busy-christian
+
+▸ All remote branches:
+  origin/HEAD -> origin/main
+  origin/main
+  origin/polish/busy-christian
+
+▸ Current branch tracking:
+* main e636153 [origin/main] fix: add clipboard helper without execCommand warning
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 5. GITHUB REPOSITORY STATE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+▸ Files on origin/main (reading/plan related):
+No reading/plan files found on origin/main
+
+▸ All files in app/ on origin/main:
+app/HeaderBar.tsx
+app/about/page.tsx
+app/api/commentary/route.ts
+app/api/deep-study/route.ts
+app/api/devotional/route.ts
+app/api/esv/route.ts
+app/api/generate/passage/route.ts
+app/api/generate/route.ts
+app/api/generate/sermon/route.ts
+app/api/init-db/route.ts
+app/api/lexicon/route.ts
+app/api/lexplain/route.ts
+app/api/outline/route.ts
+app/api/outline/test-styles/page.tsx
+app/api/piper-sermons/route.ts
+app/api/progress-notify/route.ts
+app/api/route.ts
+app/api/subscribe/route.ts
+app/api/unsubscribe/route.ts
+app/api/youtube-videos/route.ts
+app/commentaries/piper-sermons/route.ts
+app/components/CheckInModal.tsx
+app/components/CrisisModal.tsx
+app/components/DevotionalBellNotification.tsx
+app/components/DevotionalModal.tsx
+app/components/DevotionalNotification.tsx
+app/components/JourneyDashboard.tsx
+app/components/OnboardingModal.tsx
+app/components/OptimizedImage.tsx
+app/components/PastoralInsightBanner.tsx
+
+▸ Full tree structure of app/ on origin/main:
+100644 blob df69ca54b709a3ec3b5f62d5859bc43161325e85	app/HeaderBar.tsx
+100644 blob 34e9fdf6b2fb4123145480808196137a58a03f9e	app/about/page.tsx
+100644 blob f048a2b19beacb59bb68fcbb1f0ee5a07062f82c	app/api/commentary/route.ts
+100644 blob a0a3f6e84902eaf9e2d1a2367e2c06e341d6bb55	app/api/deep-study/route.ts
+100644 blob 98aed7ea7f94bdd9de50c6818c40b970113246eb	app/api/devotional/route.ts
+100644 blob 7c5a41ab34c4725078ae625cce516cb5c52037b6	app/api/esv/route.ts
+100644 blob 338a933d7f2708455a0a0cb9e0d4e892ae672837	app/api/generate/passage/route.ts
+100644 blob 02d73857dfac9370d60172b50c1b24fc1c0942c7	app/api/generate/route.ts
+100644 blob e81ea16892643e7d3e5df4db2aff264b528469f9	app/api/generate/sermon/route.ts
+100644 blob 2b1981709ffe96fb6f488db2bd2eb1f716b96594	app/api/init-db/route.ts
+100644 blob 3b98f7601400ebee881ae802b1eae550b867265f	app/api/lexicon/route.ts
+100644 blob 165d4c9819bbdad32b426b18ecc59c648915c416	app/api/lexplain/route.ts
+100644 blob e1f8188b37beff15462236b506ea9143a4f49766	app/api/outline/route.ts
+100644 blob fae947e02f30a6f404ac1e574c890a4c71e9b2fd	app/api/outline/test-styles/page.tsx
+100644 blob b723131df9370af1a7c7d96f90eabf97520e4e37	app/api/piper-sermons/route.ts
+100644 blob 28c5ddbb053a1fc546c32860fdd04cf81f45a039	app/api/progress-notify/route.ts
+100644 blob 81704fc4b3174ed3183b1eea9a71e8fca572ee52	app/api/route.ts
+100644 blob dfa7e3abe398b941e36eecbcebb2275a3679d6bc	app/api/subscribe/route.ts
+100644 blob 3ea0205f28366bd7bcdec3db4459552a61ceb9f0	app/api/unsubscribe/route.ts
+100644 blob 85b38d1215e34b43eac2b890f78e5617bd3345f0	app/api/youtube-videos/route.ts
+100644 blob b723131df9370af1a7c7d96f90eabf97520e4e37	app/commentaries/piper-sermons/route.ts
+100644 blob 038e7679f5d6b27b23283ddc35c78670cc2b3292	app/components/CheckInModal.tsx
+100644 blob c63901f59e2ed22dd2b49b1fe6a4d72de5cdcfe8	app/components/CrisisModal.tsx
+100644 blob c5370d2cd227654c7320c46b04ffca233981b620	app/components/DevotionalBellNotification.tsx
+100644 blob aa41714e69e5936d228dd3e8f8e1cded5caa53fe	app/components/DevotionalModal.tsx
+100644 blob 002f0a127695933ac630e83a31d831077f581dea	app/components/DevotionalNotification.tsx
+100644 blob 2ba39a57dc8513217a732606b763b8f94e09b14b	app/components/JourneyDashboard.tsx
+100644 blob 4587058c482c346dd138dfd1fe54e0b2b06fb7ab	app/components/OnboardingModal.tsx
+100644 blob 03cf92bf35a0db03608b9e1a3265b5d0c3e34efa	app/components/OptimizedImage.tsx
+100644 blob 75a2da6215268aae140de5971d5cf70e1778f490	app/components/PastoralInsightBanner.tsx
+100644 blob d9885a96f4158d15a800fbb413104a4797ac6e49	app/components/RelatedCoursesPanel.tsx
+100644 blob 1717fdb1cdac65a0fa7a826763081ed2b1ca42f7	app/components/SettingsModal.tsx
+100644 blob b983899eeea8218822c938cc622e41eb8df738c0	app/components/StudyReminderBanner.tsx
+100644 blob 07ddbfb364abd023dc34dbb2ff1e6519ded7731c	app/components/StyleSelectorModal.tsx
+100644 blob 5db9a83d2ed2837681593a351998f73cc1e3f1c4	app/config/studyStyles.ts
+100644 blob ac92defc91b5d34d4e5a562d5db8b011f81ca055	app/contact/page.tsx
+100644 blob 5a7b9737628e49dccf7420d8b393d79bf7e7b61a	app/courses/[courseId]/page.tsx
+100644 blob 96d7b35519733eb1c1337c204f2ba02c7e8e1edf	app/courses/page.tsx
+100644 blob d1f52db3fd00eabcbb6dc68869edd3898c9b40ba	app/create/page.tsx
+100644 blob e62d38c0c1e7956bc58936e64dcb63b82b7c622e	app/debug-storage/page.tsx
+100644 blob 8d138b056d01a4da1780f04cf0aba54425f289b9	app/deep-study/DeepStudyContent.tsx
+100644 blob aa0ff18d6f108d12a086d6c38cd488e7dd4f918d	app/deep-study/page.tsx
+100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391	app/design/components/DevotionalBellNotification.tsx
+100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391	app/design/components/DevotionalNotification.tsx
+100644 blob 127555dadd3403f2df43852b9d9abcf7613dc639	app/devotional/DailyDevotional.tsx
+100644 blob 3f0002dd3997b727e4f97518a10395193911eb7f	app/devotional/page.tsx
+100644 blob ca5709a1707b67e406cd65531d6a5a5239e0171a	app/fonts.ts
+100644 blob bd8be1fe4acf4d889d09fc89b4a78a4d87623291	app/globals.css
+100644 blob b3d80e91753df1668754350e9b2632af91c4fc5d	app/help/page.tsx
+100644 blob 0db3c39999a984acf701e37d3bda47592358dcea	app/hooks/useSmoothProgress.ts
+100644 blob 831bd800fa1469e783a0d3199ea334f3ab116752	app/hooks/useStudyJourney.ts
+100644 blob 865582a2843558b4209796e04c3019e0d6f19a15	app/hooks/useStudyState.ts
+100644 blob 349923d5f9874fea787167ecd87c97480b8a57d6	app/hooks/useStudyStyle.tsx
+100644 blob bb2a9fe6c30b9e8c1828ae6af43e9434142e6a1e	app/ios-optimizations.css
+100644 blob 92f257505f1ca6010ed909ad00f21922db9b62d8	app/layout.tsx
+100644 blob 2cf7a0e2dd72f10b8c79da3f553b1842ac045346	app/library/page.tsx
+100644 blob 751b05e8fea0a02150901a1a0a3f5881b66c375e	app/mynotes/page.tsx
+100644 blob 9e444b84f971405fe5d225ca775ab1f0c07a71df	app/page.tsx
+100644 blob e9385fe3339fed588a5f391401bcea72c797bd24	app/personalize/page.tsx
+100644 blob 344e455a6420fda90871021bfb3a9bc4c2c8c767	app/privacy/page.tsx
+100644 blob c33bf680e5b31b2fbdc86e13fa5b9f63f74a4514	app/setup/page.tsx
+100644 blob 9f0b96de3c3cf8ceeb519997470f4e91d3710bf1	app/test-styles/page.tsx
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 6. GIT COMMIT HISTORY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+▸ Last 15 commits:
+e636153 fix: add clipboard helper without execCommand warning
+93f2fc6 Fix mobile button layout - Clear button now visible
+27d2049 Fix capacitor config
+abd23ad Fix extra closing brace
+be78512 Fix handleEmailSignup - remove duplicate
+4ef4db0 Remove duplicate handleEmailSignup
+7bb5443 Add email subscription system with API init
+803a682 Fix Resend initialization for build
+3ba70df Fix study style type error
+1c413f2 before polish
+81067da deploy update
+086b358 Initial working MVP backup
+
+▸ Commits mentioning 'reading' or 'plan':
+
+▸ File history for reading-plans:
+
+▸ File history for reading-plan:
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 7. VERCEL CONFIGURATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+▸ Vercel project configuration:
+❌ No .vercel/project.json found
+
+▸ Checking for vercel.json:
+❌ No vercel.json found
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 8. PACKAGE.JSON INFO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+▸ Project name and repository:
+  "name": "busy-preacher",
+  "version": "1.0.0",
+  "private": true,
+No repository field in package.json
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 9. UNTRACKED & UNCOMMITTED CHANGES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+▸ Untracked files:
+Fix-widget.sh
+app/components/KeywordSearchResults.tsx
+app/reading-plan/page.tsx
+components/TodaysReadingWidget.tsx
+reading-plans-diagnostic-20251027-231141.txt
+solve-mystery.sh
+
+▸ Modified but unstaged files:
+app/HeaderBar.tsx
+
+▸ Staged files:
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 10. DIFFERENCE BETWEEN LOCAL AND REMOTE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+▸ Files in local app/ but not on origin/main:
+app/components/KeywordSearchResults.tsx
+app/reading-plan/page.tsx
+
+▸ Files on origin/main but not in local app/:
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 11. CHECKING OTHER POSSIBLE BRANCHES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+▸ Searching for reading-plans in ALL branches:
+Checking branch: origin/main
+Checking branch: origin/polish/busy-christian
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 12. CHECKING FOR MULTIPLE REPOSITORIES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+▸ Checking for other .git directories:
+./.git
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 13. RECENT PULL/PUSH ACTIVITY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+▸ Last fetch time:
+16777230 120038588 -rw-r--r-- 1 doug staff 0 242 "Oct 27 23:02:17 2025" "Oct 27 23:11:42 2025" "Oct 27 23:11:42 2025" "Oct 26 22:20:15 2025" 4096 8 0 .git/FETCH_HEAD
+
+▸ Last git operation:
+total 104
+drwxr-xr-x   4 doug  staff    128 Oct 27 23:11 objects
+-rw-r--r--   1 doug  staff    242 Oct 27 23:11 FETCH_HEAD
+-rw-r--r--   1 doug  staff     41 Oct 27 23:01 ORIG_HEAD
+-rw-r--r--   1 doug  staff  28632 Oct 27 22:42 index
+-rw-r--r--   1 doug  staff    316 Oct 26 22:14 config
+drwxr-xr-x   4 doug  staff    128 Oct 26 22:14 logs
+-rw-r--r--   1 doug  staff     21 Oct 26 22:14 HEAD
+drwxr-xr-x   5 doug  staff    160 Oct 26 22:14 refs
+-rw-r--r--   1 doug  staff    195 Oct 26 22:14 packed-refs
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 14. ENVIRONMENT & PATH INFO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+▸ Git version:
+git version 2.50.1 (Apple Git-155)
+
+▸ Node version:
+v20.19.5
+
+▸ NPM version:
+11.6.1
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 🎯 SUMMARY & DIAGNOSIS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+KEY FINDINGS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ LOCAL: app/reading-plan exists
+❌ LOCAL: app/reading-plans missing
+❌ GITHUB: reading-plans NOT found on origin/main
+❌ GITHUB: reading-plan NOT found on origin/main
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Report saved to: reading-plans-diagnostic-20251027-231141.txt
+
+🔍 NEXT STEPS:
+   1. Review the report above
+   2. Check which branches have reading-plans
+   3. Verify Vercel deployment branch in dashboard
+   4. Look for any discrepancies in the git history
+
+💡 If you share this report, I can help diagnose the exact issue!
+

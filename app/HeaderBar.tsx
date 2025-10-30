@@ -195,10 +195,18 @@ function HeaderBarContent() {
                 >
                   Deep Study
                 </Link>
+                          <Link
+            href="/reading-plans"
+            className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+            onClick={() => setOpen(false)}
+          >
+           Reading Plan
+          </Link>
                 <Link
                   href="/library"
                   className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
                   onClick={() => setOpen(false)}
+              
                 >
                   My Library
                 </Link>

@@ -1,4 +1,4 @@
-// app/api/esv/route.ts
+// app/api/esv-audio/route.ts
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -15,17 +15,9 @@ export async function POST(req: Request) {
 
     const qs = new URLSearchParams({
       q: passage.trim(),
-      "include-passage-references": "true",  // ✅ CHANGED: Show passage reference
-      "include-verse-numbers": "true",       // ✅ CHANGED: Show verse numbers
-      "include-footnotes": "false",
-      "include-short-copyright": "false",
-      "include-headings": "true",            // ✅ CHANGED: Show section headings
-      "indent-paragraphs": "0",
-      "indent-poetry": "0",
-      "line-length": "0",
     });
 
-    const resp = await fetch(`https://api.esv.org/v3/passage/text/?${qs.toString()}`, {
+    const resp = await fetch(`https://api.esv.org/v3/passage/audio/?${qs.toString()}`, {
       headers: { Authorization: `Token ${apiKey}` },
       cache: "no-store",
     });
@@ -37,11 +29,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: `ESV error ${resp.status}: ${txt}` }, { status: 500 });
     }
 
-    const json = (await resp.json()) as { passages?: string[] };
-    const text = (json.passages ?? []).join("\n").trim();
-    if (!text) return NextResponse.json({ error: "No passage text found." }, { status: 404 });
-
-    return NextResponse.json({ passage: passage.trim(), text });
+    // ESV API returns a direct MP3 URL in the response
+    const audioBlob = await resp.blob();
+    
+    // Return the audio as a blob that can be played
+    return new NextResponse(audioBlob, {
+      headers: {
+        'Content-Type': 'audio/mpeg',
+        'Cache-Control': 'public, max-age=86400', // Cache for 24 hours
+      },
+    });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message ?? "Unexpected error" }, { status: 500 });
   }

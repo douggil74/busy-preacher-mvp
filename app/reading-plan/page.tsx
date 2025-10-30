@@ -1,7 +1,7 @@
 // app/reading-plan/page.tsx
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
@@ -221,13 +221,15 @@ const readingSchedules: Record<string, DailyReading[]> = {
   })),
 };
 
-// Audio player component using ESV audio API
+// Audio player component with auto-play
 function AudioPlayer({ passage }: { passage: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [playing, setPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
-  const loadAudio = async () => {
+  const loadAndPlayAudio = async () => {
     setLoading(true);
     setError(null);
 
@@ -242,10 +244,19 @@ function AudioPlayer({ passage }: { passage: string }) {
         throw new Error("Failed to load audio");
       }
 
-      // Create a blob URL from the response
       const audioBlob = await response.blob();
       const url = URL.createObjectURL(audioBlob);
       setAudioUrl(url);
+      
+      // Auto-play after loading
+      setTimeout(() => {
+        if (audioRef.current) {
+          audioRef.current.play().catch(err => {
+            console.error("Auto-play failed:", err);
+            setError("Audio loaded. Click play to listen.");
+          });
+        }
+      }, 100);
     } catch (err) {
       console.error("Audio error:", err);
       setError("Could not load audio. Please try again.");
@@ -254,6 +265,14 @@ function AudioPlayer({ passage }: { passage: string }) {
     setLoading(false);
   };
 
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.addEventListener("play", () => setPlaying(true));
+      audioRef.current.addEventListener("pause", () => setPlaying(false));
+      audioRef.current.addEventListener("ended", () => setPlaying(false));
+    }
+  }, [audioUrl]);
+
   return (
     <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
       <div className="flex items-center gap-2 mb-3">
@@ -261,20 +280,25 @@ function AudioPlayer({ passage }: { passage: string }) {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
         </svg>
         <h4 className="text-white font-semibold text-sm">Listen: {passage}</h4>
+        {playing && <span className="text-green-400 text-xs">▶ Playing</span>}
       </div>
       
       {!audioUrl && !loading && !error && (
         <button
-          onClick={loadAudio}
-          className="w-full rounded-lg border border-yellow-400/20 bg-yellow-400/10 px-3 py-2 text-yellow-400 hover:bg-yellow-400/20 transition-colors text-sm font-medium"
+          onClick={loadAndPlayAudio}
+          className="w-full rounded-lg border border-yellow-400/20 bg-yellow-400/10 px-3 py-2 text-yellow-400 hover:bg-yellow-400/20 transition-colors text-sm font-medium flex items-center justify-center gap-2"
         >
-          🎧 Load Audio
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+          </svg>
+          Play Audio
         </button>
       )}
 
       {loading && (
-        <div className="flex justify-center py-3">
+        <div className="flex justify-center items-center py-3 gap-2">
           <div className="animate-spin h-5 w-5 border-2 border-yellow-400 border-t-transparent rounded-full" />
+          <span className="text-yellow-400 text-sm">Loading audio...</span>
         </div>
       )}
 
@@ -284,7 +308,13 @@ function AudioPlayer({ passage }: { passage: string }) {
       
       {audioUrl && (
         <div>
-          <audio src={audioUrl} controls className="w-full" controlsList="nodownload" />
+          <audio 
+            ref={audioRef}
+            src={audioUrl} 
+            controls 
+            className="w-full" 
+            controlsList="nodownload"
+          />
           <p className="text-slate-400 text-xs mt-2 italic">ESV Audio Bible</p>
         </div>
       )}
@@ -432,7 +462,7 @@ function ReadingPlanContent() {
               <div key={idx} className="bg-slate-800/50 rounded-lg p-6 border border-slate-700">
                 <h2 className="text-2xl font-bold text-yellow-400 mb-4">{p.ref}</h2>
                 
-                {/* Audio Player */}
+                {/* Audio Player with auto-play */}
                 <div className="mb-6">
                   <AudioPlayer passage={p.ref} />
                 </div>

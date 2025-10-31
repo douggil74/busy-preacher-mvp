@@ -7,7 +7,7 @@ import { useState } from "react";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
-  weight: ["400", "700"],
+  weight: ["400", "600", "700"],
   display: "swap",
 });
 
@@ -66,15 +66,6 @@ const readingPlans: ReadingPlan[] = [
       "Study all of Paul's epistles in one month. Dive deep into Christian doctrine and practical living.",
     tags: ["Paul", "Doctrine", "Epistles"],
   },
-  {
-    id: "spiritual-foundations",
-    title: "Spiritual Foundations (16 Lessons)",
-    difficulty: "moderate",
-    duration: 32,
-    description:
-      "Complete the Cornerstone Church Spiritual Foundations course with daily Bible readings aligned to each lesson.",
-    tags: ["Course", "Foundations", "Cornerstone"],
-  },
 ];
 
 const difficultyColors = {
@@ -90,7 +81,6 @@ export default function ReadingPlansPage() {
   const handleStartPlan = (plan: ReadingPlan) => {
     setStarting(plan.id);
 
-    // Save the plan to localStorage
     const planData = {
       id: plan.id,
       title: plan.title,
@@ -100,101 +90,86 @@ export default function ReadingPlansPage() {
       completed: false,
     };
 
-    // Store in localStorage
     localStorage.setItem(`reading-plan-${plan.id}`, JSON.stringify(planData));
+    localStorage.setItem("bc-reading-progress", JSON.stringify(planData));
 
-    // Also add to active plans list
-    const activePlans = JSON.parse(
-      localStorage.getItem("active-reading-plans") || "[]"
-    );
+    const activePlans = JSON.parse(localStorage.getItem("active-reading-plans") || "[]");
     if (!activePlans.includes(plan.id)) {
       activePlans.push(plan.id);
       localStorage.setItem("active-reading-plans", JSON.stringify(activePlans));
     }
 
-    // Navigate to the plan tracker after a brief moment
     setTimeout(() => {
-      // For now, go to /reading-plan with the plan ID
-      // We'll create a dedicated tracker page next
       router.push(`/reading-plan?plan=${plan.id}`);
     }, 300);
   };
 
   return (
-    <main className="min-h-screen px-4 py-8">
-      <div className="container max-w-5xl mx-auto">
+    <main className="min-h-screen px-4 pb-16 pt-8">
+      <div className="mx-auto max-w-5xl">
         {/* Header */}
-        <header className="text-center mb-12">
-          <h1
-            className={`${playfair.className} text-4xl md:text-5xl font-bold text-white mb-4`}
-          >
+        <header className="mb-10 text-center">
+          <h1 className={`${playfair.className} mb-4 text-4xl font-bold md:text-5xl`}>
             Reading Plans
           </h1>
-          <p className="text-white/70 text-lg max-w-2xl mx-auto">
-            Stay consistent in God's Word with structured reading plans designed
-            for busy Christians.
+          <p className="mx-auto max-w-2xl text-lg text-white/70">
+            Stay consistent in God's Word with structured reading plans designed for busy Christians.
           </p>
         </header>
 
-        {/* Plans Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {/* Plans Grid - 2 COLUMNS */}
+        <div className="mb-12 grid gap-6 md:grid-cols-2">
           {readingPlans.map((plan) => (
             <div
               key={plan.id}
-              className="card hover:border-[#FFD966]/20 transition-all"
+              className="card flex flex-col"
             >
-              {/* Card Header */}
-              <div className="mb-4">
-                <div className="flex items-start justify-between mb-3">
-                  <h3
-                    className={`${playfair.className} text-xl font-bold text-white`}
-                  >
-                    {plan.title}
-                  </h3>
-                </div>
+              {/* Header */}
+              <div className="mb-5">
+                <h3 className={`${playfair.className} mb-3 text-2xl font-bold`}>
+                  {plan.title}
+                </h3>
 
                 {/* Badges */}
-                <div className="flex flex-wrap gap-2 mb-3">
+                <div className="mb-4 flex flex-wrap gap-2">
                   <span
-                    className={`inline-flex items-center px-2 py-1 rounded-full text-xs border ${
-                      difficultyColors[plan.difficulty]
-                    }`}
+                    className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${difficultyColors[plan.difficulty]}`}
                   >
                     {plan.difficulty}
                   </span>
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs border border-white/10 bg-white/5 text-white/70">
+                  <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-white/70">
                     {plan.duration} days
                   </span>
                 </div>
-              </div>
 
-              {/* Description */}
-              <p className="text-white/70 text-sm mb-4 leading-relaxed">
-                {plan.description}
-              </p>
+                {/* Description */}
+                <p className="mb-4 leading-relaxed text-white/80">
+                  {plan.description}
+                </p>
 
-              {/* Tags */}
-              <div className="flex flex-wrap gap-2 mb-4">
-                {plan.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="text-xs px-2 py-1 rounded-md bg-white/5 text-white/60 border border-white/10"
-                  >
-                    {tag}
-                  </span>
-                ))}
+                {/* Tags */}
+                <div className="flex flex-wrap gap-2">
+                  {plan.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-white/60"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               </div>
 
               {/* Start Button */}
               <button
                 onClick={() => handleStartPlan(plan)}
                 disabled={starting === plan.id}
-                className="w-full rounded-xl border border-white/20 bg-white/5 px-4 py-3 font-medium hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-wait flex items-center justify-center gap-2"
+                className="mt-auto rounded-lg border border-yellow-400 bg-yellow-400/20 px-4 py-3 font-semibold text-yellow-400 transition-colors hover:bg-yellow-400/30 disabled:cursor-wait disabled:opacity-50"
               >
                 {starting === plan.id ? (
-                  <>
+                  <span className="flex items-center justify-center gap-2">
                     <svg
-                      className="animate-spin h-4 w-4"
+                      className="h-4 w-4 animate-spin"
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
@@ -206,15 +181,15 @@ export default function ReadingPlansPage() {
                         r="10"
                         stroke="currentColor"
                         strokeWidth="4"
-                      ></circle>
+                      />
                       <path
                         className="opacity-75"
                         fill="currentColor"
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
+                      />
                     </svg>
                     Starting...
-                  </>
+                  </span>
                 ) : (
                   "Start Plan"
                 )}
@@ -223,14 +198,12 @@ export default function ReadingPlansPage() {
           ))}
         </div>
 
-        {/* How It Works Section */}
-        <div className="card mt-12 bg-blue-500/10 border-blue-500/20">
-          <h3
-            className={`${playfair.className} text-xl font-bold text-white mb-3`}
-          >
+        {/* Info Section */}
+        <div className="rounded-2xl border border-blue-400/20 bg-blue-500/10 p-8 backdrop-blur">
+          <h3 className={`${playfair.className} mb-6 text-2xl font-bold`}>
             How Reading Plans Work
           </h3>
-          <ul className="space-y-2 text-white/80">
+          <ul className="space-y-3 text-white/80">
             <li className="flex gap-3">
               <span className="text-[#FFD966]">•</span>
               <span>Choose a plan and start reading today</span>
@@ -246,8 +219,7 @@ export default function ReadingPlansPage() {
             <li className="flex gap-3">
               <span className="text-[#FFD966]">•</span>
               <span>
-                Click any passage to study it in depth with commentaries and
-                word studies
+                Click any passage to study it in depth with AI commentary and insights
               </span>
             </li>
             <li className="flex gap-3">

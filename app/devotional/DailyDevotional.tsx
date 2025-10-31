@@ -78,7 +78,7 @@ export function DailyDevotional() {
         >
           <BookOpen className="w-4 h-4 text-yellow-400" />
           <div>
-            <span className="text-sm font-medium text-white">📖 Today's Devotional</span>
+            <span className="text-sm font-medium text-white">📖 Verse of the Day</span>
             <span className="text-xs text-white/50 ml-2">{devotional.devotional.scripture}</span>
           </div>
         </button>

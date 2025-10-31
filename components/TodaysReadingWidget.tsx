@@ -1,107 +1,160 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-interface ReadingPlan {
-  date: string;
-  reference: string;
-  book: string;
-  chapters: string;
+interface ReadingProgress {
+  planId: string;
+  planName: string;
+  currentDay: number;
+  totalDays: number;
+  lastRead: string;
+  hidden?: boolean;
 }
 
 export default function TodaysReadingWidget() {
-  const [todaysReading, setTodaysReading] = useState<ReadingPlan | null>(null);
+  const router = useRouter();
+  const [progress, setProgress] = useState<ReadingProgress | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const getTodaysReading = () => {
-      const today = new Date();
-      const startOfYear = new Date(today.getFullYear(), 0, 1);
-      const dayOfYear = Math.floor(
-        (today.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24)
-      );
+    try {
+      const saved = localStorage.getItem("bc-reading-progress");
+      const hidden = localStorage.getItem("bc-reading-hidden") === "true";
 
-      const readings = [
-        { book: "Genesis", chapters: "1-2", reference: "Genesis 1" },
-        { book: "Psalm", chapters: "1", reference: "Psalm 1" },
-        { book: "Matthew", chapters: "5-7", reference: "Matthew 5" },
-        { book: "John", chapters: "3", reference: "John 3" },
-        { book: "Romans", chapters: "8", reference: "Romans 8" },
-        { book: "Ephesians", chapters: "1-2", reference: "Ephesians 1" },
-        { book: "Philippians", chapters: "2", reference: "Philippians 2" }
-      ];
+      if (hidden) {
+        setProgress({
+          planId: "",
+          planName: "",
+          currentDay: 0,
+          totalDays: 0,
+          lastRead: "",
+          hidden: true,
+        });
+        setLoading(false);
+        return;
+      }
 
-      const reading = readings[dayOfYear % readings.length];
-
-      setTodaysReading({
-        date: today.toLocaleDateString("en-US", {
-          weekday: "long",
-          month: "long",
-          day: "numeric"
-        }),
-        reference: reading.reference,
-        book: reading.book,
-        chapters: reading.chapters
-      });
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setProgress(parsed);
+      }
+    } catch (error) {
+      console.error("Error loading reading progress:", error);
+    } finally {
       setLoading(false);
-    };
-
-    getTodaysReading();
+    }
   }, []);
 
-  if (loading) {
+  const handleHide = () => {
+    localStorage.setItem("bc-reading-hidden", "true");
+    setProgress(prev =>
+      prev
+        ? { ...prev, hidden: true }
+        : { planId: "", planName: "", currentDay: 0, totalDays: 0, lastRead: "", hidden: true }
+    );
+  };
+
+  const handleShowAgain = () => {
+    localStorage.removeItem("bc-reading-hidden");
+    setProgress(prev => (prev ? { ...prev, hidden: false } : null));
+  };
+
+  const handleStartPlan = () => {
+    router.push("/reading-plans"); // ✅ fixed route
+  };
+
+  const handleContinue = () => {
+    if (progress?.planId) {
+      router.push(`/reading-plan?plan=${progress.planId}`); // ✅ correct plan redirect
+    } else {
+      router.push("/reading-plans");
+    }
+  };
+
+  if (loading) return null;
+
+  // 🧩 Handle when widget is hidden
+  if (progress?.hidden) {
     return (
-      <div className="bg-slate-800/50 rounded-lg p-6 border border-slate-700">
-        <div className="animate-pulse">
-          <div className="h-4 bg-slate-700 rounded w-3/4 mb-3"></div>
-          <div className="h-8 bg-slate-700 rounded w-1/2"></div>
-        </div>
+      <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-800 text-center">
+        <p className="text-slate-400 text-sm mb-3">Reading widget hidden</p>
+        <button
+          onClick={handleShowAgain}
+          className="rounded-2xl border border-yellow-400/40 bg-yellow-400/10 px-4 py-2 text-xs text-yellow-400 hover:bg-yellow-400/20 transition-all"
+        >
+          Show Again
+        </button>
       </div>
     );
   }
 
+  const hasPlan = !!progress?.planName;
+
   return (
-    <div className="bg-slate-800/50 rounded-lg p-6 border border-slate-700 hover:border-yellow-400/30 transition-all">
-      <div className="flex items-start justify-between mb-3">
+    <div className="bg-slate-800/50 rounded-lg p-6 border border-slate-700 hover:border-yellow-400/30 transition-all shadow-sm">
+      <div className="flex items-start justify-between mb-4">
         <div>
-          <p className="text-slate-400 text-sm mb-1">{todaysReading?.date}</p>
-          <h3 className="text-yellow-400 font-bold text-lg">Today&apos;s Reading</h3>
+          <h3 className="text-yellow-400 font-bold text-lg mb-1">
+            {hasPlan ? "Continue Your Reading Plan" : "Start a Reading Plan"}
+          </h3>
+          <p className="text-slate-400 text-sm">
+            {hasPlan
+              ? `Last read: ${new Date(progress!.lastRead).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                })}`
+              : "Stay consistent with your spiritual growth"}
+          </p>
         </div>
         <div className="text-2xl">📖</div>
       </div>
 
-      <div className="mb-4">
-        <p className="text-white text-2xl font-serif mb-1">
-          {todaysReading?.book} {todaysReading?.chapters}
-        </p>
-      </div>
+      {hasPlan ? (
+        <>
+          <p className="text-white font-medium mb-2">{progress!.planName}</p>
 
-      <Link
-        href={`/deep-study?passage=${encodeURIComponent(
-          todaysReading?.reference || ""
-        )}`}
-        className="inline-flex items-center gap-2 text-yellow-400 hover:text-yellow-300 transition-colors text-sm font-medium"
-      >
-        Start Studying
-        <svg
-          className="w-4 h-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 5l7 7-7 7"
-          />
-        </svg>
-      </Link>
+          <div className="w-full bg-slate-700/50 rounded-full h-2 mb-3 overflow-hidden">
+            <div
+              className="bg-gradient-to-r from-yellow-400 to-amber-400 h-2 rounded-full transition-all"
+              style={{
+                width: `${(progress!.currentDay / progress!.totalDays) * 100}%`,
+              }}
+            />
+          </div>
 
-      <p className="text-slate-500 text-xs mt-4 italic">
-        &quot;Your word is a lamp to my feet and a light to my path.&quot; - Psalm 119:105
-      </p>
+          <p className="text-slate-400 text-xs mb-4">
+            Day {progress!.currentDay} of {progress!.totalDays}
+          </p>
+
+          <div className="flex gap-3">
+            <button
+              onClick={handleContinue}
+              className="flex-1 rounded-2xl border-2 border-yellow-400 bg-yellow-400/10 px-4 py-2 text-sm font-semibold text-yellow-400 hover:bg-yellow-400/20 transition-all"
+            >
+              Continue Reading
+            </button>
+            <button
+              onClick={handleHide}
+              className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/70 hover:bg-white/10 transition-all"
+            >
+              Hide
+            </button>
+          </div>
+        </>
+      ) : (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p className="text-white/80 text-sm">
+            Choose a reading plan to begin your journey.
+          </p>
+          <button
+            onClick={handleStartPlan}
+            className="rounded-2xl border-2 border-yellow-400 bg-yellow-400/10 px-5 py-2 text-sm font-semibold text-yellow-400 hover:bg-yellow-400/20 transition-all"
+          >
+            + Start a Plan
+          </button>
+        </div>
+      )}
     </div>
   );
 }

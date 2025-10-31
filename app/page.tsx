@@ -1026,40 +1026,8 @@ const handleKeywordResultSelect = (reference: string) => {
       </div>
 
       <section className="card mb-8">
-        <div className="flex items-center justify-between mb-5 pb-4 border-b border-white/10">
-          <div className="flex-1">
-            <p className="text-sm text-white/70">What passage, topic or question can we research today?</p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowStyleModal(true)}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-yellow-400/10 border border-yellow-400/30 hover:bg-yellow-400/20 transition-colors group"
-              title="Change your study style"
-            >
-              <span className="text-base">{displayIcon}</span>
-              <div className="text-left">
-                <div className="text-[10px] uppercase tracking-wide text-yellow-400/70">Your Style</div>
-                <div className="text-sm font-medium text-yellow-400 group-hover:text-yellow-300" suppressHydrationWarning>
-                  {displayStyle}
-                </div>
-              </div>
-              <svg className="w-4 h-4 text-yellow-400/50 group-hover:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-
-            <button
-              onClick={() => setShowSettings(true)}
-              className="p-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
-              title="Settings & Privacy"
-            >
-              <svg className="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </button>
-          </div>
+        <div className="mb-5 pb-4 border-b border-white/10">
+          <p className="text-sm text-white/70">What passage, topic or question can we research today?</p>
         </div>
 
         {savedStudies.length > 0 && (
@@ -1173,7 +1141,7 @@ const handleKeywordResultSelect = (reference: string) => {
           </div>
 
           {topError && (
-            <div className="rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">{topError}</div>
+            <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">{topError}</div>
           )}
 
           {combinedOutline && (
@@ -1559,7 +1527,7 @@ const handleKeywordResultSelect = (reference: string) => {
         </div>
 
         {bpError && (
-          <div className="mt-3 rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">
+          <div className="mt-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">
             {bpError}
           </div>
         )}
@@ -1582,7 +1550,7 @@ const handleKeywordResultSelect = (reference: string) => {
                     onMouseEnter={(e) => onWordEnter(e, t)}
                     onMouseLeave={onWordLeave}
                     onClick={(e) => onWordClick(e, t)}
-                    className="cursor-help rounded-sm bg-transparent px-0.5 hover:bg-white/10 transition-colors"
+                    className="cursor-help rounded-lg bg-transparent px-0.5 hover:bg-white/10 transition-colors"
                   >
                     {t}
                   </span>
@@ -1663,23 +1631,23 @@ const handleKeywordResultSelect = (reference: string) => {
 
 {showEmailModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-8 max-w-md w-full shadow-2xl">
+          <div className="card max-w-md w-full">
             {emailSuccess ? (
               <div className="text-center">
                 <div className="text-6xl mb-4">✅</div>
-                <h2 className="text-2xl font-bold text-green-600 mb-2">
+                <h2 className="text-2xl font-bold text-yellow-400 mb-2">
                   You're subscribed!
                 </h2>
-                <p className="text-gray-600">Check your email for confirmation.</p>
+                <p className="text-white/70">Check your email for confirmation.</p>
               </div>
             ) : (
               <>
                 <div className="text-center mb-6">
                   <div className="text-5xl mb-4">🎉</div>
-                  <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                  <h2 className="text-2xl font-bold text-white mb-2">
                     Loved this study guide?
                   </h2>
-                  <p className="text-gray-600">
+                  <p className="text-white/70">
                     Get notified when we add new features, translations, and tools!
                   </p>
                 </div>
@@ -1689,7 +1657,7 @@ const handleKeywordResultSelect = (reference: string) => {
                   placeholder="Enter your email"
                   value={emailInput}
                   onChange={(e) => setEmailInput(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="input mb-4"
                   disabled={emailSubmitting}
                 />
 
@@ -1697,20 +1665,20 @@ const handleKeywordResultSelect = (reference: string) => {
                   <button
                     onClick={handleEmailSignup}
                     disabled={emailSubmitting || !emailInput}
-                    className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                    className="flex-1 rounded-lg bg-yellow-400/20 border border-yellow-400 px-4 py-3 text-sm hover:bg-yellow-400/30 disabled:opacity-50 transition-colors font-semibold"
                   >
                     {emailSubmitting ? "Subscribing..." : "Yes, keep me updated"}
                   </button>
                   <button
                     onClick={() => setShowEmailModal(false)}
                     disabled={emailSubmitting}
-                    className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+                    className="flex-1 btn font-semibold"
                   >
                     No thanks
                   </button>
                 </div>
 
-                <p className="text-xs text-gray-500 text-center mt-4">
+                <p className="text-xs text-white/50 text-center mt-4">
                   Optional - you can still use the app anonymously. Unsubscribe anytime.
                 </p>
               </>

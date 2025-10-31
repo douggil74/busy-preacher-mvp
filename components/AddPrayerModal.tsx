@@ -31,6 +31,7 @@ export function AddPrayerModal({
   const [linkedPassage, setLinkedPassage] = useState('');
   const [answerNotes, setAnswerNotes] = useState('');
   const [customTag, setCustomTag] = useState('');
+  const [isShared, setIsShared] = useState(false); // ✅ NEW STATE
 
   useEffect(() => {
     if (editingPrayer) {
@@ -39,12 +40,14 @@ export function AddPrayerModal({
       setSelectedTags(editingPrayer.tags);
       setLinkedPassage(editingPrayer.linkedPassage || '');
       setAnswerNotes(editingPrayer.answerNotes || '');
+      setIsShared(editingPrayer.isShared || false);
     } else {
       setTitle('');
       setDescription('');
       setSelectedTags([]);
       setLinkedPassage('');
       setAnswerNotes('');
+      setIsShared(false);
     }
   }, [editingPrayer, isOpen]);
 
@@ -64,6 +67,7 @@ export function AddPrayerModal({
       tags: selectedTags,
       linkedPassage: linkedPassage.trim() || undefined,
       answerNotes: answerNotes.trim() || undefined,
+      isShared, // ✅ SAVE SHARED STATUS
       dateAnswered: isAnswering ? new Date().toISOString() : editingPrayer?.dateAnswered,
     };
 
@@ -114,6 +118,7 @@ export function AddPrayerModal({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Title */}
           <div>
             <label htmlFor="title" className="block text-sm font-semibold text-white/90 mb-2">
               Prayer Request *
@@ -130,6 +135,7 @@ export function AddPrayerModal({
             />
           </div>
 
+          {/* Description */}
           {!isAnswering && (
             <div>
               <label htmlFor="description" className="block text-sm font-semibold text-white/90 mb-2">
@@ -146,6 +152,7 @@ export function AddPrayerModal({
             </div>
           )}
 
+          {/* Answer Notes */}
           {isAnswering && (
             <div>
               <label htmlFor="answerNotes" className="block text-sm font-semibold text-green-400 mb-2">
@@ -155,13 +162,14 @@ export function AddPrayerModal({
                 id="answerNotes"
                 value={answerNotes}
                 onChange={(e) => setAnswerNotes(e.target.value)}
-                placeholder="Share how God answered this prayer... What happened? How did He provide?"
+                placeholder="Share how God answered this prayer..."
                 rows={4}
                 className="w-full rounded-2xl border-2 border-green-400/30 bg-green-900/20 px-4 py-3 text-base outline-none text-green-300 placeholder:text-green-700 focus:ring-2 focus:ring-green-400/50 focus:border-green-400 transition resize-none"
               />
             </div>
           )}
 
+          {/* Tags */}
           {!isAnswering && (
             <div>
               <label className="block text-sm font-semibold text-white/90 mb-3">
@@ -186,6 +194,7 @@ export function AddPrayerModal({
                 ))}
               </div>
               
+              {/* Add custom tag */}
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -206,9 +215,27 @@ export function AddPrayerModal({
             </div>
           )}
 
+          {/* ✅ NEW: Share with Community */}
+          {!isAnswering && (
+            <div className="pt-2">
+              <label className="flex items-center gap-3 text-white/80 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isShared}
+                  onChange={() => setIsShared(!isShared)}
+                  className="w-4 h-4 accent-[#FFD966]"
+                />
+                <span>
+                  Share with <span className="text-[#FFD966] font-medium">Community Prayer Network</span>
+                </span>
+              </label>
+            </div>
+          )}
+
+          {/* Linked Passage */}
           {!isAnswering && (
             <div>
-              <label htmlFor="linkedPassage" className="block text-sm font-semibold text-white/90 mb-2">
+              <label htmlFor="linkedPassage" className="block text-sm font-semibold text-white/90 mb-2 mt-4">
                 Link to Scripture (Optional)
               </label>
               <input
@@ -225,6 +252,7 @@ export function AddPrayerModal({
             </div>
           )}
 
+          {/* Footer buttons */}
           <div className="flex gap-3 pt-4">
             <button
               type="button"

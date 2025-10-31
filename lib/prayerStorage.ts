@@ -143,6 +143,9 @@ export function getPrayerStats(prayers: Prayer[]) {
     answerRate: total > 0 ? Math.round((answered / total) * 100) : 0,
   };
 }
+export function getCommunityPrayers(): Prayer[] {
+  return getPrayers().filter((p) => p.isShared);
+}
 
 export function formatPrayerDate(dateString: string): string {
   const date = new Date(dateString);

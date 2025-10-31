@@ -217,7 +217,13 @@ function HeaderBarContent() {
                 >
                   Study Courses
                 </Link>
-
+<Link
+  href="/prayer-journal"
+  className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+  onClick={() => setOpen(false)}
+>
+  🙏 Prayer Journal
+</Link>
                 <div className="border-t border-white/10 my-1" />
 
                 <Link

@@ -387,7 +387,6 @@ export function SettingsModal({ isOpen, onClose, userName, currentStyle }: Setti
                   </div>
                   {notificationPrefs && (
                     <div className="text-xs text-white/60">
-                      Prayer alerts: {notificationPrefs.prayerSupport ? '✓ On' : '✗ Off'} • 
                       Study reminders: {notificationPrefs.studyReminders ? '✓ On' : '✗ Off'}
                     </div>
                   )}

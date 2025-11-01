@@ -37,6 +37,8 @@ interface PrayerRequest {
   spamDetected?: boolean;
 }
 
+export const dynamic = 'force-dynamic'; // disables static generation
+
 export default function PrayerModerationPage() {
   const [prayers, setPrayers] = useState<PrayerRequest[]>([]);
   const [filter, setFilter] = useState<'all' | 'flagged' | 'crisis' | 'hidden'>('all');

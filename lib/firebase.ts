@@ -44,7 +44,12 @@ console.log('Full API Key (first 10 chars):', process.env.NEXT_PUBLIC_FIREBASE_A
 console.log('firebaseConfig:', firebaseConfig);
 
 // Initialize Firebase (singleton pattern)
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+let app;
+
+if (typeof window !== 'undefined') {
+  app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+}
+
 const db = getFirestore(app);
 const auth = getAuth(app);
 

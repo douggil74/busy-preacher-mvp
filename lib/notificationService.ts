@@ -7,6 +7,8 @@ export interface NotificationPreferences {
   reminderTime?: string;
   reminderDays: number[];
   inactivityDays: number;
+
+  studyReminders?: boolean;
 }
 
 const DEFAULT_PREFERENCES: NotificationPreferences = {
@@ -15,6 +17,7 @@ const DEFAULT_PREFERENCES: NotificationPreferences = {
   reminderTime: "09:00",
   reminderDays: [1, 2, 3, 4, 5],
   inactivityDays: 2,
+  studyReminders: true,
 };
 
 export class NotificationService {

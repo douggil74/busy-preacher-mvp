@@ -65,7 +65,7 @@ export function RelatedCoursesPanel({ passageRef, theme, onCourseClick }: Relate
   };
 
   return (
-    <div className="mt-6 rounded-xl border border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-purple-500/10 p-6">
+    <div className="mt-6 rounded-xl border border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-purple-500/10 p-6 max-w-2xl mx-auto">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="text-3xl">📚</div>

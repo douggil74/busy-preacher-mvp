@@ -9,7 +9,7 @@ import Link from "next/link";
 import TodaysReadingWidget from "@/components/TodaysReadingWidget";
 import { useStudyStyle } from "./hooks/useStudyStyle";
 import { useStudyJourney } from "./hooks/useStudyJourney";
-import OnboardingModal from "./components/OnboardingModal";
+import { EnhancedOnboarding } from "./components/EnhancedOnboarding";
 import { StyleSelectorModal } from "./components/StyleSelectorModal";
 import { PastoralInsightBanner } from "./components/PastoralInsightBanner";
 import { CheckInModal } from "./components/CheckInModal";
@@ -886,17 +886,57 @@ const hasSubscribed = safeStorage.getItem("bc-subscribed");
       .join(' ');
   };
 
-  const handleOnboardingComplete = (name: string, style: string, showDevotional: boolean) => {
-    const capitalizedName = capitalizeName(name);
-    localStorage.setItem("bc-user-name", capitalizedName);
-    localStorage.setItem("bc-style", style);
-    localStorage.setItem("bc-show-devotional", String(showDevotional));
-    setUserName(capitalizedName);
-    setIsOnboarded(true);
-    setShowOnboarding(false);
-    window.location.reload();
-  };
-
+const handleEnhancedOnboardingComplete = async (data: {
+  name: string;
+  studyStyle: string;
+  studyGoal: string;
+  weeklyFrequency: number;
+  enableDevotional: boolean;
+  enableReadingPlan: boolean;
+  enableReminders: boolean;
+  email: string;
+}) => {
+  // Capitalize name
+  const capitalizedName = capitalizeName(data.name);
+  
+  // Save core preferences
+  localStorage.setItem("bc-user-name", capitalizedName);
+  localStorage.setItem("bc-style", data.studyStyle);
+  localStorage.setItem("bc-show-devotional", String(data.enableDevotional));
+  localStorage.setItem("bc-show-reading-plan", String(data.enableReadingPlan));
+  
+  // Save new preferences
+  localStorage.setItem("bc-study-goal", data.studyGoal);
+  localStorage.setItem("bc-weekly-frequency", String(data.weeklyFrequency));
+  localStorage.setItem("bc-enable-reminders", String(data.enableReminders));
+  
+  // Handle email signup if provided
+  if (data.email && data.email.trim()) {
+    try {
+      await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          email: data.email,
+          source: "onboarding",
+          userName: capitalizedName,
+          studyStyle: data.studyStyle,
+        }),
+      });
+      localStorage.setItem("bc-subscribed", "true");
+    } catch (error) {
+      console.error("Email signup failed:", error);
+    }
+  }
+  
+  // Update state
+  setUserName(capitalizedName);
+  setIsOnboarded(true);
+  setShowOnboarding(false);
+  
+  // Reload to apply changes
+  window.location.reload();
+};
 const handleKeywordSearch = () => {
   if (keywordSearch.trim()) {
     setSearchedKeyword(keywordSearch.trim());
@@ -950,7 +990,7 @@ const handleKeywordResultSelect = (reference: string) => {
       )}
 
       {isOnboarded && !passageRef && !theme && !passageOutline && !themeOutline && !combinedOutline && (
-        <section className="card mb-8 border-2 border-yellow-400/30">
+        <section className="card mb-8 border-2 border-yellow-400/30 max-w-2xl mx-auto">
           <div className="text-center mb-6">
             <h2 className={`${nunitoSans.className} text-3xl font-semibold mb-2 text-white`}>
               Welcome back, {userName}! 👋
@@ -1591,10 +1631,10 @@ const handleKeywordResultSelect = (reference: string) => {
         </div>
       )}
 
-      <OnboardingModal
-        isOpen={showOnboarding}
-        onComplete={handleOnboardingComplete}
-      />
+<EnhancedOnboarding
+  isOpen={showOnboarding}
+  onComplete={handleEnhancedOnboardingComplete}
+/>      
 
       <StyleSelectorModal
         isOpen={showStyleModal}

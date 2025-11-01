@@ -7,6 +7,7 @@ import Image from "next/image";
 import { Playfair_Display } from "next/font/google";
 import { useSearchParams } from "next/navigation";
 import { useStudyStyle } from "./hooks/useStudyStyle";
+import { UserProfileMenu } from '@/components/UserProfileMenu';
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -190,7 +191,10 @@ function HeaderBarContent() {
             </svg>
           </button>
 
-          {/* Navigation Menu */}
+          {/* User Profile Menu - Shows profile pic when signed in */}
+          <UserProfileMenu />
+
+          {/* Navigation Menu (Hamburger) */}
           <div className="relative">
             <button
               className="text-3xl leading-none rounded-xl border border-white/10 px-3 h-9 hover:bg-white/10 transition-colors"
@@ -222,18 +226,17 @@ function HeaderBarContent() {
                 >
                   Deep Study
                 </Link>
-                          <Link
-            href="/reading-plans"
-            className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
-            onClick={() => setOpen(false)}
-          >
-           Reading Plan
-          </Link>
+                <Link
+                  href="/reading-plans"
+                  className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  Reading Plan
+                </Link>
                 <Link
                   href="/library"
                   className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
                   onClick={() => setOpen(false)}
-              
                 >
                   My Library
                 </Link>
@@ -244,13 +247,13 @@ function HeaderBarContent() {
                 >
                   Study Courses
                 </Link>
-<Link
-  href="/prayer-journal"
-  className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
-  onClick={() => setOpen(false)}
->
-  🙏 Prayer Journal
-</Link>
+                <Link
+                  href="/prayer"
+                  className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  Prayer Center
+                </Link>
                 <div className="border-t border-white/10 my-1" />
 
                 <Link
@@ -259,13 +262,6 @@ function HeaderBarContent() {
                   onClick={() => setOpen(false)}
                 >
                   Comparison
-                </Link>
-                <Link
-                  href="/personalize"
-                  className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
-                  onClick={() => setOpen(false)}
-                >
-                  Personalize
                 </Link>
                 
                 <div className="border-t border-white/10 my-1" />

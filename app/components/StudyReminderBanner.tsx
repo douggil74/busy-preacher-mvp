@@ -52,7 +52,7 @@ export function StudyReminderBanner({
 
   return (
     <div
-      className={`mb-6 rounded-xl border bg-gradient-to-r ${color} p-6 transition-all duration-300 ${
+      className={`mb-6 rounded-xl border bg-gradient-to-r ${color} p-6 transition-all duration-300 max-w-2xl mx-auto ${
         isClosing ? "opacity-0 scale-95" : "opacity-100 scale-100"
       }`}
     >

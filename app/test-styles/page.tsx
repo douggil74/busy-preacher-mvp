@@ -392,10 +392,9 @@ function StyleTesterContent() {
           <div className="text-left max-w-md mx-auto">
             <h3 className="font-semibold mb-3 text-white/90">What to Look For:</h3>
             <ul className="text-sm text-white/70 space-y-2">
-              <li>☕ <strong className="text-white/90">Casual Devotional:</strong> Warm, short, practical</li>
-              <li>📖 <strong className="text-white/90">Bible Student:</strong> Terms defined, context-aware</li>
-              <li>👨‍🏫 <strong className="text-white/90">Pastor / Teacher:</strong> Structured, sermon-ready</li>
-              <li>🎓 <strong className="text-white/90">Theologian:</strong> Original languages, rigorous</li>
+              <li><strong className="text-white/90">Casual Devotional:</strong> Warm, short, practical</li>
+              <li><strong className="text-white/90">Bible Student:</strong> Terms defined, context-aware</li>
+              <li><strong className="text-white/90">Pastor / Teacher:</strong> Structured, sermon-ready</li>
             </ul>
           </div>
         </div>

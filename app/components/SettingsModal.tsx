@@ -21,31 +21,63 @@ interface SettingsModalProps {
 type DeleteOption = "all" | "history" | "notes" | "journey" | null;
 
 export function SettingsModal({ isOpen, onClose, userName, currentStyle }: SettingsModalProps) {
-  const [activeTab, setActiveTab] = useState<"account" | "data">("account");
+  const [activeTab, setActiveTab] = useState<"preferences" | "account" | "data">("preferences");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteOption, setDeleteOption] = useState<DeleteOption>(null);
   const [confirmText, setConfirmText] = useState("");
+  
+  // Onboarding preferences
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [studyStyle, setStudyStyle] = useState<"Casual Devotional" | "Bible Student" | "Pastor/Teacher">("Casual Devotional");
+  const [studyGoal, setStudyGoal] = useState("");
+  const [weeklyFrequency, setWeeklyFrequency] = useState(3);
   const [showDevotional, setShowDevotional] = useState(true);
+  const [showReadingPlan, setShowReadingPlan] = useState(true);
+  const [enableReminders, setEnableReminders] = useState(true);
+  
   const [notificationPrefs, setNotificationPrefs] = useState(NotificationService.getPreferences());
 
   useEffect(() => {
     if (isOpen) {
-      const saved = localStorage.getItem("bc-show-devotional");
-      setShowDevotional(saved === "true" || saved === null);
+      // Load all preferences
+      setName(localStorage.getItem("bc-user-name") || "");
+      setEmail(localStorage.getItem("bc-user-email") || "");
+      setStudyStyle((localStorage.getItem("bc-style") as any) || "Casual Devotional");
+      setStudyGoal(localStorage.getItem("bc-study-goal") || "");
+      setWeeklyFrequency(Number(localStorage.getItem("bc-weekly-frequency")) || 3);
+      
+      const savedDevotional = localStorage.getItem("bc-show-devotional");
+      setShowDevotional(savedDevotional === "true" || savedDevotional === null);
+      
+      const savedReadingPlan = localStorage.getItem("bc-show-reading-plan");
+      setShowReadingPlan(savedReadingPlan === "true" || savedReadingPlan === null);
+      
+      const savedReminders = localStorage.getItem("bc-enable-reminders");
+      setEnableReminders(savedReminders === "true" || savedReminders === null);
+      
       setNotificationPrefs(NotificationService.getPreferences());
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const handleToggleDevotional = () => {
-    const newValue = !showDevotional;
-    setShowDevotional(newValue);
-    localStorage.setItem("bc-show-devotional", String(newValue));
+  const handleSavePreferences = () => {
+    // Save all preferences
+    localStorage.setItem("bc-user-name", name);
+    localStorage.setItem("bc-user-email", email);
+    localStorage.setItem("bc-style", studyStyle);
+    localStorage.setItem("bc-study-goal", studyGoal);
+    localStorage.setItem("bc-weekly-frequency", String(weeklyFrequency));
+    localStorage.setItem("bc-show-devotional", String(showDevotional));
+    localStorage.setItem("bc-show-reading-plan", String(showReadingPlan));
+    localStorage.setItem("bc-enable-reminders", String(enableReminders));
     
-    if (newValue) {
+    if (!showDevotional) {
       localStorage.removeItem("bc-devotional-last-shown");
     }
+    
+    alert("✅ Settings saved! Refresh the page to see changes.");
   };
 
   const handleDelete = () => {
@@ -126,6 +158,16 @@ export function SettingsModal({ isOpen, onClose, userName, currentStyle }: Setti
         {/* Tabs */}
         <div className="flex border-b border-white/10">
           <button
+            onClick={() => setActiveTab("preferences")}
+            className={`flex-1 px-6 py-3 text-sm font-medium transition-colors ${
+              activeTab === "preferences"
+                ? "text-yellow-400 border-b-2 border-yellow-400"
+                : "text-white/60 hover:text-white/80"
+            }`}
+          >
+            Study Preferences
+          </button>
+          <button
             onClick={() => setActiveTab("account")}
             className={`flex-1 px-6 py-3 text-sm font-medium transition-colors ${
               activeTab === "account"
@@ -149,19 +191,157 @@ export function SettingsModal({ isOpen, onClose, userName, currentStyle }: Setti
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
+          {/* STUDY PREFERENCES TAB */}
+          {activeTab === "preferences" && (
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-4">📖 Study Settings</h3>
+                
+                {/* Study Style */}
+                <div className="space-y-3 mb-6">
+                  <label className="text-sm font-medium text-white/80">Study Style</label>
+                  <div className="space-y-2">
+                    {[
+                      { value: "Casual Devotional", emoji: "☕", desc: "Quick, encouraging insights" },
+                      { value: "Bible Student", emoji: "📖", desc: "Deeper exploration with context" },
+                      { value: "Pastor/Teacher", emoji: "👨‍🏫", desc: "Comprehensive analysis" },
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => setStudyStyle(option.value as any)}
+                        className={`w-full text-left rounded-lg border-2 p-3 transition-all ${
+                          studyStyle === option.value
+                            ? "border-yellow-400 bg-yellow-400/10"
+                            : "border-white/10 bg-white/5 hover:bg-white/10"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">{option.emoji}</span>
+                          <div className="flex-1">
+                            <div className="font-medium text-white">{option.value}</div>
+                            <div className="text-xs text-white/60">{option.desc}</div>
+                          </div>
+                          {studyStyle === option.value && (
+                            <span className="text-yellow-400">✓</span>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Study Goal */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-white/80 mb-2">Study Goal</label>
+                  <input
+                    type="text"
+                    value={studyGoal}
+                    onChange={(e) => setStudyGoal(e.target.value)}
+                    placeholder="What's your study goal?"
+                    className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-white/40 focus:border-yellow-400 focus:outline-none"
+                  />
+                </div>
+
+                {/* Weekly Frequency */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-white/80 mb-2">
+                    Weekly Study Frequency: <span className="text-yellow-400">{weeklyFrequency}x/week</span>
+                  </label>
+                  <input
+                    type="range"
+                    min="1"
+                    max="7"
+                    value={weeklyFrequency}
+                    onChange={(e) => setWeeklyFrequency(parseInt(e.target.value))}
+                    className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-yellow-400"
+                  />
+                  <div className="flex justify-between text-xs text-white/50 mt-1">
+                    <span>1x/week</span>
+                    <span>Daily</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Feature Toggles */}
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-4">⚙️ Features</h3>
+                <div className="space-y-3">
+                  {[
+                    { key: "devotional", label: "Daily Devotional", emoji: "🌅", value: showDevotional, setter: setShowDevotional },
+                    { key: "readingPlan", label: "Reading Plan Widget", emoji: "📖", value: showReadingPlan, setter: setShowReadingPlan },
+                    { key: "reminders", label: "Study Reminders", emoji: "🔔", value: enableReminders, setter: setEnableReminders },
+                  ].map((feature) => (
+                    <button
+                      key={feature.key}
+                      onClick={() => feature.setter(!feature.value)}
+                      className="w-full text-left rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 p-4 transition-all"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">{feature.emoji}</span>
+                          <span className="text-white">{feature.label}</span>
+                        </div>
+                        <div
+                          className={`w-12 h-6 rounded-full transition-all relative ${
+                            feature.value ? "bg-yellow-400" : "bg-white/20"
+                          }`}
+                        >
+                          <div
+                            className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${
+                              feature.value ? "left-7" : "left-1"
+                            }`}
+                          />
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Save Button */}
+              <button
+                onClick={handleSavePreferences}
+                className="w-full py-3 rounded-lg bg-yellow-400 text-slate-900 font-semibold hover:bg-yellow-300 transition-colors"
+              >
+                💾 Save Preferences
+              </button>
+            </div>
+          )}
+
+          {/* ACCOUNT TAB */}
           {activeTab === "account" && (
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold text-white mb-4">Your Profile</h3>
                 
                 <div className="space-y-4">
-                  <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-                    <div className="text-sm text-white/60 mb-1">Name</div>
-                    <div className="text-lg text-white">{userName}</div>
+                  {/* Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-white/80 mb-2">Name</label>
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Your name"
+                      className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-white/40 focus:border-yellow-400 focus:outline-none"
+                    />
                   </div>
 
+                  {/* Email */}
+                  <div>
+                    <label className="block text-sm font-medium text-white/80 mb-2">Email (optional)</label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="your@email.com"
+                      className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-white/40 focus:border-yellow-400 focus:outline-none"
+                    />
+                  </div>
+
+                  {/* Current Style Display */}
                   <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-                    <div className="text-sm text-white/60 mb-1">Study Style</div>
+                    <div className="text-sm text-white/60 mb-1">Current Study Style</div>
                     <div className="text-lg text-white">{currentStyle}</div>
                   </div>
 
@@ -172,190 +352,72 @@ export function SettingsModal({ isOpen, onClose, userName, currentStyle }: Setti
                     </div>
                   </div>
                 </div>
+
+                {/* Save Button */}
+                <button
+                  onClick={handleSavePreferences}
+                  className="w-full mt-6 py-3 rounded-lg bg-yellow-400 text-slate-900 font-semibold hover:bg-yellow-300 transition-colors"
+                >
+                  💾 Save Profile
+                </button>
               </div>
 
-              {/* Devotional Preference Section */}
+              {/* Notifications Section */}
               <div>
-                <h3 className="text-lg font-semibold text-white mb-4">Preferences</h3>
-                
-                <div className="rounded-lg border border-white/10 bg-white/5 p-5">
-                  <label className="flex items-start gap-4 cursor-pointer group">
-                    <div className="relative flex items-center pt-1">
-                      <input
-                        type="checkbox"
-                        checked={showDevotional}
-                        onChange={handleToggleDevotional}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-white/20 rounded-full peer peer-checked:bg-yellow-400 transition-colors"></div>
-                      <div className="absolute left-1 top-1.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
-                    </div>
-                    <div className="flex-1">
-                      <div className="font-semibold text-white mb-1 flex items-center gap-2">
-                        Daily Devotional Popup
-                        <span className="text-base">📖</span>
-                      </div>
+                <h3 className="text-lg font-semibold text-white mb-4">🔔 Notifications</h3>
+                <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <div className="font-medium text-white mb-1">Study Reminders</div>
                       <div className="text-sm text-white/70">
-                        See a new devotional message each day when you visit. Shows once per day and can be dismissed anytime.
+                        Get gentle encouragement when you haven't studied in a while
                       </div>
                     </div>
-                  </label>
-                </div>
-              </div>
-
-              {/* Notification & Reminders Section */}
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-4">Study Reminders</h3>
-                
-                <div className="space-y-4">
-                  {/* Enable Reminders */}
-                  <div className="rounded-lg border border-white/10 bg-white/5 p-5">
-                    <label className="flex items-start gap-4 cursor-pointer group">
-                      <div className="relative flex items-center pt-1">
-                        <input
-                          type="checkbox"
-                          checked={notificationPrefs.enabled}
-                          onChange={(e) => {
-                            const updated = { ...notificationPrefs, enabled: e.target.checked };
-                            setNotificationPrefs(updated);
-                            NotificationService.savePreferences(updated);
-                          }}
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-white/20 rounded-full peer peer-checked:bg-yellow-400 transition-colors"></div>
-                        <div className="absolute left-1 top-1.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-semibold text-white mb-1 flex items-center gap-2">
-                          Enable Study Reminders
-                          <span className="text-base">🔔</span>
-                        </div>
-                        <div className="text-sm text-white/70">
-                          Get gentle reminders if you haven't studied in a while
-                        </div>
-                      </div>
-                    </label>
-                  </div>
-
-                  {/* Inactivity Days */}
-                  {notificationPrefs.enabled && (
-                    <div className="rounded-lg border border-white/10 bg-white/5 p-5">
-                      <label className="block">
-                        <div className="font-semibold text-white mb-2">
-                          Remind me after
-                        </div>
-                        <select
-                          value={notificationPrefs.inactivityDays}
-                          onChange={(e) => {
-                            const updated = { ...notificationPrefs, inactivityDays: Number(e.target.value) };
-                            setNotificationPrefs(updated);
-                            NotificationService.savePreferences(updated);
-                          }}
-                          className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                        >
-                          <option value="1">1 day without studying</option>
-                          <option value="2">2 days without studying</option>
-                          <option value="3">3 days without studying</option>
-                          <option value="5">5 days without studying</option>
-                          <option value="7">1 week without studying</option>
-                        </select>
-                      </label>
-                    </div>
-                  )}
-
-                  {/* Browser Notifications */}
-                  {notificationPrefs.enabled && (
-                    <div className="rounded-lg border border-white/10 bg-white/5 p-5">
-                      <label className="flex items-start gap-4 cursor-pointer group">
-                        <div className="relative flex items-center pt-1">
-                          <input
-                            type="checkbox"
-                            checked={notificationPrefs.browserNotifications}
-                            onChange={async (e) => {
-                              if (e.target.checked) {
-                                const granted = await NotificationService.requestBrowserPermission();
-                                if (granted) {
-                                  const updated = { ...notificationPrefs, browserNotifications: true };
-                                  setNotificationPrefs(updated);
-                                  NotificationService.savePreferences(updated);
-                                } else {
-                                  alert("Please enable notifications in your browser settings to use this feature.");
-                                }
-                              } else {
-                                const updated = { ...notificationPrefs, browserNotifications: false };
-                                setNotificationPrefs(updated);
-                                NotificationService.savePreferences(updated);
-                              }
-                            }}
-                            className="sr-only peer"
-                          />
-                          <div className="w-11 h-6 bg-white/20 rounded-full peer peer-checked:bg-yellow-400 transition-colors"></div>
-                          <div className="absolute left-1 top-1.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
-                        </div>
-                        <div className="flex-1">
-                          <div className="font-semibold text-white mb-1 flex items-center gap-2">
-                            Browser Notifications
-                            <span className="text-base">💬</span>
-                          </div>
-                          <div className="text-sm text-white/70">
-                            Receive notifications even when the app isn't open (requires browser permission)
-                          </div>
-                        </div>
-                      </label>
-                    </div>
-                  )}
-
-                  {/* Test Notification Button */}
-                  {notificationPrefs.enabled && notificationPrefs.browserNotifications && (
-                    <button
-                      onClick={() => {
-                        NotificationService.sendBrowserNotification(
-                          "Test Notification 📖",
-                          "This is how your study reminders will look!"
-                        );
-                      }}
-                      className="w-full px-4 py-2 rounded-lg bg-white/10 hover:bg-white/15 text-white text-sm transition-colors"
+                    <div
+                      className={`w-12 h-6 rounded-full transition-all relative ${
+                        notificationPrefs.enabled ? "bg-yellow-400" : "bg-white/20"
+                      }`}
                     >
-                      Send Test Notification
-                    </button>
+                      <div
+                        className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${
+                          notificationPrefs.enabled ? "left-7" : "left-1"
+                        }`}
+                      />
+                    </div>
+                  </div>
+                  {notificationPrefs && (
+                    <div className="text-xs text-white/60">
+                      Prayer alerts: {notificationPrefs.prayerSupport ? '✓ On' : '✗ Off'} • 
+                      Study reminders: {notificationPrefs.studyReminders ? '✓ On' : '✗ Off'}
+                    </div>
                   )}
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-4">Your Activity</h3>
-                
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-center">
-                    <div className="text-2xl font-bold text-yellow-400">{stats.studies}</div>
-                    <div className="text-xs text-white/60 mt-1">Studies</div>
-                  </div>
-
-                  <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-center">
-                    <div className="text-2xl font-bold text-yellow-400">{stats.notes}</div>
-                    <div className="text-xs text-white/60 mt-1">Notes</div>
-                  </div>
-
-                  <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-center">
-                    <div className="text-2xl font-bold text-yellow-400">{stats.checkIns}</div>
-                    <div className="text-xs text-white/60 mt-1">Check-ins</div>
-                  </div>
                 </div>
               </div>
             </div>
           )}
 
+          {/* DATA & PRIVACY TAB */}
           {activeTab === "data" && !showDeleteConfirm && (
             <div className="space-y-6">
-              {/* Privacy Notice */}
-              <div className="rounded-lg border border-blue-400/30 bg-blue-400/10 p-4">
-                <div className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <div className="text-sm text-white/80">
-                    <strong className="text-blue-400">Privacy First:</strong> All your data is stored locally in your browser. 
-                    We don't track you, collect analytics, or send your personal information anywhere.
+              {/* Data Overview */}
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-2">Your Data</h3>
+                <p className="text-sm text-white/60 mb-4">
+                  Everything is stored locally in your browser. We don't collect or transmit your personal data.
+                </p>
+                
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-center">
+                    <div className="text-2xl font-bold text-yellow-400 mb-1">{stats.studies}</div>
+                    <div className="text-xs text-white/60">Studies</div>
+                  </div>
+                  <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-center">
+                    <div className="text-2xl font-bold text-yellow-400 mb-1">{stats.notes}</div>
+                    <div className="text-xs text-white/60">Notes</div>
+                  </div>
+                  <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-center">
+                    <div className="text-2xl font-bold text-yellow-400 mb-1">{stats.checkIns}</div>
+                    <div className="text-xs text-white/60">Check-ins</div>
                   </div>
                 </div>
               </div>
@@ -368,25 +430,18 @@ export function SettingsModal({ isOpen, onClose, userName, currentStyle }: Setti
                 </p>
               </div>
 
-              {/* Delete Options - More Visual */}
+              {/* Delete Options */}
               <div className="space-y-3">
                 <button
                   onClick={() => initiateDelete("history")}
-                  className="w-full text-left p-5 rounded-xl border-2 border-orange-500/30 bg-orange-500/10 hover:border-orange-500/50 hover:bg-orange-500/20 transition-all group"
+                  className="w-full text-left p-4 rounded-xl border-2 border-orange-500/30 bg-orange-500/10 hover:border-orange-500/50 hover:bg-orange-500/20 transition-all"
                 >
-                  <div className="flex items-start gap-4">
-                    <div className="p-2 rounded-lg bg-orange-500/20 group-hover:bg-orange-500/30 transition-colors">
-                      <svg className="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
+                  <div className="flex items-start gap-3">
+                    <div className="text-2xl">🕐</div>
                     <div className="flex-1">
-                      <div className="font-semibold text-white mb-1 text-base">Clear Study History</div>
-                      <div className="text-sm text-white/70 mb-2">
-                        Remove your {stats.studies} saved studies. Your notes and account remain intact.
-                      </div>
-                      <div className="text-xs text-orange-400 font-medium">
-                        → Click to delete
+                      <div className="font-semibold text-white mb-1">Clear Study History</div>
+                      <div className="text-sm text-white/70">
+                        Remove your {stats.studies} saved studies
                       </div>
                     </div>
                   </div>
@@ -394,21 +449,14 @@ export function SettingsModal({ isOpen, onClose, userName, currentStyle }: Setti
 
                 <button
                   onClick={() => initiateDelete("notes")}
-                  className="w-full text-left p-5 rounded-xl border-2 border-orange-500/30 bg-orange-500/10 hover:border-orange-500/50 hover:bg-orange-500/20 transition-all group"
+                  className="w-full text-left p-4 rounded-xl border-2 border-orange-500/30 bg-orange-500/10 hover:border-orange-500/50 hover:bg-orange-500/20 transition-all"
                 >
-                  <div className="flex items-start gap-4">
-                    <div className="p-2 rounded-lg bg-orange-500/20 group-hover:bg-orange-500/30 transition-colors">
-                      <svg className="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </div>
+                  <div className="flex items-start gap-3">
+                    <div className="text-2xl">📝</div>
                     <div className="flex-1">
-                      <div className="font-semibold text-white mb-1 text-base">Clear All Notes</div>
-                      <div className="text-sm text-white/70 mb-2">
-                        Delete all {stats.notes} personal notes. Your study history stays.
-                      </div>
-                      <div className="text-xs text-orange-400 font-medium">
-                        → Click to delete
+                      <div className="font-semibold text-white mb-1">Clear All Notes</div>
+                      <div className="text-sm text-white/70">
+                        Delete all {stats.notes} personal notes
                       </div>
                     </div>
                   </div>
@@ -416,28 +464,21 @@ export function SettingsModal({ isOpen, onClose, userName, currentStyle }: Setti
 
                 <button
                   onClick={() => initiateDelete("journey")}
-                  className="w-full text-left p-5 rounded-xl border-2 border-orange-500/30 bg-orange-500/10 hover:border-orange-500/50 hover:bg-orange-500/20 transition-all group"
+                  className="w-full text-left p-4 rounded-xl border-2 border-orange-500/30 bg-orange-500/10 hover:border-orange-500/50 hover:bg-orange-500/20 transition-all"
                 >
-                  <div className="flex items-start gap-4">
-                    <div className="p-2 rounded-lg bg-orange-500/20 group-hover:bg-orange-500/30 transition-colors">
-                      <svg className="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                      </svg>
-                    </div>
+                  <div className="flex items-start gap-3">
+                    <div className="text-2xl">📊</div>
                     <div className="flex-1">
-                      <div className="font-semibold text-white mb-1 text-base">Reset Journey & Patterns</div>
-                      <div className="text-sm text-white/70 mb-2">
-                        Clear streaks, patterns, and {stats.checkIns} check-in responses. Start fresh!
-                      </div>
-                      <div className="text-xs text-orange-400 font-medium">
-                        → Click to reset
+                      <div className="font-semibold text-white mb-1">Reset Journey & Patterns</div>
+                      <div className="text-sm text-white/70">
+                        Clear streaks, patterns, and {stats.checkIns} check-ins
                       </div>
                     </div>
                   </div>
                 </button>
               </div>
 
-              {/* Nuclear Option - Separated */}
+              {/* Nuclear Option */}
               <div className="border-t-2 border-white/10 pt-6 mt-6">
                 <div className="mb-3">
                   <h3 className="text-lg font-semibold text-red-400 mb-1">Complete Reset</h3>
@@ -448,22 +489,14 @@ export function SettingsModal({ isOpen, onClose, userName, currentStyle }: Setti
 
                 <button
                   onClick={() => initiateDelete("all")}
-                  className="w-full text-left p-5 rounded-xl border-2 border-red-500/40 bg-red-500/15 hover:border-red-500/60 hover:bg-red-500/25 transition-all group"
+                  className="w-full text-left p-4 rounded-xl border-2 border-red-500/40 bg-red-500/15 hover:border-red-500/60 hover:bg-red-500/25 transition-all"
                 >
-                  <div className="flex items-start gap-4">
-                    <div className="p-2 rounded-lg bg-red-500/30 group-hover:bg-red-500/40 transition-colors">
-                      <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </div>
+                  <div className="flex items-start gap-3">
+                    <div className="text-2xl">🗑️</div>
                     <div className="flex-1">
-                      <div className="font-semibold text-red-400 mb-1 text-base">Delete Everything</div>
-                      <div className="text-sm text-white/70 mb-2">
-                        ⚠️ Permanently removes ALL data: {stats.studies} studies, {stats.notes} notes, profile, everything. 
-                        You'll go back to the welcome screen.
-                      </div>
-                      <div className="text-xs text-red-400 font-medium">
-                        → Click to delete EVERYTHING
+                      <div className="font-semibold text-red-400 mb-1">Delete Everything</div>
+                      <div className="text-sm text-white/70">
+                        ⚠️ Permanently removes ALL data: {stats.studies} studies, {stats.notes} notes, profile, everything
                       </div>
                     </div>
                   </div>
@@ -472,6 +505,7 @@ export function SettingsModal({ isOpen, onClose, userName, currentStyle }: Setti
             </div>
           )}
 
+          {/* Delete Confirmation */}
           {showDeleteConfirm && (
             <div className="space-y-4">
               <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4">

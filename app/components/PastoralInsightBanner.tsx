@@ -34,7 +34,7 @@ export function PastoralInsightBanner({ message, emoji, type, onDismiss }: Pasto
   };
 
   return (
-    <div className={`rounded-xl border-2 p-5 mb-6 ${colors[type]} animate-fade-in relative overflow-hidden`}>
+    <div className={`rounded-xl border-2 p-5 mb-6 ${colors[type]} animate-fade-in relative overflow-hidden max-w-2xl mx-auto`}>
       {/* Subtle background pattern */}
       <div className="absolute inset-0 opacity-5" style={{
         backgroundImage: `radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)`,

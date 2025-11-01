@@ -3,6 +3,10 @@
 
 import { useState } from "react";
 import { Playfair_Display, Nunito_Sans } from "next/font/google";
+import { useAuth } from "@/contexts/AuthContext";
+import { SignInPrompt } from "@/components/SignInPrompt";
+import { setDoc, doc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 const playfair = Playfair_Display({
   weight: ["600", "700"],
@@ -33,7 +37,9 @@ interface EnhancedOnboardingProps {
 }
 
 export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingProps) {
+  const { user, isAuthenticated } = useAuth();
   const [step, setStep] = useState(1);
+  const [showSignIn, setShowSignIn] = useState(false);
   const [data, setData] = useState<OnboardingData>({
     name: "",
     studyStyle: "Casual Devotional",
@@ -47,7 +53,7 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
 
   if (!isOpen) return null;
 
-  const totalSteps = 6;
+  const totalSteps = 7;
 
   const updateData = (updates: Partial<OnboardingData>) => {
     setData({ ...data, ...updates });
@@ -61,7 +67,48 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
     if (step > 1) setStep(step - 1);
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
+    // Save to localStorage (always)
+    localStorage.setItem('bc-study-style', data.studyStyle);
+    localStorage.setItem('bc-onboarding-complete', 'true');
+    
+    // Save all preferences
+    localStorage.setItem('bc-onboarding-data', JSON.stringify({
+      name: data.name,
+      studyGoal: data.studyGoal,
+      weeklyFrequency: data.weeklyFrequency,
+      enableDevotional: data.enableDevotional,
+      enableReadingPlan: data.enableReadingPlan,
+      enableReminders: data.enableReminders,
+      email: data.email,
+      completedAt: new Date().toISOString(),
+    }));
+
+    // If user is signed in, also save to Firestore
+    if (isAuthenticated && user) {
+      try {
+        const userRef = doc(db, 'users', user.uid);
+        await setDoc(userRef, {
+          userId: user.uid,
+          displayName: user.displayName || data.name,
+          email: user.email || data.email,
+          name: data.name,
+          studyStyle: data.studyStyle,
+          studyGoal: data.studyGoal,
+          weeklyFrequency: data.weeklyFrequency,
+          enableDevotional: data.enableDevotional,
+          enableReadingPlan: data.enableReadingPlan,
+          enableReminders: data.enableReminders,
+          completedOnboarding: true,
+          onboardedAt: new Date().toISOString(),
+        }, { merge: true });
+        
+        console.log('✅ Preferences saved to cloud!');
+      } catch (error) {
+        console.error('Error saving to Firestore:', error);
+      }
+    }
+
     onComplete(data);
   };
 
@@ -70,15 +117,17 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
       case 1:
         return data.name.trim().length > 0;
       case 2:
-        return true; // Study style always valid
+        return true;
       case 3:
         return data.studyGoal.trim().length > 0;
       case 4:
-        return true; // Frequency always valid
+        return true;
       case 5:
-        return true; // Preferences always valid
+        return true;
       case 6:
-        return true; // Email optional
+        return true; // Sign-in is optional
+      case 7:
+        return true; // Email is optional
       default:
         return false;
     }
@@ -352,42 +401,164 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
             </div>
           )}
 
-          {/* Step 6: Email (Optional) */}
+          {/* Step 6: Sign In (Optional) - MOVED HERE */}
           {step === 6 && (
+            <div className="space-y-6 text-center">
+              <div className="text-5xl mb-4">🔐</div>
+              <h2 className={`${playfair.className} text-2xl font-bold text-yellow-400 mb-3`}>
+                Save Your Progress
+              </h2>
+              <p className="text-white/70 max-w-md mx-auto">
+                {isAuthenticated 
+                  ? `Great! You're signed in as ${user?.displayName}. Your preferences will be saved to your account.`
+                  : 'Sign in with Google to save your preferences and access them on any device.'
+                }
+              </p>
+
+              {/* Show user info if signed in */}
+              {isAuthenticated && user && (
+                <div className="max-w-md mx-auto bg-green-900/20 border border-green-500/30 rounded-xl p-6">
+                  <div className="flex items-center gap-3 justify-center">
+                    {user.photoURL && (
+                      <img
+                        src={user.photoURL}
+                        alt={user.displayName || 'User'}
+                        className="w-12 h-12 rounded-full border-2 border-green-400/30"
+                      />
+                    )}
+                    <div className="text-left">
+                      <p className="font-semibold text-green-400">{user.displayName}</p>
+                      <p className="text-sm text-white/60">{user.email}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Sign-in option if not signed in */}
+              {!isAuthenticated && (
+                <div className="max-w-md mx-auto">
+                  <div className="bg-white/5 border border-white/10 rounded-xl p-6 mb-4">
+                    <h3 className="font-semibold text-lg mb-3">Benefits of signing in:</h3>
+                    <ul className="space-y-2 text-sm text-white/70 text-left">
+                      <li className="flex items-start gap-2">
+                        <span className="text-yellow-400 mt-0.5">✓</span>
+                        <span>Sync preferences across all your devices</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-yellow-400 mt-0.5">✓</span>
+                        <span>Join the prayer community</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-yellow-400 mt-0.5">✓</span>
+                        <span>Track your study progress</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-yellow-400 mt-0.5">✓</span>
+                        <span>Never lose your notes and highlights</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <button
+                    onClick={() => setShowSignIn(true)}
+                    className="w-full bg-white hover:bg-neutral-100 text-neutral-900 font-semibold py-4 px-6 rounded-xl transition-all flex items-center justify-center gap-3 shadow-lg mb-3"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                      <path d="M19.6 10.227c0-.709-.064-1.39-.182-2.045H10v3.868h5.382a4.6 4.6 0 01-1.996 3.018v2.51h3.232c1.891-1.742 2.982-4.305 2.982-7.35z" fill="#4285F4"/>
+                      <path d="M10 20c2.7 0 4.964-.895 6.618-2.423l-3.232-2.509c-.895.6-2.04.955-3.386.955-2.605 0-4.81-1.76-5.595-4.123H1.064v2.59A9.996 9.996 0 0010 20z" fill="#34A853"/>
+                      <path d="M4.405 11.9c-.2-.6-.314-1.24-.314-1.9 0-.66.114-1.3.314-1.9V5.51H1.064A9.996 9.996 0 000 10c0 1.614.386 3.14 1.064 4.49l3.34-2.59z" fill="#FBBC05"/>
+                      <path d="M10 3.977c1.468 0 2.786.505 3.823 1.496l2.868-2.868C14.959.99 12.695 0 10 0 6.09 0 2.71 2.24 1.064 5.51l3.34 2.59C5.19 5.736 7.395 3.977 10 3.977z" fill="#EA4335"/>
+                    </svg>
+                    Sign in with Google
+                  </button>
+
+                  <p className="text-xs text-white/50">
+                    You can also skip this and sign in later
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Step 7: Email (Optional) - NOW CONDITIONAL */}
+          {step === 7 && (
             <div className="space-y-6 text-center">
               <div className="text-5xl mb-4">💌</div>
               <h2 className={`${playfair.className} text-2xl font-bold text-yellow-400 mb-3`}>
-                Stay Connected (Optional)
+                {isAuthenticated && user?.email ? "You're All Set!" : "Stay Connected (Optional)"}
               </h2>
-              <p className="text-white/70 max-w-md mx-auto">
-                Get notified about new features, study resources, and occasional encouragement. 
-                Completely optional - you can skip this.
-              </p>
+              
+              {isAuthenticated && user?.email ? (
+                <div className="max-w-md mx-auto space-y-6">
+                  <p className="text-white/70">
+                    We'll use <strong className="text-yellow-400">{user.email}</strong> to send you updates and encouragement.
+                  </p>
+                  
+                  <div className="p-6 rounded-xl bg-gradient-to-br from-yellow-400/10 to-orange-400/10 border border-yellow-400/30">
+                    <h3 className={`${playfair.className} text-xl font-bold text-yellow-400 mb-2`}>
+                      All Set, {data.name}! 🎉
+                    </h3>
+                    <p className="text-white/70 text-sm">
+                      Your personalized Bible study experience is ready. Click "Start Studying" to begin!
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="max-w-md mx-auto">
+                  <p className="text-white/70 mb-6">
+                    Get notified about new features, study resources, and occasional encouragement.
+                  </p>
 
-              <div className="max-w-md mx-auto text-left">
-                <label className="block text-sm text-white/80 mb-2">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  value={data.email}
-                  onChange={(e) => updateData({ email: e.target.value })}
-                  placeholder="your@email.com (optional)"
-                  className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
-                />
-                <p className="text-xs text-white/50 mt-2">
-                  We'll never spam you. Unsubscribe anytime.
-                </p>
-              </div>
+                  <div className="text-left mb-6">
+                    <label className="block text-sm text-white/80 mb-2">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      value={data.email}
+                      onChange={(e) => updateData({ email: e.target.value })}
+                      placeholder="your@email.com (optional)"
+                      className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
+                    />
+                    <p className="text-xs text-white/50 mt-2">
+                      We'll never spam you. Unsubscribe anytime.
+                    </p>
+                  </div>
 
-              <div className="mt-8 p-6 rounded-xl bg-gradient-to-br from-yellow-400/10 to-orange-400/10 border border-yellow-400/30">
-                <h3 className={`${playfair.className} text-xl font-bold text-yellow-400 mb-2`}>
-                  You're All Set, {data.name}! 🎉
-                </h3>
-                <p className="text-white/70 text-sm">
-                  Your personalized Bible study experience is ready. 
-                  Click "Start Studying" to begin your journey!
-                </p>
+                  <div className="p-6 rounded-xl bg-gradient-to-br from-yellow-400/10 to-orange-400/10 border border-yellow-400/30">
+                    <h3 className={`${playfair.className} text-xl font-bold text-yellow-400 mb-2`}>
+                      All Set, {data.name}! 🎉
+                    </h3>
+                    <p className="text-white/70 text-sm">
+                      Your personalized Bible study experience is ready!
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Summary */}
+              <div className="max-w-md mx-auto mt-8 p-6 rounded-xl bg-white/5 border border-white/10 text-left">
+                <h3 className="font-semibold text-lg mb-3 text-yellow-400">Your Preferences:</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-white/60">Study Style:</span>
+                    <span className="font-semibold">{data.studyStyle}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-white/60">Goal:</span>
+                    <span className="font-semibold">{data.studyGoal}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-white/60">Frequency:</span>
+                    <span className="font-semibold">{data.weeklyFrequency}x per week</span>
+                  </div>
+                  {isAuthenticated && (
+                    <div className="flex justify-between text-green-400">
+                      <span>Status:</span>
+                      <span className="font-semibold">✓ Signed In</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -411,7 +582,7 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
                 disabled={!canProceed()}
                 className="flex-1 px-6 py-3 rounded-lg bg-yellow-400 text-slate-900 font-semibold hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                Continue →
+                {step === 6 && !isAuthenticated ? 'Skip for Now →' : 'Continue →'}
               </button>
             ) : (
               <button
@@ -423,6 +594,13 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
             )}
           </div>
         </div>
+
+        {/* Sign-In Modal */}
+        <SignInPrompt
+          isOpen={showSignIn}
+          onClose={() => setShowSignIn(false)}
+          message="Sign in to sync your preferences and join the prayer community"
+        />
       </div>
     </div>
   );

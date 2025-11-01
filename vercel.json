@@ -1,0 +1,6 @@
+{
+  "ignoreCommand": "echo 'Skipping functions folder'",
+  "build": {
+    "excludeFiles": ["functions/**"]
+  }
+}

@@ -1,0 +1,11 @@
+# Ignore Firebase Cloud Functions
+functions/
+firebase.json
+.firebaserc
+
+# Ignore native app directories
+ios/
+android/
+
+# Ignore Capacitor config
+capacitor.config.ts

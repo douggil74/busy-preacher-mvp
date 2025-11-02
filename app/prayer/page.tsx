@@ -44,6 +44,23 @@ interface CommunityPrayer {
 }
 
 type Category = 'health' | 'family' | 'work' | 'spiritual' | 'other';
+// Helper functions for privacy
+function getFirstName(fullName: string | null | undefined): string {
+  if (!fullName) return 'Anonymous';
+  const trimmed = fullName.trim();
+  const firstName = trimmed.split(' ')[0];
+  return firstName || 'Anonymous';
+}
+
+function getState(location: string | null | undefined): string {
+  if (!location) return '';
+  const trimmed = location.trim();
+  if (trimmed.includes(',')) {
+    const parts = trimmed.split(',');
+    return parts[parts.length - 1].trim();
+  }
+  return trimmed;
+}
 
 export default function UnifiedPrayerPage() {
   // Google Sign-In Authentication
@@ -404,16 +421,16 @@ export default function UnifiedPrayerPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-medium text-white text-sm truncate">
-                          {prayer.isAnonymous ? 'Anonymous' : prayer.userName}
+{prayer.isAnonymous ? 'Anonymous' : getFirstName(prayer.userName)}
                         </span>
                         <span className="text-xs px-2 py-0.5 bg-white/10 border border-white/15 rounded text-white/60 capitalize flex-shrink-0">
                           {prayer.category}
                         </span>
                       </div>
-                      {prayer.userLocation && (
-                        <div className="text-xs text-white/50">{prayer.userLocation}</div>
-                      )}
-                    </div>
+
+{getState(prayer.userLocation) && (
+  <div className="text-xs text-white/50">{getState(prayer.userLocation)}</div>
+)}                    </div>
                     <span className="text-xs text-white/50 flex-shrink-0">
                       {new Date(prayer.createdAt?.seconds * 1000).toLocaleDateString()}
                     </span>

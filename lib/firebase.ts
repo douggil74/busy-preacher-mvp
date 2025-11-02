@@ -1,72 +1,68 @@
 // lib/firebase.ts
-// Firebase Configuration for The Busy Christian Prayer Network
+// Firebase client + SSR-safe setup for The Busy Christian Prayer Network
 
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { 
-  getFirestore, 
-  collection, 
-  addDoc, 
-  updateDoc, 
+import {
+  initializeApp,
+  getApps,
+  getApp,
+  FirebaseApp
+} from 'firebase/app';
+import {
+  getFirestore,
+  Firestore,
+  collection,
+  addDoc,
+  updateDoc,
   setDoc,
-  doc, 
-  query, 
-  where, 
-  orderBy, 
+  doc,
+  query,
+  where,
+  orderBy,
   onSnapshot,
   serverTimestamp,
   increment,
   Timestamp,
   getDoc
-
 } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import { getAuth, Auth } from 'firebase/auth';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
-// Firebase configuration
-// Replace these with your actual Firebase project credentials
-// lib/firebase.ts
-
+// ========== CONFIG ==========
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "",
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "",
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "",
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || ""
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || '',
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || '',
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || '',
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || '',
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '',
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || ''
 };
 
-// ADD THIS DEBUG CODE:
-console.log('🔥 Firebase Config Check:');
-console.log('API Key:', process.env.NEXT_PUBLIC_FIREBASE_API_KEY ? 'EXISTS' : '❌ MISSING');
-console.log('Auth Domain:', process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ? 'EXISTS' : '❌ MISSING');
-console.log('Project ID:', process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ? 'EXISTS' : '❌ MISSING');
-console.log('Full API Key (first 10 chars):', process.env.NEXT_PUBLIC_FIREBASE_API_KEY?.substring(0, 10));
-console.log('firebaseConfig:', firebaseConfig);
+// ========== INITIALIZE ==========
+let app: FirebaseApp;
+let db: Firestore;
+let auth: Auth;
+let messaging: any = null;
 
-// Initialize Firebase (singleton pattern)
-let app;
-
-if (typeof window !== 'undefined') {
-  app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+// Initialize for both server and client
+if (!getApps().length) {
+  app = initializeApp(firebaseConfig);
+} else {
+  app = getApp();
 }
 
-const db = getFirestore(app);
-const auth = getAuth(app);
+db = getFirestore(app);
+auth = getAuth(app);
 
-// Messaging (only in browser)
-let messaging: any = null;
+// Messaging only works in browser
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
   try {
     messaging = getMessaging(app);
-  } catch (error) {
-    console.log('Messaging not available:', error);
+  } catch (err) {
+    console.warn('⚠️ Messaging not supported:', err);
   }
 }
 
-// =====================================
-// PRAYER REQUEST TYPES
-// =====================================
-
+// ========== TYPES ==========
 export interface PrayerRequest {
   id?: string;
   userId: string;
@@ -107,123 +103,82 @@ export interface PrayerWarrior {
   badgeLevel: 'bronze' | 'silver' | 'gold' | 'platinum';
 }
 
-// =====================================
-// PRAYER REQUEST FUNCTIONS
-// =====================================
+// ========== FIRESTORE FUNCTIONS ==========
 
-/**
- * Submit a new prayer request
- */
 export async function submitPrayerRequest(
   userId: string,
   userName: string,
   request: string,
   category: PrayerRequest['category'],
-  isAnonymous: boolean = false,
+  isAnonymous = false,
   userLocation?: string
 ): Promise<string> {
-  try {
-    const now = new Date();
-    const expiresIn7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const expiresAt = Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
+  const data: PrayerRequest = {
+    userId,
+    userName: isAnonymous ? 'Anonymous' : userName,
+    request,
+    category,
+    isAnonymous,
+    hearts: [],
+    heartCount: 0,
+    createdAt: serverTimestamp(),
+    expiresAt,
+    status: 'active',
+    isModerated: true,
+    flagCount: 0
+  };
 
-    const prayerData: any = {
-  userId,
-  userName: isAnonymous ? 'Anonymous' : userName,
-  request,
-  category,
-  isAnonymous,
-  hearts: [],
-  heartCount: 0,
-  createdAt: serverTimestamp(),
-  expiresAt: Timestamp.fromDate(expiresIn7Days),
-  status: 'active',
-  isModerated: true,
-  flagCount: 0
-};
-
-// Only add userLocation if not anonymous and has a value
-if (!isAnonymous && userLocation) {
-  prayerData.userLocation = userLocation;
-}    const docRef = await addDoc(collection(db, 'prayer_requests'), prayerData);
-    return docRef.id;
-  } catch (error) {
-    console.error('Error submitting prayer request:', error);
-    throw error;
+  if (!isAnonymous && userLocation) {
+    data.userLocation = userLocation;
   }
+
+  const docRef = await addDoc(collection(db, 'prayer_requests'), data);
+  return docRef.id;
 }
 
-/**
- * Add a heart (prayer) to a request
- */
 export async function addPrayerHeart(
   requestId: string,
   userId: string,
   userName: string
 ): Promise<void> {
-  try {
-    const requestRef = doc(db, 'prayer_requests', requestId);
-    
-    const heart: PrayerHeart = {
-  userId,
-  userName,
-  timestamp: Timestamp.now()  // ← GOOD - Use Timestamp.now() instead
-};
+  const ref = doc(db, 'prayer_requests', requestId);
+  const snap = await getDoc(ref);
+  const currentHearts = snap.data()?.hearts || [];
 
-// First, get the current hearts array
-const docSnap = await getDoc(requestRef);
-const currentHearts = docSnap.data()?.hearts || [];
+  const heart: PrayerHeart = {
+    userId,
+    userName,
+    timestamp: Timestamp.now()
+  };
 
-await updateDoc(requestRef, {
-  hearts: [...currentHearts, heart],
-  heartCount: increment(1)
-});
-    // Update user's prayer count
-    await updateUserPrayerStats(userId);
-  } catch (error) {
-    console.error('Error adding prayer heart:', error);
-    throw error;
-  }
+  await updateDoc(ref, {
+    hearts: [...currentHearts, heart],
+    heartCount: increment(1)
+  });
+
+  await updateUserPrayerStats(userId);
 }
 
-/**
- * Mark prayer as answered with praise report
- */
 export async function markPrayerAnswered(
   requestId: string,
   praiseReport: string
 ): Promise<void> {
-  try {
-    const requestRef = doc(db, 'prayer_requests', requestId);
-    await updateDoc(requestRef, {
-      status: 'answered',
-      praiseReport,
-      answeredAt: serverTimestamp()
-    });
-  } catch (error) {
-    console.error('Error marking prayer answered:', error);
-    throw error;
-  }
+  const ref = doc(db, 'prayer_requests', requestId);
+  await updateDoc(ref, {
+    status: 'answered',
+    praiseReport,
+    answeredAt: serverTimestamp()
+  });
 }
 
-/**
- * Flag inappropriate content
- */
 export async function flagPrayerRequest(requestId: string): Promise<void> {
-  try {
-    const requestRef = doc(db, 'prayer_requests', requestId);
-    await updateDoc(requestRef, {
-      flagCount: increment(1)
-    });
-    // Cloud Function will auto-hide if flagCount >= 3
-  } catch (error) {
-    console.error('Error flagging prayer:', error);
-    throw error;
-  }
+  const ref = doc(db, 'prayer_requests', requestId);
+  await updateDoc(ref, {
+    flagCount: increment(1)
+  });
 }
 
-/**
- * Listen to prayer requests in real-time
- */
 export function subscribeToPrayerRequests(
   onUpdate: (prayers: PrayerRequest[]) => void,
   filters?: {
@@ -231,160 +186,111 @@ export function subscribeToPrayerRequests(
     status?: string;
   }
 ): () => void {
-  try {
-    let q = query(
-      collection(db, 'prayer_requests'),
-      where('status', '==', filters?.status || 'active'),
-      orderBy('createdAt', 'desc')
-    );
+  let q = query(
+    collection(db, 'prayer_requests'),
+    where('status', '==', filters?.status || 'active'),
+    orderBy('createdAt', 'desc')
+  );
 
-    if (filters?.category) {
-      q = query(q, where('category', '==', filters.category));
-    }
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const prayers: PrayerRequest[] = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as PrayerRequest));
-      
-      onUpdate(prayers);
-    });
-
-    return unsubscribe;
-  } catch (error) {
-    console.error('Error subscribing to prayers:', error);
-    throw error;
+  if (filters?.category) {
+    q = query(q, where('category', '==', filters.category));
   }
+
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    const prayers: PrayerRequest[] = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    } as PrayerRequest));
+    onUpdate(prayers);
+  });
+
+  return unsubscribe;
 }
 
-// =====================================
-// USER / PRAYER WARRIOR FUNCTIONS
-// =====================================
+// ========== USERS ==========
 
-/**
- * Register user as a Prayer Warrior (opts in to notifications)
- */
 export async function becomePrayerWarrior(
   userId: string,
   name: string,
   location?: string,
   categories: string[] = ['all']
 ): Promise<void> {
-  try {
-    const userRef = doc(db, 'users', userId);
-    await updateDoc(userRef, {
-      isPrayerWarrior: true,
-      prayerCategories: categories,
-      name,
-      location
-    });
-  } catch (error) {
-    console.error('Error becoming prayer warrior:', error);
-    throw error;
-  }
+  const ref = doc(db, 'users', userId);
+  await updateDoc(ref, {
+    isPrayerWarrior: true,
+    prayerCategories: categories,
+    name,
+    location
+  });
 }
 
-/**
- * Update user's prayer statistics
- */
 async function updateUserPrayerStats(userId: string): Promise<void> {
-  try {
-    const userRef = doc(db, 'users', userId);
-    const userSnap = await getDoc(userRef);
-    
-    if (!userSnap.exists()) {
-      // Create user document if it doesn't exist
-      await setDoc(userRef, {
-        userId: userId,
-        name: 'User',
-        isPrayerWarrior: false,
-        prayerCategories: [],
-        totalPrayers: 1,
-        totalRequests: 0,
-        prayerStreak: 0,
-        lastPrayedAt: serverTimestamp(),
-        joinedAt: serverTimestamp(),
-        badgeLevel: 'bronze'
-      });
-      console.log('Created user document for', userId);
-    } else {
-      // Update existing user
-      await updateDoc(userRef, {
-        totalPrayers: increment(1),
-        lastPrayedAt: serverTimestamp()
-      });
-    }
-  } catch (error) {
-    console.error('Error updating prayer stats:', error);
-    // Don't throw - let the prayer heart still work
-  }
-}
-/**
- * Save push notification token
- */
-export async function savePushToken(userId: string, token: string): Promise<void> {
-  try {
-    const userRef = doc(db, 'users', userId);
-    await updateDoc(userRef, {
-      pushToken: token
+  const ref = doc(db, 'users', userId);
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) {
+    await setDoc(ref, {
+      userId,
+      name: 'User',
+      isPrayerWarrior: false,
+      prayerCategories: [],
+      totalPrayers: 1,
+      totalRequests: 0,
+      prayerStreak: 0,
+      lastPrayedAt: serverTimestamp(),
+      joinedAt: serverTimestamp(),
+      badgeLevel: 'bronze'
     });
-  } catch (error) {
-    console.error('Error saving push token:', error);
-    throw error;
+  } else {
+    await updateDoc(ref, {
+      totalPrayers: increment(1),
+      lastPrayedAt: serverTimestamp()
+    });
   }
 }
 
-// =====================================
-// PUSH NOTIFICATION FUNCTIONS
-// =====================================
+// ========== PUSH NOTIFICATIONS ==========
 
-/**
- * Request push notification permission and get token
- */
+export async function savePushToken(userId: string, token: string): Promise<void> {
+  const ref = doc(db, 'users', userId);
+  await updateDoc(ref, {
+    pushToken: token
+  });
+}
+
 export async function requestPushPermission(userId: string): Promise<string | null> {
-  if (!messaging) {
-    console.log('Messaging not supported');
-    return null;
-  }
+  if (!messaging) return null;
 
   try {
     const permission = await Notification.requestPermission();
-    
-    if (permission === 'granted') {
-      const token = await getToken(messaging, {
-        vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY
-      });
-      
-      if (token) {
-        await savePushToken(userId, token);
-        return token;
-      }
+    if (permission !== 'granted') return null;
+
+    const token = await getToken(messaging, {
+      vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY
+    });
+
+    if (token) {
+      await savePushToken(userId, token);
+      return token;
     }
-    
+
     return null;
-  } catch (error) {
-    console.error('Error requesting push permission:', error);
+  } catch (err) {
+    console.error('Push permission error:', err);
     return null;
   }
 }
 
-/**
- * Listen for foreground push notifications
- */
 export function onForegroundMessage(callback: (payload: any) => void): void {
   if (!messaging) return;
 
   onMessage(messaging, (payload) => {
-    console.log('Foreground message received:', payload);
+    console.log('Foreground push message:', payload);
     callback(payload);
   });
 }
 
-// =====================================
-// EXPORTS
-// =====================================
-
+// ========== EXPORTS ==========
 export { app, db, auth, messaging };
 
 export default {

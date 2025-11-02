@@ -1,11 +1,15 @@
-# Ignore Firebase Cloud Functions
+# Firebase backend (deployed separately)
 functions/
+firebase/
+firebase-backend/
+
+# Firebase config files
 firebase.json
 .firebaserc
+firestore.rules
+firestore.indexes.json
 
-# Ignore native app directories
+# Native app (deployed separately)
 ios/
 android/
-
-# Ignore Capacitor config
 capacitor.config.ts

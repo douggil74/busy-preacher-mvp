@@ -1,15 +1,13 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  output: 'export',  // Only for Capacitor builds
-  
-  images: {
-    unoptimized: true,
-  },
-  
-  trailingSlash: true,
+  // NO output: 'export' for Vercel!
   
   reactStrictMode: true,
+  
+  images: {
+    domains: ['firebasestorage.googleapis.com'],
+  },
 };
 
 export default nextConfig;

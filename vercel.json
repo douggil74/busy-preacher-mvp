@@ -1,5 +1,5 @@
 {
-  "build": {
-    "excludeFiles": ["firebase/**"]
-  }
+  "buildCommand": "npm run build",
+  "outputDirectory": "out",
+  "framework": "nextjs"
 }

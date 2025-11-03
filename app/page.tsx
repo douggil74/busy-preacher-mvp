@@ -290,7 +290,7 @@ function exportOutlinePDF(args: { outlines: any[] }) {
 
   doc.setFont("Times", "Italic");
   doc.setFontSize(9);
-  const footer = `© Douglas M. Gilford – The Busy Christian • v${APP_VERSION}`;
+  const footer = `© Cornerstone Church, Mandeville, LA – The Busy Christian • v${APP_VERSION}`;
   doc.text(footer, 612 - margin, 742, { align: "right" as any });
 
   const first = args.outlines[0];
@@ -1744,7 +1744,7 @@ const handleKeywordResultSelect = (reference: string) => {
       </div>
 
       <footer className="mt-8 text-center text-xs text-white/40">
-        © Douglas M. Gilford – The Busy Christian • v {APP_VERSION}
+        © Cornerstone Church, Mandeville, LA – The Busy Christian • v {APP_VERSION}
       </footer>
 
       {showKeywordResults && (

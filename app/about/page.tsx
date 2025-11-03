@@ -31,7 +31,7 @@ export default function AboutPage() {
         About The Busy Christian
       </h1>
       <p className="text-white/70 light:text-black/70 mb-8 text-center">
-        Your comprehensive Bible study companion—built for pastors, teachers, and serious students
+        Modern Bible study tools combining cutting-edge technology with pastoral care—built for pastors, teachers, and serious students
       </p>
 
       <section className="space-y-6">
@@ -39,13 +39,14 @@ export default function AboutPage() {
           <h2 className="text-xl font-semibold mb-3 text-white/90 light:text-black/90">Our Mission</h2>
           <p className="text-white/80 light:text-black/80 leading-relaxed mb-3">
             <strong className="text-white/95 light:text-black/95">The Busy Christian</strong> exists to help you 
-            "rightly handle the word of truth" (2 Timothy 2:15) with excellence and efficiency. Created by{" "}
-            <strong className="text-white/95 light:text-black/95">Douglas M. Gilford</strong>, this platform combines 
-            cutting-edge AI with trusted biblical resources to reduce preparation time while deepening accuracy and insight.
+            "rightly handle the word of truth" (2 Timothy 2:15) with excellence and efficiency. Developed by{" "}
+            <strong className="text-white/95 light:text-black/95">Cornerstone Church in Mandeville, LA</strong>, this platform combines 
+            cutting-edge technology with pastoral care to reduce preparation time while deepening accuracy and spiritual insight.
           </p>
           <p className="text-white/80 light:text-black/80 leading-relaxed">
             We believe technology should assist—never replace—careful study, prayer, and the Spirit's leading. 
-            Every feature is designed to help you prepare faithful, clear messages that honor God's Word.
+            Every feature is designed to help you prepare faithful, clear messages that honor God's Word while 
+            caring for the spiritual needs of your community.
           </p>
         </div>
 
@@ -54,8 +55,12 @@ export default function AboutPage() {
           <div className="space-y-3 text-white/80 light:text-black/80">
             <p className="leading-relaxed">
               Unlike generic Bible apps, <strong>The Busy Christian</strong> is purpose-built for sermon preparation, 
-              teaching, and deep theological study. We integrate AI-powered insights with time-tested resources 
-              from trusted scholars and teachers.
+              teaching, and deep theological study—with integrated pastoral care tools. We combine AI-powered insights 
+              with time-tested resources from trusted scholars and teachers.
+            </p>
+            <p className="leading-relaxed">
+              Our <strong>Prayer Center</strong> connects your community in real-time with push notifications, 
+              crisis detection, and support resources—because ministry is about more than just Sunday sermons.
             </p>
             <p className="leading-relaxed">
               Everything is designed for speed without sacrificing depth—from intelligent outline generation to 
@@ -75,7 +80,19 @@ export default function AboutPage() {
               </h3>
               <p className="text-sm text-white/70 light:text-black/70 ml-6">
                 Generate sermon outlines from any passage, theme, or combination. Four personalized study 
-                styles (Casual, Student, Pastor, Theologian) ensure the content matches your needs.
+                styles (Casual, Student, Pastor,) ensure the content matches your needs.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-white/90 light:text-black/90 mb-2 flex items-center gap-2">
+                <span className="text-yellow-400">🙏</span>
+                Prayer Center with Pastoral Care
+              </h3>
+              <p className="text-sm text-white/70 light:text-black/70 ml-6">
+                Real-time community prayer requests with push notifications when someone prays for you. 
+                Built-in crisis detection automatically flags concerning prayers and provides 988 Suicide Prevention 
+                Lifeline resources. Track prayer warriors with badges, and moderate content with admin tools.
               </p>
             </div>
 
@@ -85,7 +102,7 @@ export default function AboutPage() {
                 Deep Study Tools
               </h3>
               <p className="text-sm text-white/70 light:text-black/70 ml-6">
-                Compare multiple Bible translations (KJV, WEB, ASV, ESV) side-by-side. Access cross-references, 
+                Compare multiple Bible translations (KJV, WEB, ASV, ESV, NIV) side-by-side. Access cross-references, 
                 study questions, and integrated word studies—all in one place.
               </p>
             </div>
@@ -125,6 +142,17 @@ export default function AboutPage() {
 
             <div>
               <h3 className="font-semibold text-white/90 light:text-black/90 mb-2 flex items-center gap-2">
+                <span className="text-yellow-400">📚</span>
+                Spiritual Foundations Course
+              </h3>
+              <p className="text-sm text-white/70 light:text-black/70 ml-6">
+                Interactive 16-lesson course with progress tracking and downloadable PDF certificates upon completion. 
+                Perfect for new believers or discipleship classes.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-white/90 light:text-black/90 mb-2 flex items-center gap-2">
                 <span className="text-yellow-400">💾</span>
                 Personal Library & Notes
               </h3>
@@ -140,8 +168,8 @@ export default function AboutPage() {
                 Professional PDF Exports
               </h3>
               <p className="text-sm text-white/70 light:text-black/70 ml-6">
-                Export sermon outlines as beautifully formatted PDFs, ready for printing or sharing with 
-                your congregation.
+                Export sermon outlines, course certificates, and study notes as beautifully formatted PDFs, 
+                ready for printing or sharing with your congregation.
               </p>
             </div>
 
@@ -199,49 +227,124 @@ export default function AboutPage() {
         </div>
 
         <div className="card">
-          <h2 className="text-xl font-semibold mb-3 text-white/90 light:text-black/90">⚙️ Technology & Privacy</h2>
+          <h2 className="text-xl font-semibold mb-3 text-white/90 light:text-black/90">⚙️ Modern Technology Stack</h2>
           <p className="text-white/80 light:text-black/80 leading-relaxed mb-3">
-            Built with Next.js 15 and TypeScript for speed and reliability. AI-powered features use OpenAI's 
-            GPT-4 to generate contextually accurate insights while maintaining theological integrity.
+            Built with cutting-edge technologies for speed, reliability, and scale:
           </p>
+          <ul className="grid md:grid-cols-2 gap-2 text-sm text-white/70 light:text-black/70 mb-3">
+            <li className="flex items-center gap-2">
+              <span className="text-yellow-400">•</span>
+              Next.js 15 + TypeScript
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-yellow-400">•</span>
+              Firebase Cloud Functions
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-yellow-400">•</span>
+              Firebase Authentication
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-yellow-400">•</span>
+              Firestore Real-time Database
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-yellow-400">•</span>
+              Firebase Cloud Messaging
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-yellow-400">•</span>
+              OpenAI GPT-4 Integration
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-yellow-400">•</span>
+              ESV API
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-yellow-400">•</span>
+              React PDF Renderer
+            </li>
+          </ul>
           <p className="text-white/80 light:text-black/80 leading-relaxed">
-            <strong className="text-white/95 light:text-black/95">Your privacy matters.</strong> All saved studies, 
-            notes, and preferences are stored locally in your browser—never on our servers. Your study 
-            data belongs to you.
+            <strong className="text-white/95 light:text-black/95">Your privacy matters.</strong> Study notes and 
+            preferences are stored locally in your browser. Prayer requests use Firebase with proper security rules. 
+            Push notifications are optional and can be disabled anytime.
+          </p>
+        </div>
+
+        <div className="card bg-red-500/10 border-red-500/30">
+          <h2 className="text-xl font-semibold mb-3 text-white/90 light:text-black/90">🛡️ Pastoral Care & Safety</h2>
+          <p className="text-white/80 light:text-black/80 leading-relaxed mb-3">
+            Our Prayer Center includes sophisticated pastoral care features:
+          </p>
+          <ul className="space-y-2 text-sm text-white/70 light:text-black/70">
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400">•</span>
+              <span><strong>Crisis Detection:</strong> Automatic flagging of prayers with concerning keywords, 
+              with immediate display of 988 Suicide Prevention Lifeline</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400">•</span>
+              <span><strong>Spam Filtering:</strong> Automatic detection and blocking of inappropriate content</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400">•</span>
+              <span><strong>Admin Moderation:</strong> Tools for reviewing flagged content and managing community safety</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400">•</span>
+              <span><strong>Real-time Notifications:</strong> Instant push notifications when someone prays for your request</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400">•</span>
+              <span><strong>Prayer Warrior Stats:</strong> Badge system to encourage faithful intercessors</span>
+            </li>
+          </ul>
+          <p className="text-sm text-white/60 light:text-black/60 mt-3 italic">
+            All running at $0.00/month on Firebase's free tier with room to scale.
           </p>
         </div>
 
         <div className="card">
-          <h2 className="text-xl font-semibold mb-3 text-white/90 light:text-black/90">🙏 Our Commitment</h2>
+          <h2 className="text-xl font-semibold mb-3 text-white/90 light:text-black/90">🙌 Our Commitment</h2>
           <p className="text-white/80 light:text-black/80 leading-relaxed">
-            We're committed to providing tools that honor Scripture, support faithful teaching, and help you 
-            minister with confidence. The Busy Christian will never replace the work of the Holy Spirit, 
-            prayerful meditation, or careful exegesis—but it will help you do those things more effectively.
+            We're committed to providing tools that honor Scripture, support faithful teaching, care for hurting people, 
+            and help you minister with confidence. The Busy Christian will never replace the work of the Holy Spirit, 
+            prayerful meditation, or careful exegesis—but it will help you do those things more effectively while 
+            staying connected to your community's spiritual needs.
           </p>
         </div>
 
         <div className="card border-white/20 bg-white/5">
           <p className="text-sm text-white/70 light:text-black/70 italic mb-3">
             "This app is not meant to replace diligent study and listening to the Holy Spirit. Rather, it's 
-            a tool to help you prepare with excellence so you can focus on what matters most: faithfully 
-            proclaiming God's Word."
+            a tool to help you prepare with excellence and care for your community so you can focus on what 
+            matters most: faithfully proclaiming God's Word and shepherding His people."
           </p>
           <p className="text-xs text-white/50 light:text-black/50">
-            — Douglas M. Gilford, Creator
+            — Cornerstone Church, Mandeville, LA
           </p>
         </div>
 
         <div className="card bg-gradient-to-br from-yellow-400/10 to-amber-500/10 border-yellow-400/30 text-center">
           <h2 className="text-lg font-semibold mb-2 text-white/90 light:text-black/90">Ready to dive deeper?</h2>
           <p className="text-sm text-white/70 light:text-black/70 mb-4">
-            Start studying Scripture with confidence and clarity.
+            Start studying Scripture with confidence, clarity, and community support.
           </p>
-          <Link
-            href="/deep-study"
-            className="inline-block rounded-lg bg-yellow-400 text-black px-6 py-2 font-semibold hover:bg-yellow-300 transition-colors"
-          >
-            Try Deep Study →
-          </Link>
+          <div className="flex gap-3 justify-center flex-wrap">
+            <Link
+              href="/deep-study"
+              className="inline-block rounded-lg bg-yellow-400 text-black px-6 py-2 font-semibold hover:bg-yellow-300 transition-colors"
+            >
+              Try Deep Study →
+            </Link>
+            <Link
+              href="/prayer"
+              className="inline-block rounded-lg border border-yellow-400 bg-yellow-400/20 text-yellow-400 px-6 py-2 font-semibold hover:bg-yellow-400/30 transition-colors"
+            >
+              Visit Prayer Center
+            </Link>
+          </div>
         </div>
 
         <div className="text-center text-xs text-white/50 light:text-black/50">
@@ -251,7 +354,7 @@ export default function AboutPage() {
       </section>
 
       <footer className="mt-12 text-center text-xs text-white/40">
-        © {new Date().getFullYear()} Douglas M. Gilford – The Busy Christian • v{APP_VERSION}
+        © {new Date().getFullYear()} Cornerstone Church, Mandeville, LA — The Busy Christian • v{APP_VERSION}
       </footer>
     </main>
   );

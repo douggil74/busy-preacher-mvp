@@ -69,9 +69,9 @@ const readingPlans: ReadingPlan[] = [
 ];
 
 const difficultyColors = {
-  easy: "text-green-400 border-green-400/20 bg-green-400/10",
-  moderate: "text-yellow-400 border-yellow-400/20 bg-yellow-400/10",
-  hard: "text-red-400 border-red-400/20 bg-red-400/10",
+  easy: { color: "rgb(74, 222, 128)", borderColor: "rgba(74, 222, 128, 0.2)", bg: "rgba(74, 222, 128, 0.1)" },
+  moderate: { color: "var(--accent-color)", borderColor: "color-mix(in srgb, var(--accent-color) 20%, transparent)", bg: "color-mix(in srgb, var(--accent-color) 10%, transparent)" },
+  hard: { color: "rgb(248, 113, 113)", borderColor: "rgba(248, 113, 113, 0.2)", bg: "rgba(248, 113, 113, 0.1)" },
 };
 
 export default function ReadingPlansPage() {
@@ -105,125 +105,172 @@ export default function ReadingPlansPage() {
   };
 
   return (
-    <main className="min-h-screen px-4 pb-16 pt-8">
+    <main className="min-h-screen px-4 pb-16 pt-8" style={{ backgroundColor: 'var(--bg-color)' }}>
       <div className="mx-auto max-w-5xl">
         {/* Header */}
         <header className="mb-10 text-center">
-          <h1 className={`${playfair.className} mb-4 text-4xl font-bold md:text-5xl`}>
+          <h1 className={`${playfair.className} mb-4 text-4xl font-bold md:text-5xl`} style={{ color: 'var(--text-primary)' }}>
             Reading Plans
           </h1>
-          <p className="mx-auto max-w-2xl text-lg text-white/70">
+          <p className="mx-auto max-w-2xl text-lg" style={{ color: 'var(--text-secondary)' }}>
             Stay consistent in God's Word with structured reading plans designed for busy Christians.
           </p>
         </header>
 
         {/* Plans Grid - 2 COLUMNS */}
         <div className="mb-12 grid gap-6 md:grid-cols-2">
-          {readingPlans.map((plan) => (
-            <div
-              key={plan.id}
-              className="card flex flex-col"
-            >
-              {/* Header */}
-              <div className="mb-5">
-                <h3 className={`${playfair.className} mb-3 text-2xl font-bold`}>
-                  {plan.title}
-                </h3>
-
-                {/* Badges */}
-                <div className="mb-4 flex flex-wrap gap-2">
-                  <span
-                    className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${difficultyColors[plan.difficulty]}`}
-                  >
-                    {plan.difficulty}
-                  </span>
-                  <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-white/70">
-                    {plan.duration} days
-                  </span>
-                </div>
-
-                {/* Description */}
-                <p className="mb-4 leading-relaxed text-white/80">
-                  {plan.description}
-                </p>
-
-                {/* Tags */}
-                <div className="flex flex-wrap gap-2">
-                  {plan.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-white/60"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Start Button */}
-              <button
-                onClick={() => handleStartPlan(plan)}
-                disabled={starting === plan.id}
-                className="mt-auto rounded-lg border border-yellow-400 bg-yellow-400/20 px-4 py-3 font-semibold text-yellow-400 transition-colors hover:bg-yellow-400/30 disabled:cursor-wait disabled:opacity-50"
+          {readingPlans.map((plan) => {
+            const colors = difficultyColors[plan.difficulty];
+            return (
+              <div
+                key={plan.id}
+                className="flex flex-col rounded-2xl p-6"
+                style={{
+                  backgroundColor: 'var(--card-bg)',
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: 'var(--card-border)'
+                }}
               >
-                {starting === plan.id ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg
-                      className="h-4 w-4 animate-spin"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
+                {/* Header */}
+                <div className="mb-5">
+                  <h3 className={`${playfair.className} mb-3 text-2xl font-bold`} style={{ color: 'var(--text-primary)' }}>
+                    {plan.title}
+                  </h3>
+
+                  {/* Badges */}
+                  <div className="mb-4 flex flex-wrap gap-2">
+                    <span
+                      className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide"
+                      style={{
+                        borderWidth: '1px',
+                        borderStyle: 'solid',
+                        borderColor: colors.borderColor,
+                        backgroundColor: colors.bg,
+                        color: colors.color
+                      }}
                     >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      />
-                    </svg>
-                    Starting...
-                  </span>
-                ) : (
-                  "Start Plan"
-                )}
-              </button>
-            </div>
-          ))}
+                      {plan.difficulty}
+                    </span>
+                    <span 
+                      className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold"
+                      style={{
+                        borderWidth: '1px',
+                        borderStyle: 'solid',
+                        borderColor: 'var(--card-border)',
+                        backgroundColor: 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
+                        color: 'var(--text-secondary)'
+                      }}
+                    >
+                      {plan.duration} days
+                    </span>
+                  </div>
+
+                  {/* Description */}
+                  <p className="mb-4 leading-relaxed" style={{ color: 'var(--text-primary)', opacity: 0.8 }}>
+                    {plan.description}
+                  </p>
+
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-2">
+                    {plan.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-md px-2 py-1 text-xs"
+                        style={{
+                          borderWidth: '1px',
+                          borderStyle: 'solid',
+                          borderColor: 'var(--card-border)',
+                          backgroundColor: 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
+                          color: 'var(--text-secondary)'
+                        }}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Start Button */}
+                <button
+                  onClick={() => handleStartPlan(plan)}
+                  disabled={starting === plan.id}
+                  className="mt-auto rounded-lg px-4 py-3 font-semibold transition-colors disabled:cursor-wait disabled:opacity-50"
+                  style={{
+                    borderWidth: '1px',
+                    borderStyle: 'solid',
+                    borderColor: 'var(--accent-color)',
+                    backgroundColor: 'color-mix(in srgb, var(--accent-color) 20%, transparent)',
+                    color: 'var(--accent-color)'
+                  }}
+                >
+                  {starting === plan.id ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg
+                        className="h-4 w-4 animate-spin"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
+                      </svg>
+                      Starting...
+                    </span>
+                  ) : (
+                    "Start Plan"
+                  )}
+                </button>
+              </div>
+            );
+          })}
         </div>
 
         {/* Info Section */}
-        <div className="rounded-2xl border border-blue-400/20 bg-blue-500/10 p-8 backdrop-blur">
-          <h3 className={`${playfair.className} mb-6 text-2xl font-bold`}>
+        <div 
+          className="rounded-2xl p-8 backdrop-blur"
+          style={{
+            borderWidth: '1px',
+            borderStyle: 'solid',
+            borderColor: 'rgba(59, 130, 246, 0.2)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)'
+          }}
+        >
+          <h3 className={`${playfair.className} mb-6 text-2xl font-bold`} style={{ color: 'var(--text-primary)' }}>
             How Reading Plans Work
           </h3>
-          <ul className="space-y-3 text-white/80">
+          <ul className="space-y-3" style={{ color: 'var(--text-primary)', opacity: 0.8 }}>
             <li className="flex gap-3">
-              <span className="text-[#FFD966]">•</span>
+              <span style={{ color: 'var(--accent-color)' }}>•</span>
               <span>Choose a plan and start reading today</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-[#FFD966]">•</span>
+              <span style={{ color: 'var(--accent-color)' }}>•</span>
               <span>Check off each day's reading as you complete it</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-[#FFD966]">•</span>
+              <span style={{ color: 'var(--accent-color)' }}>•</span>
               <span>Track your progress and build reading streaks</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-[#FFD966]">•</span>
+              <span style={{ color: 'var(--accent-color)' }}>•</span>
               <span>
                 Click any passage to study it in depth with AI commentary and insights
               </span>
             </li>
             <li className="flex gap-3">
-              <span className="text-[#FFD966]">•</span>
+              <span style={{ color: 'var(--accent-color)' }}>•</span>
               <span>All progress is saved locally on your device</span>
             </li>
           </ul>

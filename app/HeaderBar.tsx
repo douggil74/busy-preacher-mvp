@@ -1,14 +1,13 @@
 // app/HeaderBar.tsx
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Playfair_Display } from "next/font/google";
 import { useSearchParams } from "next/navigation";
 import { useStudyStyle } from "./hooks/useStudyStyle";
 import { UserProfileMenu } from '@/components/UserProfileMenu';
-import { ThemeCustomizer } from '@/components/ThemeCustomizer';
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -26,8 +25,9 @@ const studyStyleIcons = {
 function HeaderBarContent() {
   const [open, setOpen] = useState(false);
   const [scale, setScale] = useState(1);
-  const [isDark, setIsDark] = useState<boolean>(true);
+  const [isDark, setIsDark] = useState<boolean>(false);
   const [mounted, setMounted] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const { style, hydrated } = useStudyStyle();
   const searchParams = useSearchParams();
@@ -36,42 +36,66 @@ function HeaderBarContent() {
   const displayStyle = hydrated ? style : ("…" as typeof style);
   const displayIcon = (hydrated && studyStyleIcons[style]) || ("✨" as string);
 
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [open]);
+
+  // Load initial theme
   useEffect(() => {
     setMounted(true);
-    const t = (localStorage.getItem("bc-theme") as "dark" | "light") || "dark";
+    const mode = localStorage.getItem("bc-theme-mode") || "light";
     const s = Number(localStorage.getItem("bc-font-scale") || 1);
 
-    setIsDark(t !== "light");
+    setIsDark(mode === "dark");
     if (Number.isFinite(s) && s > 0) setScale(s);
 
-    const html = document.documentElement;
-    if (t === "light") {
-      html.classList.remove("dark");
-      html.classList.add("light");
-    } else {
-      html.classList.add("dark");
-      html.classList.remove("light");
-    }
-    html.style.setProperty(
+    document.documentElement.style.setProperty(
       "--bc-font-scale",
       String(Number.isFinite(s) && s > 0 ? s : 1)
     );
   }, []);
 
+  // Apply theme when toggled
   useEffect(() => {
     if (!mounted) return;
-    const html = document.documentElement;
+    
+    const root = document.documentElement;
+    
     if (isDark) {
-      html.classList.add("dark");
-      html.classList.remove("light");
-      localStorage.setItem("bc-theme", "dark");
+      // Beautiful Blue Dark
+      root.style.setProperty('--bg-color', '#0f1729');
+      root.style.setProperty('--card-bg', '#1a2332');
+      root.style.setProperty('--card-border', '#2d3f5f');
+      root.style.setProperty('--text-primary', '#e8f2f8');
+      root.style.setProperty('--text-secondary', '#b8d4e6');
+      root.style.setProperty('--accent-color', '#3b82f6');
+      localStorage.setItem("bc-theme-mode", "dark");
     } else {
-      html.classList.remove("dark");
-      html.classList.add("light");
-      localStorage.setItem("bc-theme", "light");
+      // Papyrus Light
+      root.style.setProperty('--bg-color', '#f5f1e8');
+      root.style.setProperty('--card-bg', '#ebe5d9');
+      root.style.setProperty('--card-border', '#d4c9b3');
+      root.style.setProperty('--text-primary', '#2d2520');
+      root.style.setProperty('--text-secondary', '#5a4f46');
+      root.style.setProperty('--accent-color', '#b8860b');
+      localStorage.setItem("bc-theme-mode", "light");
     }
   }, [isDark, mounted]);
 
+  // Update font scale
   useEffect(() => {
     if (!mounted) return;
     document.documentElement.style.setProperty("--bc-font-scale", String(scale));
@@ -86,13 +110,17 @@ function HeaderBarContent() {
   const handleSettingsClick = (e: React.MouseEvent) => {
     e.preventDefault();
     setOpen(false);
-    
-    // Dispatch custom event that pages can listen to
     window.dispatchEvent(new CustomEvent('openSettings'));
   };
 
   return (
-    <header className="sticky top-0 z-40 backdrop-blur bg-black/10 border-b border-white/10">
+    <header 
+      className="sticky top-0 z-40 backdrop-blur border-b" 
+      style={{ 
+        backgroundColor: 'color-mix(in srgb, var(--bg-color) 90%, transparent)',
+        borderColor: 'var(--card-border)'
+      }}
+    >
       <div className="mx-auto max-w-3xl px-4 py-4 flex items-center justify-between">
         {/* Brand */}
         <Link href="/" className="flex items-center gap-3">
@@ -105,10 +133,11 @@ function HeaderBarContent() {
             priority
           />
           <h1
-            className={`${playfair.className} font-semibold tracking-tight text-white`}
+            className={`${playfair.className} font-semibold tracking-tight`}
             style={{
               fontSize: "calc(1.75rem * var(--bc-font-scale))",
               lineHeight: "1.2",
+              color: 'var(--text-primary)'
             }}
           >
             <span className="italic font-medium text-[calc(1.25rem*var(--bc-font-scale))]">
@@ -116,7 +145,7 @@ function HeaderBarContent() {
             </span>{" "}
             Busy Christian
             {reference && (
-              <span className="ml-2 text-white/70 text-[calc(1.05rem*var(--bc-font-scale))]">
+              <span className="ml-2 text-[calc(1.05rem*var(--bc-font-scale))]" style={{ color: 'var(--text-secondary)' }}>
                 · {reference}
               </span>
             )}
@@ -128,27 +157,41 @@ function HeaderBarContent() {
           {/* Style indicator */}
           <Link
             href="/personalize"
-            className="hidden md:flex items-center gap-2 rounded-xl border border-white/10 px-3 h-9 hover:bg-white/10 text-sm transition-colors"
+            className="hidden md:flex items-center gap-2 rounded-xl px-3 h-9 hover:bg-white/10 text-sm transition-colors"
+            style={{
+              borderWidth: '1px',
+              borderStyle: 'solid',
+              borderColor: 'var(--card-border)'
+            }}
             title={`Current style: ${displayStyle}; Click to change.`}
           >
             <span className="text-base">{displayIcon}</span>
-            <span className="text-white/80" suppressHydrationWarning>
+            <span style={{ color: 'var(--text-secondary)' }} suppressHydrationWarning>
               {displayStyle}
             </span>
           </Link>
 
           {/* Font resize */}
-          <div className="hidden sm:flex rounded-xl border border-white/10 overflow-hidden">
+          <div 
+            className="hidden sm:flex rounded-xl overflow-hidden"
+            style={{
+              borderWidth: '1px',
+              borderStyle: 'solid',
+              borderColor: 'var(--card-border)'
+            }}
+          >
             <button
               className="px-2 py-1 text-sm hover:bg-white/10 transition-colors"
+              style={{ color: 'var(--text-primary)' }}
               onClick={dec}
               aria-label="Decrease font size"
             >
               A−
             </button>
-            <div className="w-px bg-white/10" />
+            <div className="w-px" style={{ backgroundColor: 'var(--card-border)' }} />
             <button
               className="px-2 py-1 text-sm hover:bg-white/10 transition-colors"
+              style={{ color: 'var(--text-primary)' }}
               onClick={inc}
               aria-label="Increase font size"
             >
@@ -156,26 +199,35 @@ function HeaderBarContent() {
             </button>
           </div>
 
-          {/* Light/dark toggle */}
+          {/* Light/Dark toggle */}
           <button
             onClick={() => setIsDark((v) => !v)}
-            className="rounded-xl border border-white/10 px-3 h-9 hover:bg-white/10 text-sm flex items-center gap-1 transition-colors"
-            title="Toggle light/dark mode"
+            className="rounded-xl px-3 h-9 hover:bg-white/10 text-sm flex items-center gap-1 transition-colors"
+            style={{
+              borderWidth: '1px',
+              borderStyle: 'solid',
+              borderColor: 'var(--card-border)',
+              color: 'var(--text-primary)'
+            }}
+            title={isDark ? "Switch to Papyrus Light" : "Switch to Blue Dark"}
           >
-            <span suppressHydrationWarning>{isDark ? "Light" : "Dark"}</span>
+            <span suppressHydrationWarning>{isDark ? "☀️ Light" : "🌙 Dark"}</span>
           </button>
-
-          {/* Theme Customizer - NEW */}
-          <ThemeCustomizer />
 
           {/* Settings gear icon */}
           <button
             onClick={handleSettingsClick}
-            className="rounded-xl border border-white/10 px-3 h-9 hover:bg-white/10 transition-colors"
+            className="rounded-xl px-3 h-9 hover:bg-white/10 transition-colors"
+            style={{
+              borderWidth: '1px',
+              borderStyle: 'solid',
+              borderColor: 'var(--card-border)'
+            }}
             title="Settings & Privacy"
           >
             <svg 
-              className="w-5 h-5 text-white/60" 
+              className="w-5 h-5" 
+              style={{ color: 'var(--text-secondary)' }}
               fill="none" 
               stroke="currentColor" 
               viewBox="0 0 24 24"
@@ -195,13 +247,19 @@ function HeaderBarContent() {
             </svg>
           </button>
 
-          {/* User Profile Menu - Shows profile pic when signed in */}
+          {/* User Profile Menu */}
           <UserProfileMenu />
 
           {/* Navigation Menu (Hamburger) */}
-          <div className="relative">
+          <div className="relative" ref={menuRef}>
             <button
-              className="text-3xl leading-none rounded-xl border border-white/10 px-3 h-9 hover:bg-white/10 transition-colors"
+              className="text-3xl leading-none rounded-xl px-3 h-9 hover:bg-white/10 transition-colors"
+              style={{
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                borderColor: 'var(--card-border)',
+                color: 'var(--text-primary)'
+              }}
               onClick={() => setOpen((o) => !o)}
               aria-haspopup="menu"
               aria-expanded={open}
@@ -213,16 +271,18 @@ function HeaderBarContent() {
             {open && (
               <div
                 role="menu"
-                className="absolute right-0 mt-2 min-w-44 rounded-2xl border backdrop-blur p-1 shadow-lg"
+                className="absolute right-0 mt-2 min-w-44 rounded-2xl p-1 shadow-lg"
                 style={{
-                  backgroundColor: 'var(--card-bg)',
+                  backgroundColor: 'var(--bg-color)',
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
                   borderColor: 'var(--card-border)'
                 }}
-                onMouseLeave={() => setOpen(false)}
               >
                 <Link
                   href="/"
                   className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+                  style={{ color: 'var(--text-primary)' }}
                   onClick={() => setOpen(false)}
                 >
                   Home
@@ -230,6 +290,7 @@ function HeaderBarContent() {
                 <Link
                   href="/deep-study"
                   className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+                  style={{ color: 'var(--text-primary)' }}
                   onClick={() => setOpen(false)}
                 >
                   Deep Study
@@ -237,6 +298,7 @@ function HeaderBarContent() {
                 <Link
                   href="/reading-plans"
                   className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+                  style={{ color: 'var(--text-primary)' }}
                   onClick={() => setOpen(false)}
                 >
                   Reading Plan
@@ -244,6 +306,7 @@ function HeaderBarContent() {
                 <Link
                   href="/library"
                   className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+                  style={{ color: 'var(--text-primary)' }}
                   onClick={() => setOpen(false)}
                 >
                   My Library
@@ -251,6 +314,7 @@ function HeaderBarContent() {
                 <Link
                   href="/courses"
                   className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+                  style={{ color: 'var(--text-primary)' }}
                   onClick={() => setOpen(false)}
                 >
                   Study Courses
@@ -258,15 +322,16 @@ function HeaderBarContent() {
                 <Link
                   href="/prayer"
                   className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+                  style={{ color: 'var(--text-primary)' }}
                   onClick={() => setOpen(false)}
                 >
                   Prayer Center
                 </Link>
-                <div className="border-t border-white/10 my-1" />
-                                
+                <div className="border-t my-1" style={{ borderColor: 'var(--card-border)' }} />
                 <Link
                   href="/about"
                   className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+                  style={{ color: 'var(--text-primary)' }}
                   onClick={() => setOpen(false)}
                 >
                   About
@@ -274,6 +339,7 @@ function HeaderBarContent() {
                 <Link
                   href="/help"
                   className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+                  style={{ color: 'var(--text-primary)' }}
                   onClick={() => setOpen(false)}
                 >
                   Help
@@ -281,6 +347,7 @@ function HeaderBarContent() {
                 <Link
                   href="/contact"
                   className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+                  style={{ color: 'var(--text-primary)' }}
                   onClick={() => setOpen(false)}
                 >
                   Contact
@@ -298,9 +365,15 @@ export default function HeaderBar() {
   return (
     <Suspense
       fallback={
-        <header className="sticky top-0 z-40 backdrop-blur bg-black/10 border-b border-white/10">
+        <header 
+          className="sticky top-0 z-40 backdrop-blur border-b"
+          style={{ 
+            backgroundColor: 'color-mix(in srgb, var(--bg-color) 90%, transparent)',
+            borderColor: 'var(--card-border)'
+          }}
+        >
           <div className="mx-auto max-w-3xl px-4 py-4">
-            <div className="h-11 animate-pulse bg-white/5 rounded-lg" />
+            <div className="h-11 animate-pulse rounded-lg" style={{ backgroundColor: 'color-mix(in srgb, var(--text-primary) 5%, transparent)' }} />
           </div>
         </header>
       }

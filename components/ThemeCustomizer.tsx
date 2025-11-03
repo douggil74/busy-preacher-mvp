@@ -1,414 +1,363 @@
 // components/ThemeCustomizer.tsx
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-
-interface ThemeColors {
-  background: string;
-  cardBg: string;
-  cardBorder: string;
-  textPrimary: string;
-  textSecondary: string;
-  accent: string;
-}
+import { useEffect, useState } from "react";
 
 interface Theme {
-  colors: ThemeColors;
-  fontFamily: string;
-  fontSize: 'small' | 'medium' | 'large';
+  name: string;
+  emoji: string;
+  colors: {
+    background: string;
+    cardBg: string;
+    cardBorder: string;
+    textPrimary: string;
+    textSecondary: string;
+    accent: string;
+  };
 }
 
-const PRESETS = {
-  default: {
-    colors: {
-      background: '#020617',
-      cardBg: 'rgba(255, 255, 255, 0.05)',
-      cardBorder: 'rgba(255, 255, 255, 0.1)',
-      textPrimary: '#ffffff',
-      textSecondary: 'rgba(255, 255, 255, 0.7)',
-      accent: '#facc15',
+const themes: Record<string, { light: Theme; dark: Theme }> = {
+  papyrus: {
+    light: {
+      name: "Papyrus Light",
+      emoji: "📜",
+      colors: {
+        background: "#f5f1e8",
+        cardBg: "#ebe5d9",
+        cardBorder: "#d4c9b3",
+        textPrimary: "#2d2520",
+        textSecondary: "#5a4f46",
+        accent: "#b8860b",
+      },
     },
-    fontFamily: 'Inter',
-    fontSize: 'medium' as const,
+    dark: {
+      name: "Papyrus Dark",
+      emoji: "📜",
+      colors: {
+        background: "#2d2520",
+        cardBg: "#3d3530",
+        cardBorder: "#4d4540",
+        textPrimary: "#f5f1e8",
+        textSecondary: "#d4c9b3",
+        accent: "#daa520",
+      },
+    },
   },
   ocean: {
-    colors: {
-      background: '#0c1425',
-      cardBg: 'rgba(59, 130, 246, 0.1)',
-      cardBorder: 'rgba(59, 130, 246, 0.3)',
-      textPrimary: '#f0f9ff',
-      textSecondary: 'rgba(240, 249, 255, 0.7)',
-      accent: '#3b82f6',
+    light: {
+      name: "Ocean Light",
+      emoji: "🌊",
+      colors: {
+        background: "#e6f2f8",
+        cardBg: "#d6e8f2",
+        cardBorder: "#b8d4e6",
+        textPrimary: "#1a3d4d",
+        textSecondary: "#2d5366",
+        accent: "#0891b2",
+      },
     },
-    fontFamily: 'Inter',
-    fontSize: 'medium' as const,
+    dark: {
+      name: "Ocean Dark",
+      emoji: "🌊",
+      colors: {
+        background: "#0f2533",
+        cardBg: "#1a3544",
+        cardBorder: "#254555",
+        textPrimary: "#e6f2f8",
+        textSecondary: "#b8d4e6",
+        accent: "#22d3ee",
+      },
+    },
   },
   forest: {
-    colors: {
-      background: '#0a1f0f',
-      cardBg: 'rgba(34, 197, 94, 0.1)',
-      cardBorder: 'rgba(34, 197, 94, 0.3)',
-      textPrimary: '#f0fdf4',
-      textSecondary: 'rgba(240, 253, 244, 0.7)',
-      accent: '#22c55e',
+    light: {
+      name: "Forest Light",
+      emoji: "🌲",
+      colors: {
+        background: "#e8f3e8",
+        cardBg: "#d9e8d9",
+        cardBorder: "#b8d4b8",
+        textPrimary: "#1a3d1a",
+        textSecondary: "#2d532d",
+        accent: "#059669",
+      },
     },
-    fontFamily: 'Inter',
-    fontSize: 'medium' as const,
+    dark: {
+      name: "Forest Dark",
+      emoji: "🌲",
+      colors: {
+        background: "#0f2e0f",
+        cardBg: "#1a3d1a",
+        cardBorder: "#254d25",
+        textPrimary: "#e8f3e8",
+        textSecondary: "#b8d4b8",
+        accent: "#10b981",
+      },
+    },
   },
   sunset: {
-    colors: {
-      background: '#1a0f0a',
-      cardBg: 'rgba(249, 115, 22, 0.1)',
-      cardBorder: 'rgba(249, 115, 22, 0.3)',
-      textPrimary: '#fff7ed',
-      textSecondary: 'rgba(255, 247, 237, 0.7)',
-      accent: '#f97316',
+    light: {
+      name: "Sunset Light",
+      emoji: "🌅",
+      colors: {
+        background: "#fef2e8",
+        cardBg: "#fde8d9",
+        cardBorder: "#fcd4b8",
+        textPrimary: "#4d2d1a",
+        textSecondary: "#664020",
+        accent: "#ea580c",
+      },
     },
-    fontFamily: 'Inter',
-    fontSize: 'medium' as const,
+    dark: {
+      name: "Sunset Dark",
+      emoji: "🌅",
+      colors: {
+        background: "#331a0f",
+        cardBg: "#4d2d1a",
+        cardBorder: "#664025",
+        textPrimary: "#fef2e8",
+        textSecondary: "#fcd4b8",
+        accent: "#fb923c",
+      },
+    },
   },
-  light: {
-    colors: {
-      background: '#ffffff',
-      cardBg: 'rgba(0, 0, 0, 0.03)',
-      cardBorder: 'rgba(0, 0, 0, 0.1)',
-      textPrimary: '#0f172a',
-      textSecondary: 'rgba(15, 23, 42, 0.7)',
-      accent: '#facc15',
+  midnight: {
+    light: {
+      name: "Midnight Light",
+      emoji: "🌙",
+      colors: {
+        background: "#f2e8f8",
+        cardBg: "#e8d9f2",
+        cardBorder: "#d4b8e6",
+        textPrimary: "#3d1a4d",
+        textSecondary: "#532d66",
+        accent: "#9333ea",
+      },
     },
-    fontFamily: 'Inter',
-    fontSize: 'medium' as const,
+    dark: {
+      name: "Midnight Dark",
+      emoji: "🌙",
+      colors: {
+        background: "#1a0f33",
+        cardBg: "#2d1a4d",
+        cardBorder: "#3d2566",
+        textPrimary: "#f2e8f8",
+        textSecondary: "#d4b8e6",
+        accent: "#a855f7",
+      },
+    },
+  },
+  desert: {
+    light: {
+      name: "Desert Light",
+      emoji: "🏜️",
+      colors: {
+        background: "#f8f2e8",
+        cardBg: "#f2e8d9",
+        cardBorder: "#e6d4b8",
+        textPrimary: "#4d3d2d",
+        textSecondary: "#665340",
+        accent: "#d97706",
+      },
+    },
+    dark: {
+      name: "Desert Dark",
+      emoji: "🏜️",
+      colors: {
+        background: "#332d20",
+        cardBg: "#4d3d2d",
+        cardBorder: "#66533d",
+        textPrimary: "#f8f2e8",
+        textSecondary: "#e6d4b8",
+        accent: "#f59e0b",
+      },
+    },
+  },
+  royal: {
+    light: {
+      name: "Royal Light",
+      emoji: "👑",
+      colors: {
+        background: "#e8eef8",
+        cardBg: "#d9e2f2",
+        cardBorder: "#b8cce6",
+        textPrimary: "#1a2d4d",
+        textSecondary: "#2d4066",
+        accent: "#1d4ed8",
+      },
+    },
+    dark: {
+      name: "Royal Dark",
+      emoji: "👑",
+      colors: {
+        background: "#0f1a33",
+        cardBg: "#1a2d4d",
+        cardBorder: "#253d66",
+        textPrimary: "#e8eef8",
+        textSecondary: "#b8cce6",
+        accent: "#3b82f6",
+      },
+    },
   },
 };
 
-const FONT_OPTIONS = [
-  { name: 'Inter', value: 'Inter, system-ui, sans-serif' },
-  { name: 'Playfair Display', value: 'Playfair Display, serif' },
-  { name: 'Georgia', value: 'Georgia, serif' },
-  { name: 'Arial', value: 'Arial, sans-serif' },
-  { name: 'Verdana', value: 'Verdana, sans-serif' },
-  { name: 'Courier', value: 'Courier New, monospace' },
-  { name: 'Comic Sans', value: 'Comic Sans MS, cursive' },
-];
+interface ThemeCustomizerProps {
+  inMenu?: boolean;
+  onThemeChange?: () => void;
+}
 
-export function ThemeCustomizer() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [theme, setTheme] = useState<Theme>(PRESETS.default);
-  const [activeTab, setActiveTab] = useState<'presets' | 'custom'>('presets');
+export function ThemeCustomizer({ inMenu = false, onThemeChange }: ThemeCustomizerProps) {
+  const [currentTheme, setCurrentTheme] = useState<string>("papyrus");
+  const [currentMode, setCurrentMode] = useState<"light" | "dark">("light");
+  const [showPicker, setShowPicker] = useState(false);
 
-  // Load theme from localStorage and apply globally
   useEffect(() => {
-    const applyTheme = (newTheme: Theme) => {
-      const root = document.documentElement;
-      root.style.setProperty('--bg-color', newTheme.colors.background);
-      root.style.setProperty('--card-bg', newTheme.colors.cardBg);
-      root.style.setProperty('--card-border', newTheme.colors.cardBorder);
-      root.style.setProperty('--text-primary', newTheme.colors.textPrimary);
-      root.style.setProperty('--text-secondary', newTheme.colors.textSecondary);
-      root.style.setProperty('--accent-color', newTheme.colors.accent);
-      root.style.setProperty('--font-family', newTheme.fontFamily);
-      
-      const fontSizes = {
-        small: '14px',
-        medium: '16px',
-        large: '18px',
-      };
-      root.style.setProperty('--font-size', fontSizes[newTheme.fontSize]);
-    };
-
-    const saved = localStorage.getItem('bc-theme');
+    const saved = localStorage.getItem("bc-theme-v2");
     if (saved) {
       try {
-        const parsedTheme = JSON.parse(saved);
-        setTheme(parsedTheme);
-        applyTheme(parsedTheme);
+        const parsed = JSON.parse(saved);
+        setCurrentTheme(parsed.theme || "papyrus");
+        setCurrentMode(parsed.mode || "light");
       } catch (e) {
-        // Silently fall back to default theme if data is corrupted
-        localStorage.removeItem('bc-theme');
-        applyTheme(PRESETS.default);
+        // Default to papyrus light
       }
-    } else {
-      applyTheme(PRESETS.default);
     }
-    
-    // IMPORTANT: Reapply theme on navigation to ensure it persists across pages
-    const reapplyTheme = () => {
-      const currentSaved = localStorage.getItem('bc-theme');
-      if (currentSaved) {
-        try {
-          const parsedTheme = JSON.parse(currentSaved);
-          applyTheme(parsedTheme);
-        } catch (e) {
-          applyTheme(PRESETS.default);
-        }
-      }
-    };
-    
-    // Listen for route changes
-    window.addEventListener('popstate', reapplyTheme);
-    
-    return () => {
-      window.removeEventListener('popstate', reapplyTheme);
-    };
   }, []);
 
-  const applyTheme = (newTheme: Theme) => {
+  const applyTheme = (themeName: string, mode: "light" | "dark") => {
+    const theme = themes[themeName][mode];
     const root = document.documentElement;
-    root.style.setProperty('--bg-color', newTheme.colors.background);
-    root.style.setProperty('--card-bg', newTheme.colors.cardBg);
-    root.style.setProperty('--card-border', newTheme.colors.cardBorder);
-    root.style.setProperty('--text-primary', newTheme.colors.textPrimary);
-    root.style.setProperty('--text-secondary', newTheme.colors.textSecondary);
-    root.style.setProperty('--accent-color', newTheme.colors.accent);
-    root.style.setProperty('--font-family', newTheme.fontFamily);
+
+    root.style.setProperty("--bg-color", theme.colors.background);
+    root.style.setProperty("--card-bg", theme.colors.cardBg);
+    root.style.setProperty("--card-border", theme.colors.cardBorder);
+    root.style.setProperty("--text-primary", theme.colors.textPrimary);
+    root.style.setProperty("--text-secondary", theme.colors.textSecondary);
+    root.style.setProperty("--accent-color", theme.colors.accent);
+
+    localStorage.setItem("bc-theme-v2", JSON.stringify({ theme: themeName, mode }));
+    setCurrentTheme(themeName);
+    setCurrentMode(mode);
     
-    const fontSizes = {
-      small: '14px',
-      medium: '16px',
-      large: '18px',
-    };
-    root.style.setProperty('--font-size', fontSizes[newTheme.fontSize]);
-  };
-
-  const updateTheme = (updates: Partial<Theme>) => {
-    const newTheme = { ...theme, ...updates };
-    if (updates.colors) {
-      newTheme.colors = { ...theme.colors, ...updates.colors };
+    if (onThemeChange) {
+      onThemeChange();
     }
-    setTheme(newTheme);
-    applyTheme(newTheme);
-    localStorage.setItem('bc-theme', JSON.stringify(newTheme));
   };
 
-  const applyPreset = (presetName: string) => {
-    const preset = PRESETS[presetName as keyof typeof PRESETS];
-    setTheme(preset);
-    applyTheme(preset);
-    localStorage.setItem('bc-theme', JSON.stringify(preset));
-  };
+  // If in menu, show inline theme picker
+  if (inMenu) {
+    return (
+      <div className="w-full">
+        <button
+          className="w-full text-left rounded-lg px-0 py-1 flex items-center gap-2 text-sm font-medium"
+          style={{ color: 'var(--text-primary)' }}
+          onClick={() => setShowPicker(!showPicker)}
+        >
+          <span className="text-lg">🎨</span>
+          <span>Change Theme</span>
+          <span className="ml-auto text-xs" style={{ color: 'var(--text-secondary)' }}>
+            {themes[currentTheme][currentMode].emoji} {currentMode === "light" ? "☀️" : "🌙"}
+          </span>
+        </button>
 
-  const resetTheme = () => {
-    setTheme(PRESETS.default);
-    applyTheme(PRESETS.default);
-    localStorage.setItem('bc-theme', JSON.stringify(PRESETS.default));
-  };
+        {showPicker && (
+          <div className="mt-2 space-y-2 pl-8">
+            {Object.entries(themes).map(([key, { light, dark }]) => (
+              <div key={key} className="flex items-center gap-2">
+                <button
+                  onClick={() => applyTheme(key, "light")}
+                  className="flex-1 text-left rounded-lg px-2 py-1.5 text-xs hover:bg-white/10 transition-colors"
+                  style={{ 
+                    color: 'var(--text-primary)',
+                    backgroundColor: currentTheme === key && currentMode === "light" ? 'var(--accent-color)' : 'transparent',
+                    opacity: currentTheme === key && currentMode === "light" ? 1 : 0.7
+                  }}
+                >
+                  {light.emoji} {key.charAt(0).toUpperCase() + key.slice(1)} ☀️
+                </button>
+                <button
+                  onClick={() => applyTheme(key, "dark")}
+                  className="flex-1 text-left rounded-lg px-2 py-1.5 text-xs hover:bg-white/10 transition-colors"
+                  style={{ 
+                    color: 'var(--text-primary)',
+                    backgroundColor: currentTheme === key && currentMode === "dark" ? 'var(--accent-color)' : 'transparent',
+                    opacity: currentTheme === key && currentMode === "dark" ? 1 : 0.7
+                  }}
+                >
+                  {dark.emoji} {key.charAt(0).toUpperCase() + key.slice(1)} 🌙
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
 
+  // Standalone button version (not used now, but kept for compatibility)
   return (
-    <>
-      {/* Palette Icon Button */}
+    <div className="relative">
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="p-2 rounded-lg hover:bg-white/10 transition-colors"
-        title="Customize Theme"
+        onClick={() => setShowPicker(!showPicker)}
+        className="rounded-xl px-3 h-9 hover:bg-white/10 text-lg transition-colors flex items-center"
+        style={{
+          borderWidth: '1px',
+          borderStyle: 'solid',
+          borderColor: 'var(--card-border)',
+          color: 'var(--text-primary)'
+        }}
+        title="Change theme"
       >
-        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-        </svg>
+        🎨
       </button>
 
-      {/* Customization Panel */}
-      {isOpen && (
-        <>
-          {/* Backdrop */}
-          <div 
-            className="fixed inset-0 bg-black/50 z-40"
-            onClick={() => setIsOpen(false)}
-          />
-
-          {/* Panel */}
-          <div className="fixed right-4 top-20 w-96 max-h-[80vh] overflow-y-auto bg-slate-900 border border-white/20 rounded-xl shadow-2xl z-50 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-white">Customize Theme</h3>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="p-1 hover:bg-white/10 rounded transition-colors"
-              >
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Tabs */}
-            <div className="flex gap-2 mb-6">
-              <button
-                onClick={() => setActiveTab('presets')}
-                className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  activeTab === 'presets'
-                    ? 'bg-yellow-400/20 border border-yellow-400 text-yellow-400'
-                    : 'border border-white/10 text-white/60 hover:text-white/80'
-                }`}
-              >
-                Presets
-              </button>
-              <button
-                onClick={() => setActiveTab('custom')}
-                className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  activeTab === 'custom'
-                    ? 'bg-yellow-400/20 border border-yellow-400 text-yellow-400'
-                    : 'border border-white/10 text-white/60 hover:text-white/80'
-                }`}
-              >
-                Custom
-              </button>
-            </div>
-
-            {/* Presets Tab */}
-            {activeTab === 'presets' && (
-              <div className="space-y-3">
-                {Object.keys(PRESETS).map((presetName) => {
-                  const preset = PRESETS[presetName as keyof typeof PRESETS];
-                  return (
-                    <button
-                      key={presetName}
-                      onClick={() => applyPreset(presetName)}
-                      className="w-full p-4 rounded-lg border border-white/10 hover:border-white/30 transition-all text-left"
-                      style={{ 
-                        background: preset.colors.cardBg,
-                        borderColor: preset.colors.cardBorder 
-                      }}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-semibold capitalize" style={{ color: preset.colors.textPrimary }}>
-                          {presetName}
-                        </span>
-                        <div className="flex gap-1">
-                          <div 
-                            className="w-4 h-4 rounded-full border border-white/20" 
-                            style={{ background: preset.colors.background }}
-                          />
-                          <div 
-                            className="w-4 h-4 rounded-full border border-white/20" 
-                            style={{ background: preset.colors.accent }}
-                          />
-                        </div>
-                      </div>
-                      <div className="text-xs" style={{ color: preset.colors.textSecondary }}>
-                        Click to apply
-                      </div>
-                    </button>
-                  );
-                })}
+      {showPicker && (
+        <div
+          className="absolute right-0 mt-2 w-72 rounded-2xl p-3 shadow-lg z-50"
+          style={{
+            backgroundColor: 'var(--bg-color)',
+            borderWidth: '1px',
+            borderStyle: 'solid',
+            borderColor: 'var(--card-border)'
+          }}
+        >
+          <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
+            Choose Your Theme
+          </h3>
+          <div className="space-y-2">
+            {Object.entries(themes).map(([key, { light, dark }]) => (
+              <div key={key} className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    applyTheme(key, "light");
+                    setShowPicker(false);
+                  }}
+                  className="flex-1 text-left rounded-lg px-3 py-2 text-sm hover:bg-white/10 transition-colors"
+                  style={{ 
+                    color: 'var(--text-primary)',
+                    backgroundColor: currentTheme === key && currentMode === "light" ? 'var(--accent-color)' : 'transparent'
+                  }}
+                >
+                  {light.emoji} {key.charAt(0).toUpperCase() + key.slice(1)} ☀️
+                </button>
+                <button
+                  onClick={() => {
+                    applyTheme(key, "dark");
+                    setShowPicker(false);
+                  }}
+                  className="flex-1 text-left rounded-lg px-3 py-2 text-sm hover:bg-white/10 transition-colors"
+                  style={{ 
+                    color: 'var(--text-primary)',
+                    backgroundColor: currentTheme === key && currentMode === "dark" ? 'var(--accent-color)' : 'transparent'
+                  }}
+                >
+                  {dark.emoji} {key.charAt(0).toUpperCase() + key.slice(1)} 🌙
+                </button>
               </div>
-            )}
-
-            {/* Custom Tab */}
-            {activeTab === 'custom' && (
-              <div className="space-y-4">
-                {/* Background Color */}
-                <div>
-                  <label className="block text-sm font-medium text-white mb-2">
-                    Background Color
-                  </label>
-                  <input
-                    type="color"
-                    value={theme.colors.background}
-                    onChange={(e) => updateTheme({ colors: { ...theme.colors, background: e.target.value } })}
-                    className="w-full h-10 rounded cursor-pointer"
-                  />
-                </div>
-
-                {/* Card Background */}
-                <div>
-                  <label className="block text-sm font-medium text-white mb-2">
-                    Card Background (opacity: {Math.round((parseFloat(theme.colors.cardBg.match(/[\d.]+\)$/)?.[0].replace(')', '') || '0.05')) * 100)}%)
-                  </label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={Math.round((parseFloat(theme.colors.cardBg.match(/[\d.]+\)$/)?.[0].replace(')', '') || '0.05')) * 100)}
-                    onChange={(e) => {
-                      const opacity = parseInt(e.target.value) / 100;
-                      // Extract RGB values from current cardBg or use white as default
-                      const rgbMatch = theme.colors.cardBg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-                      const r = rgbMatch ? rgbMatch[1] : '255';
-                      const g = rgbMatch ? rgbMatch[2] : '255';
-                      const b = rgbMatch ? rgbMatch[3] : '255';
-                      updateTheme({ colors: { ...theme.colors, cardBg: `rgba(${r}, ${g}, ${b}, ${opacity})` } });
-                    }}
-                    className="w-full"
-                  />
-                </div>
-
-                {/* Accent Color */}
-                <div>
-                  <label className="block text-sm font-medium text-white mb-2">
-                    Accent Color
-                  </label>
-                  <input
-                    type="color"
-                    value={theme.colors.accent}
-                    onChange={(e) => updateTheme({ colors: { ...theme.colors, accent: e.target.value } })}
-                    className="w-full h-10 rounded cursor-pointer"
-                  />
-                </div>
-
-                {/* Text Color */}
-                <div>
-                  <label className="block text-sm font-medium text-white mb-2">
-                    Text Color
-                  </label>
-                  <input
-                    type="color"
-                    value={theme.colors.textPrimary}
-                    onChange={(e) => updateTheme({ colors: { ...theme.colors, textPrimary: e.target.value } })}
-                    className="w-full h-10 rounded cursor-pointer"
-                  />
-                </div>
-
-                {/* Font Family */}
-                <div>
-                  <label className="block text-sm font-medium text-white mb-2">
-                    Font Family
-                  </label>
-                  <select
-                    value={theme.fontFamily}
-                    onChange={(e) => updateTheme({ fontFamily: e.target.value })}
-                    className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-3 py-2 text-sm"
-                  >
-                    {FONT_OPTIONS.map(font => (
-                      <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
-                        {font.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Font Size */}
-                <div>
-                  <label className="block text-sm font-medium text-white mb-2">
-                    Font Size
-                  </label>
-                  <div className="flex gap-2">
-                    {(['small', 'medium', 'large'] as const).map(size => (
-                      <button
-                        key={size}
-                        onClick={() => updateTheme({ fontSize: size })}
-                        className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium capitalize transition-all ${
-                          theme.fontSize === size
-                            ? 'bg-yellow-400/20 border border-yellow-400 text-yellow-400'
-                            : 'border border-white/10 text-white/60 hover:text-white/80'
-                        }`}
-                      >
-                        {size}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Reset Button */}
-            <button
-              onClick={resetTheme}
-              className="w-full mt-6 px-4 py-2 bg-red-500/20 border border-red-500/30 text-red-400 rounded-lg text-sm font-medium hover:bg-red-500/30 transition-all"
-            >
-              Reset to Default
-            </button>
+            ))}
           </div>
-        </>
+        </div>
       )}
-    </>
+    </div>
   );
 }

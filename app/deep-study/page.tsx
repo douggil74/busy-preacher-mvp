@@ -1667,7 +1667,7 @@ export default function DeepStudyPage() {
       </section>
 
       <footer className="mt-12 text-center text-xs text-white/40">
-        © Douglas M. Gilford – The Busy Christian • v{APP_VERSION}
+        © Cornerstone Church, Mandeville, LA – The Busy Christian • v{APP_VERSION}
       </footer>
 
       {/* Word Study Popover */}

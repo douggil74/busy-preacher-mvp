@@ -554,7 +554,7 @@ html.light [data-bg] {
     border-color: var(--accent-color) !important;
   }
   
-  /* Button text colors - force accent color on CTA buttons */
+  /* Button text colors - force accent color on CTA buttons */}
   button.text-yellow-400,
   button.text-amber-400,
   a.text-yellow-400,
@@ -566,4 +566,20 @@ html.light [data-bg] {
   svg {
     color: inherit !important;
   }
-}
+  
+  /* Google Sign-in and Auth Popups - SOLID BACKGROUNDS */
+  iframe[src*="accounts.google.com"],
+  [role="dialog"],
+  [class*="popup"],
+  [class*="modal"],
+  [class*="dialog"] {
+    background-color: var(--bg-color) !important;
+  }
+  
+  /* Force readable text in all popups/modals */
+  [role="dialog"] *,
+  [class*="popup"] *,
+  [class*="modal"] *,
+  [class*="dialog"] * {
+    color: var(--text-primary) !important;
+  }

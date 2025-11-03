@@ -286,6 +286,24 @@ export function onForegroundMessage(callback: (payload: any) => void): void {
 
   onMessage(messaging, (payload) => {
     console.log('Foreground push message:', payload);
+
+    // 🔊 Play local sound immediately
+    try {
+      const audio = new Audio('/prayer-sound.mp3');
+      audio.play().catch(() => {});
+    } catch {}
+
+    // 🔔 Show browser popup notification
+    try {
+      const title = payload.notification?.title || 'Prayer Update';
+      const body = payload.notification?.body || 'Someone prayed for your request!';
+      new Notification(title, {
+        body,
+        icon: '/icon-192x192.png',
+      });
+    } catch {}
+
+    // Send payload to your React UI (like setNotification)
     callback(payload);
   });
 }

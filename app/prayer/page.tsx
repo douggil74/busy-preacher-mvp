@@ -1,10 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { requestPushPermission, onForegroundMessage } from '@/lib/firebase';
 import { Playfair_Display } from 'next/font/google';
 import { 
   collection, 
   query, 
+  where,
   orderBy, 
   onSnapshot,
   doc,
@@ -21,6 +23,7 @@ import {
 } from '@/lib/prayerStorage';
 import { useAuth } from '@/contexts/AuthContext';
 import { SignInPrompt } from '@/components/SignInPrompt';
+import { PrayerNotification } from '@/components/PrayerNotification';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -44,6 +47,7 @@ interface CommunityPrayer {
 }
 
 type Category = 'health' | 'family' | 'work' | 'spiritual' | 'other';
+
 // Helper functions for privacy
 function getFirstName(fullName: string | null | undefined): string {
   if (!fullName) return 'Anonymous';
@@ -65,7 +69,31 @@ function getState(location: string | null | undefined): string {
 export default function UnifiedPrayerPage() {
   // Google Sign-In Authentication
   const { user, isAuthenticated } = useAuth();
+useEffect(() => {
+  if (!user) return;
+  requestPushPermission(user.uid);
+
+  // Replace this block ↓
+  onForegroundMessage((payload) => {
+    const title = payload.notification?.title || 'Prayer Update';
+    const body = payload.notification?.body || 'Someone prayed for your request!';
+    setNotification({
+      id: crypto.randomUUID(),
+      message: body,
+      prayerTitle: title,
+    });
+  });
+}, [user]);
+
+
   const [showSignIn, setShowSignIn] = useState(false);
+  
+  // Notification state
+  const [notification, setNotification] = useState<{
+    id: string;
+    message: string;
+    prayerTitle: string;
+  } | null>(null);
   
   // Private prayers (localStorage)
   const [privatePrayers, setPrivatePrayers] = useState<Prayer[]>([]);
@@ -110,6 +138,42 @@ export default function UnifiedPrayerPage() {
 
     return () => unsubscribe();
   }, []);
+
+  // 🔔 Listen for prayer notifications on MY prayers
+  useEffect(() => {
+    if (!isAuthenticated || !user) return;
+
+    const myPrayersQuery = query(
+      collection(db, 'prayer_requests'),
+      where('userId', '==', user.uid),
+      where('status', '==', 'active')
+    );
+
+    let previousHeartCounts: { [key: string]: number } = {};
+
+    const unsubscribe = onSnapshot(myPrayersQuery, (snapshot) => {
+      snapshot.docs.forEach((doc) => {
+        const prayer = doc.data() as CommunityPrayer;
+        const prayerId = doc.id;
+        const currentHeartCount = prayer.heartCount || 0;
+        const previousCount = previousHeartCounts[prayerId] || 0;
+
+        // If heart count increased, someone prayed!
+        if (currentHeartCount > previousCount && previousCount > 0) {
+          setNotification({
+            id: prayerId,
+            message: `${currentHeartCount} ${currentHeartCount === 1 ? 'person is' : 'people are'} praying`,
+            prayerTitle: prayer.request.split('\n')[0].substring(0, 60)
+          });
+        }
+
+        // Update the previous count
+        previousHeartCounts[prayerId] = currentHeartCount;
+      });
+    });
+
+    return () => unsubscribe();
+  }, [isAuthenticated, user]);
 
   const handleSubmitPrayer = async () => {
     if (!prayerTitle.trim()) {
@@ -236,7 +300,7 @@ export default function UnifiedPrayerPage() {
           <div className="h-[2px] w-20 bg-gradient-to-r from-yellow-400 to-amber-400 mb-3"></div>
           <p className="text-white/70 text-sm">
             {isAuthenticated 
-              ? `Welcome, ${user?.displayName}! Share with community or keep private.`
+              ? `Welcome, ${getFirstName(user?.displayName)}! Share with community or keep private.`
               : 'Create private prayers or sign in to join the community.'
             }
           </p>
@@ -421,16 +485,16 @@ export default function UnifiedPrayerPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-medium text-white text-sm truncate">
-{prayer.isAnonymous ? 'Anonymous' : getFirstName(prayer.userName)}
+                          {prayer.isAnonymous ? 'Anonymous' : getFirstName(prayer.userName)}
                         </span>
                         <span className="text-xs px-2 py-0.5 bg-white/10 border border-white/15 rounded text-white/60 capitalize flex-shrink-0">
                           {prayer.category}
                         </span>
                       </div>
-
-{getState(prayer.userLocation) && (
-  <div className="text-xs text-white/50">{getState(prayer.userLocation)}</div>
-)}                    </div>
+                      {getState(prayer.userLocation) && (
+                        <div className="text-xs text-white/50">{getState(prayer.userLocation)}</div>
+                      )}
+                    </div>
                     <span className="text-xs text-white/50 flex-shrink-0">
                       {new Date(prayer.createdAt?.seconds * 1000).toLocaleDateString()}
                     </span>
@@ -500,6 +564,12 @@ export default function UnifiedPrayerPage() {
             )}
           </div>
         )}
+
+        {/* 🔔 Prayer Notification */}
+        <PrayerNotification
+          notification={notification}
+          onClose={() => setNotification(null)}
+        />
 
         {/* Sign-In Modal */}
         <SignInPrompt

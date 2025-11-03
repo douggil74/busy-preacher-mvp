@@ -289,22 +289,23 @@ export default function PrayerPage() {
     }
   };
 
-  const handlePrayForRequest = async (prayerId: string) => {
-    if (!isAuthenticated) {
-      setShowSignIn(true);
-      return;
-    }
+const handlePrayForRequest = async (prayerId: string) => {
+  if (!isAuthenticated) {
+    setShowSignIn(true);
+    return;
+  }
 
-    const prayer = communityPrayers.find(p => p.id === prayerId);
-    if (!prayer || prayer.hearts.includes(user!.uid)) return;
+  const prayer = communityPrayers.find(p => p.id === prayerId);
+  if (!prayer || prayer.hearts.some(h => h.userId === user!.uid)) return; // ✅ FIXED
 
-    try {
-      const prayerRef = doc(db, 'prayer_requests', prayerId);
-      await updateDoc(prayerRef, {
-        hearts: [...prayer.hearts, user!.uid],
-        heartCount: increment(1)
-      });
-    } catch (error) {
+try {
+  const prayerRef = doc(db, 'prayer_requests', prayerId);
+  await updateDoc(prayerRef, {
+    hearts: [...prayer.hearts, { userId: user!.uid, timestamp: Date.now() }], // ✅ FIXED
+    heartCount: increment(1)
+  });
+
+} catch (error) {
       console.error('Error adding heart:', error);
     }
   };
@@ -687,11 +688,9 @@ function CommunityPrayerList({
 
   return (
     <div className="space-y-2">
-      {prayers.map(prayer => {
-        // ✅ ADDED: Check if this is MY prayer
-        const isMyPrayer = isAuthenticated && currentUser?.uid === prayer.userId;
-        const hasUserPrayed = isAuthenticated && prayer.hearts.includes(currentUser?.uid);
-
+{prayers.map(prayer => {
+  const isMyPrayer = isAuthenticated && currentUser?.uid === prayer.userId;
+  const hasUserPrayed = isAuthenticated && prayer.hearts.some(h => h.userId === currentUser?.uid); // ✅ FIXED
         return (
           <div
             key={prayer.id}

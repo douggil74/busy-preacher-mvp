@@ -1,13 +1,35 @@
-import type { NextConfig } from 'next';
+import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // NO output: 'export' - this is for Vercel web deployment
-  
+  // DO NOT use output: 'export' for Vercel
   reactStrictMode: true,
   
-  images: {
-    domains: ['firebasestorage.googleapis.com'],
+  webpack: (config) => {
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      net: false,
+      tls: false,
+    };
+    return config;
   },
 };
 
 export default nextConfig;
+```
+
+### **2. Make Sure `.vercelignore` Exists**
+
+Create or update `~/busy-preacher-mvp/.vercelignore`:
+```
+functions/
+firebase-backend/
+.firebase/
+firebase.json
+.firebaserc
+.env.local
+.env*.local
+node_modules/
+.git/
+*.log
+.DS_Store

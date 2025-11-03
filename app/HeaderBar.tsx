@@ -8,6 +8,7 @@ import { Playfair_Display } from "next/font/google";
 import { useSearchParams } from "next/navigation";
 import { useStudyStyle } from "./hooks/useStudyStyle";
 import { UserProfileMenu } from '@/components/UserProfileMenu';
+import { ThemeCustomizer } from '@/components/ThemeCustomizer';
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -164,6 +165,9 @@ function HeaderBarContent() {
             <span suppressHydrationWarning>{isDark ? "Light" : "Dark"}</span>
           </button>
 
+          {/* Theme Customizer - NEW */}
+          <ThemeCustomizer />
+
           {/* Settings gear icon */}
           <button
             onClick={handleSettingsClick}
@@ -209,7 +213,11 @@ function HeaderBarContent() {
             {open && (
               <div
                 role="menu"
-                className="absolute right-0 mt-2 min-w-44 rounded-2xl border border-white/10 bg-slate-900/95 backdrop-blur p-1 shadow-lg"
+                className="absolute right-0 mt-2 min-w-44 rounded-2xl border backdrop-blur p-1 shadow-lg"
+                style={{
+                  backgroundColor: 'var(--card-bg)',
+                  borderColor: 'var(--card-border)'
+                }}
                 onMouseLeave={() => setOpen(false)}
               >
                 <Link

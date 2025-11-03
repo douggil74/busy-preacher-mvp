@@ -15,7 +15,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     <AuthProvider>
       <StudyStyleProvider>
         <HeaderBar />
-        <main className="pt-16">{children}</main>
+        <main className="pt-16" style={{ backgroundColor: 'var(--bg-color)' }}>
+          {children}
+        </main>
       </StudyStyleProvider>
     </AuthProvider>
   );

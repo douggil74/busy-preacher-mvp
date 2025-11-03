@@ -1,9 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: true,
   images: {
-    unoptimized: true,
+    unoptimized: false, // ✅ restore normal Next.js image behavior
   },
-  trailingSlash: true,
 };
 
 module.exports = nextConfig;

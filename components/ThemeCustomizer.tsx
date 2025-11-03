@@ -311,7 +311,7 @@ export function ThemeCustomizer() {
                 {/* Card Background */}
                 <div>
                   <label className="block text-sm font-medium text-white mb-2">
-                    Card Background (opacity: {Math.round((theme.colors.cardBg.match(/[\d.]+\)$/)?.[0].replace(')', '') || 0.05) * 100)}%)
+                    Card Background (opacity: {Math.round((parseFloat(theme.colors.cardBg.match(/[\d.]+\)$/)?.[0].replace(')', '') || '0.05')) * 100)}%)
                   </label>
                   <input
                     type="range"

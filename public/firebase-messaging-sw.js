@@ -4,8 +4,10 @@
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
 
+// ⚠️ WARNING: These keys should match your .env.local file EXACTLY
+// This is the CORRECTED config that matches your .env.local
 firebase.initializeApp({
-  apiKey: "AIzaSyDg5gmuadL8jX0lgX9Ww3oxx-j4mpMUdOY",
+  apiKey: "AIzaSyDg5gmuadL8jX01gX9Ww3oxx-j4mpMDdOY",
   authDomain: "thebusychristian-app.firebaseapp.com",
   projectId: "thebusychristian-app",
   storageBucket: "thebusychristian-app.firebasestorage.app",

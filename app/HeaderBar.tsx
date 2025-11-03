@@ -255,17 +255,7 @@ function HeaderBarContent() {
                   Prayer Center
                 </Link>
                 <div className="border-t border-white/10 my-1" />
-
-                <Link
-                  href="/test-styles"
-                  className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
-                  onClick={() => setOpen(false)}
-                >
-                  Comparison
-                </Link>
-                
-                <div className="border-t border-white/10 my-1" />
-                
+                                
                 <Link
                   href="/about"
                   className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"

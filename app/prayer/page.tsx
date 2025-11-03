@@ -34,6 +34,11 @@ const playfair = Playfair_Display({
 // TYPES & INTERFACES
 // ========================================
 
+interface PrayerHeart {
+  userId: string;
+  timestamp: number;
+}
+
 interface CommunityPrayer {
   id: string;
   userId: string;
@@ -42,13 +47,12 @@ interface CommunityPrayer {
   request: string;
   category: Category;
   isAnonymous: boolean;
-  hearts: string[];
+  hearts: PrayerHeart[];  // ✅ FIXED - Changed from string[] to PrayerHeart[]
   heartCount: number;
   status: string;
   createdAt: any;
   crisisDetected?: boolean;
 }
-
 type Category = 'health' | 'family' | 'work' | 'spiritual' | 'other';
 
 interface Notification {

@@ -9,51 +9,71 @@ export async function GET(request: NextRequest) {
     const dateParam = searchParams.get('date');
     
     const today = dateParam ? new Date(dateParam) : new Date();
-    const month = format(today, 'MM');
-    const day = format(today, 'dd');
-
-    // Fetch from BibleGateway's devotional (public domain)
-    // My Utmost for His Highest is available via their API
-    const devotionalUrl = `https://www.biblegateway.com/devotionals/my-utmost-for-his-highest/today`;
     
-    // Alternative: Use a free devotional API
-    // We'll use a simple approach - fetch from a free source
-    const response = await fetch(
-      `https://beta.ourmanna.com/api/v1/get/?format=json&order=daily`
-    );
+    // 🛡️ Safe fetch wrapper with fallback
+    let data: any = null;
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch devotional');
+    try {
+      const response = await fetch(
+        "https://www.ourmanna.com/api/v1/get/?format=json&order=daily",
+        {
+          headers: {
+            Accept: "application/json",
+          },
+          next: { revalidate: 3600 }, // Cache for 1 hour
+        }
+      );
+
+      // Check if response is actually JSON
+      const text = await response.text();
+      try {
+        data = JSON.parse(text);
+      } catch {
+        console.warn("⚠️ Devotional API returned non-JSON content:", text.slice(0, 100));
+        data = null;
+      }
+    } catch (err) {
+      console.error("❌ External devotional API failed:", err);
+      data = null;
     }
 
-    const data = await response.json();
+    if (!data || !data.verse?.details) {
+      // Fallback devotional if external API fails
+      return NextResponse.json({
+        success: true,
+        date: format(today, "MMMM d, yyyy"),
+        devotional: {
+          title: "Trust in the Lord",
+          content:
+            "Trust in the LORD with all your heart and lean not on your own understanding; in all your ways submit to him, and he will make your paths straight.",
+          scripture: "Proverbs 3:5-6",
+          author: "Daily Encouragement",
+          source: "The Busy Christian",
+        },
+      });
+    }
 
+    // Success case - return the devotional from API
     return NextResponse.json({
       success: true,
-      date: format(today, 'MMMM d, yyyy'),
+      date: format(today, "MMMM d, yyyy"),
       devotional: {
-        title: data.verse.details.reference || 'Daily Bread',
-        content: data.verse.details.text || data.verse.details.text_plain,
-        scripture: data.verse.details.reference,
-        author: 'Our Daily Bread',
-        source: 'ourmanna.com'
-      }
+        title: data.verse.details.title || "Daily Devotional",
+        content: data.verse.details.text || "",
+        scripture: data.verse.details.reference || "",
+        author: "Our Daily Bread",
+        source: "OurManna.com",
+      },
     });
 
   } catch (error) {
-    console.error('Devotional API error:', error);
-    
-    // Fallback devotional if API fails
-    return NextResponse.json({
-      success: true,
-      date: format(new Date(), 'MMMM d, yyyy'),
-      devotional: {
-        title: 'Trust in the Lord',
-        content: 'Trust in the LORD with all your heart and lean not on your own understanding; in all your ways submit to him, and he will make your paths straight.',
-        scripture: 'Proverbs 3:5-6',
-        author: 'Daily Encouragement',
-        source: 'The Busy Christian'
-      }
-    });
+    console.error("Error fetching devotional:", error);
+    return NextResponse.json(
+      { 
+        error: "Failed to fetch devotional",
+        message: error instanceof Error ? error.message : "Unknown error"
+      },
+      { status: 500 }
+    );
   }
 }

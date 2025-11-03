@@ -249,7 +249,7 @@ async function updateUserPrayerStats(userId: string): Promise<void> {
   }
 }
 
-// ========== PUSH NOTIFICATIONS ==========
+// ========== PUSH NOTIFICATIONS (IMPROVED) ==========
 
 export async function savePushToken(userId: string, token: string): Promise<void> {
   const ref = doc(db, 'users', userId);
@@ -259,53 +259,89 @@ export async function savePushToken(userId: string, token: string): Promise<void
 }
 
 export async function requestPushPermission(userId: string): Promise<string | null> {
-  if (!messaging) return null;
+  // Silently fail if messaging not available (not all browsers support it)
+  if (!messaging) {
+    console.log('ℹ️ Push notifications not available in this browser');
+    return null;
+  }
+
+  // Check if VAPID key is configured
+  const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
+  if (!vapidKey) {
+    console.warn('⚠️ NEXT_PUBLIC_FIREBASE_VAPID_KEY not configured');
+    return null;
+  }
 
   try {
+    // Request notification permission
     const permission = await Notification.requestPermission();
-    if (permission !== 'granted') return null;
-
-    const token = await getToken(messaging, {
-      vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY
-    });
-
-    if (token) {
-      await savePushToken(userId, token);
-      return token;
+    if (permission !== 'granted') {
+      console.log('ℹ️ User denied notification permission');
+      return null;
     }
 
-    return null;
-  } catch (err) {
-    console.error('Push permission error:', err);
+    // Get FCM token
+    const token = await getToken(messaging, { vapidKey });
+
+    if (token) {
+      console.log('✅ Got FCM token, saving to user profile');
+      await savePushToken(userId, token);
+      return token;
+    } else {
+      console.warn('⚠️ No FCM token received');
+      return null;
+    }
+
+  } catch (err: any) {
+    // Don't throw error - just log and return null
+    // This makes push notifications truly optional
+    console.warn('⚠️ Push notification setup failed:', err.message || err);
+    
+    // If it's a specific Firebase error, log more details
+    if (err.code) {
+      console.warn('Firebase error code:', err.code);
+    }
+    
     return null;
   }
 }
 
 export function onForegroundMessage(callback: (payload: any) => void): void {
-  if (!messaging) return;
+  if (!messaging) {
+    console.log('ℹ️ Foreground messaging not available');
+    return;
+  }
 
-  onMessage(messaging, (payload) => {
-    console.log('Foreground push message:', payload);
+  try {
+    onMessage(messaging, (payload) => {
+      console.log('📬 Foreground push message:', payload);
 
-    // 🔊 Play local sound immediately
-    try {
-      const audio = new Audio('/prayer-sound.mp3');
-      audio.play().catch(() => {});
-    } catch {}
+      // 🔊 Play local sound immediately
+      try {
+        const audio = new Audio('/prayer-sound.mp3');
+        audio.play().catch((e) => console.warn('Audio play failed:', e));
+      } catch (e) {
+        console.warn('Audio not available:', e);
+      }
 
-    // 🔔 Show browser popup notification
-    try {
-      const title = payload.notification?.title || 'Prayer Update';
-      const body = payload.notification?.body || 'Someone prayed for your request!';
-      new Notification(title, {
-        body,
-        icon: '/icon-192x192.png',
-      });
-    } catch {}
+      // 🔔 Show browser popup notification
+      try {
+        const title = payload.notification?.title || 'Prayer Update';
+        const body = payload.notification?.body || 'Someone prayed for your request!';
+        new Notification(title, {
+          body,
+          icon: '/icon-192x192.png',
+        });
+      } catch (e) {
+        console.warn('Browser notification failed:', e);
+      }
 
-    // Send payload to your React UI (like setNotification)
-    callback(payload);
-  });
+      // Send payload to your React UI (like setNotification)
+      callback(payload);
+    });
+  } catch (err) {
+    console.warn('⚠️ Could not set up foreground message listener:', err);
+  }
 }
 
 // ========== EXPORTS ==========

@@ -31,7 +31,8 @@ export function DailyDevotional() {
   const fetchDevotional = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/devotional');
+const response = await fetch(`${window.location.origin}/api/devotional`);
+
       const data = await response.json();
       
       if (data.success) {

@@ -14,3 +14,8 @@ pnpm-lock.yaml
 # Email subscriber data
 data/subscribers.txt
 .env.local
+
+node_modules/
+.firebase/
+*.log
+.DS_Store

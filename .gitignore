@@ -1,21 +1,30 @@
+# === ENVIRONMENT FILES ===
 .env
 .env.*
+.env*.local
+
+# === DEPENDENCIES ===
+node_modules/
+functions/node_modules/
+
+# === BUILD OUTPUT ===
 .next
-node_modules
 out
 dist
-.DS_Store
+.vercel
+
+# === LOGS ===
 npm-debug.log*
 yarn.lock
 pnpm-lock.yaml
-.vercel
-.env*.local
-
-# Email subscriber data
-data/subscribers.txt
-.env.local
-
-node_modules/
-.firebase/
 *.log
+
+# === OS / EDITOR FILES ===
 .DS_Store
+
+# === APP-SPECIFIC ===
+# Email subscriber data (sensitive)
+data/subscribers.txt
+
+# === FIREBASE / CLOUD FUNCTIONS (if present) ===
+.firebase/

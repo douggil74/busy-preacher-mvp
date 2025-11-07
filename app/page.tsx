@@ -1603,34 +1603,67 @@ const handleKeywordResultSelect = (reference: string) => {
 
       <DailyDevotional />
 
-      {activeWord && popoverPos && (
+{activeWord && popoverPos && (
         <div
-          className="hover-popover pointer-events-none fixed z-50 w-[360px] max-w-[90vw] rounded-lg border border-white/15 bg-slate-950/95 p-3 text-sm shadow-xl backdrop-blur"
-          style={{ left: popoverPos.x, top: popoverPos.y }}
+          className="hover-popover pointer-events-none fixed z-50 w-[360px] max-w-[90vw] rounded-lg shadow-xl backdrop-blur"
+          style={{ 
+            left: popoverPos.x, 
+            top: popoverPos.y,
+            backgroundColor: 'var(--card-bg)',
+            borderWidth: '1px',
+            borderStyle: 'solid',
+            borderColor: 'var(--card-border)',
+            padding: '0.75rem',
+            fontSize: '0.875rem'
+          }}
         >
           <div className="pointer-events-auto">
             <div className="mb-1 flex items-center justify-between gap-2">
-              <div className="text-xs uppercase tracking-wide text-white/60">Word for Today</div>
-              <button onClick={() => setPopoverPinned((p) => !p)} className="btn text-xs px-2 py-1">
+              <div className="text-xs uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>
+                Word Study
+              </div>
+              <button 
+                onClick={() => setPopoverPinned((p) => !p)} 
+                className="rounded-lg px-2 py-1 text-xs transition-colors hover:bg-white/10"
+                style={{
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: 'var(--card-border)',
+                  color: 'var(--text-primary)'
+                }}
+              >
                 {popoverPinned ? "Unpin" : "Pin"}
               </button>
             </div>
 
-            <div className="text-base font-semibold">{activeWord}</div>
+            <div className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
+              {activeWord}
+            </div>
             <div className="mt-1 grid grid-cols-[80px_1fr] gap-x-3 gap-y-1">
-              <div className="text-xs text-white/60">Lemma</div>
-              <div className="text-sm">{hoverData?.lemma ?? "…"}</div>
-              <div className="text-xs text-white/60">Strong's #</div>
-              <div className="text-sm">{hoverData?.strongs ?? "…"}</div>
+              <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>Lemma</div>
+              <div className="text-sm" style={{ color: 'var(--text-primary)' }}>
+                {hoverData?.lemma ?? "…"}
+              </div>
+              <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>Strong's #</div>
+              <div className="text-sm" style={{ color: 'var(--text-primary)' }}>
+                {hoverData?.strongs ?? "…"}
+              </div>
             </div>
 
-            <div className="mt-2 border-t border-white/10 pt-2 text-sm leading-6">
+            <div 
+              className="mt-2 pt-2 text-sm leading-6"
+              style={{ 
+                borderTopWidth: '1px',
+                borderTopStyle: 'solid',
+                borderTopColor: 'var(--card-border)',
+                color: 'var(--text-primary)'
+              }}
+            >
               {hoverData?.plain ?? (hoverLoading ? "Thinking…" : "—")}
             </div>
           </div>
         </div>
       )}
-
 <EnhancedOnboarding
   isOpen={showOnboarding}
   onComplete={handleEnhancedOnboardingComplete}

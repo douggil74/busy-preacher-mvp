@@ -1,6 +1,7 @@
 // app/deep-study/page.tsx
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { Playfair_Display } from "next/font/google";
 import { useEffect, useState, useMemo, useRef } from "react";
@@ -383,7 +384,6 @@ export default function DeepStudyPage() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"translations" | "commentary" | "videos" | "tools">("translations");
   
-  // 🚀 LAZY LOADING: Track which tabs have been loaded
   const [loadedTabs, setLoadedTabs] = useState<Set<string>>(new Set(['translations']));
   const [commentaryLoading, setCommentaryLoading] = useState(false);
   const [videosLoading, setVideosLoading] = useState(false);
@@ -398,11 +398,9 @@ export default function DeepStudyPage() {
   const [copied, setCopied] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  // Video state
   const [videos, setVideos] = useState<Video[]>([]);
   const [activeVideo, setActiveVideo] = useState<string | null>(null);
 
-  // ESV Passage lookup section
   const [bpRef, setBpRef] = useState("");
   const [bpText, setBpText] = useState("");
   const [bpError, setBpError] = useState<string | null>(null);
@@ -416,7 +414,6 @@ export default function DeepStudyPage() {
 
   const commentaryService = new BibleCommentaryService();
 
-  // 🚀 LAZY LOADING: Load commentary data only when needed
   const loadCommentaryData = async () => {
     if (loadedTabs.has('commentary') || !reference.trim()) return;
     
@@ -443,7 +440,6 @@ export default function DeepStudyPage() {
     }
   };
 
-  // 🚀 LAZY LOADING: Load videos only when needed
   const loadVideos = async () => {
     if (loadedTabs.has('videos') || !reference.trim()) return;
     
@@ -461,7 +457,6 @@ export default function DeepStudyPage() {
     }
   };
 
-  // 🚀 LAZY LOADING: Watch for tab changes
   useEffect(() => {
     if (activeTab === 'commentary' && !loadedTabs.has('commentary')) {
       loadCommentaryData();
@@ -567,7 +562,6 @@ export default function DeepStudyPage() {
     return notes.filter(n => n.reference === ref);
   }, [notes, reference]);
   
-  // 🚀 LAZY LOADING: Simplified fetch - only load translations initially
   const fetchBibleData = async () => {
     if (!reference.trim()) {
       setError("Please enter a Bible reference");
@@ -581,7 +575,7 @@ export default function DeepStudyPage() {
     setAdditionalCommentaries(null);
     setVideos([]);
     setActiveVideo(null);
-    setLoadedTabs(new Set(['translations'])); // Reset loaded tabs
+    setLoadedTabs(new Set(['translations']));
   
     try {
       const url = `/api/deep-study?reference=${encodeURIComponent(reference.trim())}`;
@@ -593,11 +587,8 @@ export default function DeepStudyPage() {
       } else {
         setData(result);
         
-        // Get cross-references immediately (they're lightweight)
         const additional = await commentaryService.getAdditionalCommentaries(reference.trim());
         setAdditionalCommentaries(additional);
-        
-        // Don't fetch commentary or videos yet - wait for user to click those tabs
       }
     } catch (err: any) {
       console.error("Deep study error:", err);
@@ -833,7 +824,6 @@ export default function DeepStudyPage() {
     if (e.key === "Enter") bpFetch();
   };
 
-  // Video helper functions
   const parseDuration = (duration: string): string => {
     const match = duration?.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
     if (!match) return '0:00';
@@ -975,7 +965,7 @@ export default function DeepStudyPage() {
           </div>
         </div>
 
-<div className="flex flex-wrap gap-2 sm:gap-3 justify-center">
+        <div className="flex flex-wrap gap-2 sm:gap-3 justify-center">
           <button
             id="fetch-btn"
             onClick={() => fetchBibleData()}
@@ -1023,16 +1013,18 @@ export default function DeepStudyPage() {
             Clear
           </button>
         </div>
-                {error && (
+        
+        {error && (
           <div className="mt-4 rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">
             {error}
           </div>
         )}
       </section>
 
-{(loading || aiLoading) && (
-  <SmartLoader type="translations" duration={2000} />
-)}
+      {(loading || aiLoading) && (
+        <SmartLoader type="translations" duration={2000} />
+      )}
+
       {data && (
         <>
           {data.parsed && data.isChapter && (
@@ -1148,10 +1140,10 @@ export default function DeepStudyPage() {
 
           {activeTab === "commentary" && (
             <div className="space-y-4">
-              {/* 🚀 Show loading state for commentary tab */}
               {commentaryLoading ? (
-  <SmartLoader type="commentary" duration={2000} />
-) : (                <>
+                <SmartLoader type="commentary" duration={2000} />
+              ) : (
+                <>
                   <div className="rounded-2xl border border-yellow-400/30 bg-gradient-to-br from-yellow-400/10 to-amber-500/10 p-6 shadow-sm">
                     <div className="flex items-start gap-3 mb-4">
                       <div className="w-10 h-10 rounded-lg bg-yellow-400/20 border border-yellow-400/50 flex items-center justify-center flex-shrink-0">
@@ -1254,10 +1246,10 @@ export default function DeepStudyPage() {
           {activeTab === "videos" && (
             <div className="space-y-4">
               <div className="card">
-                {/* 🚀 Show loading state for videos tab */}
                 {videosLoading ? (
-  <SmartLoader type="videos" duration={2000} />
-) : videos.length === 0 ? (                  <div className="rounded-lg border border-white/10 bg-white/5 p-6 text-center">
+                  <SmartLoader type="videos" duration={2000} />
+                ) : videos.length === 0 ? (
+                  <div className="rounded-lg border border-white/10 bg-white/5 p-6 text-center">
                     <svg className="w-12 h-12 mx-auto mb-3 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     </svg>
@@ -1309,10 +1301,13 @@ export default function DeepStudyPage() {
                         ) : (
                           <div className="flex flex-col md:flex-row">
                             <div className="relative md:w-64 flex-shrink-0 group cursor-pointer" onClick={() => setActiveVideo(video.id)}>
-                              <img
+                              <Image
                                 src={video.thumbnail}
                                 alt={video.title}
-                                className="w-full h-48 md:h-full object-cover"
+                                width={320}
+                                height={180}
+                                unoptimized
+                                className="w-full h-48 md:h-full object-cover rounded-l-lg"
                               />
                               <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center">
                                 <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -1567,7 +1562,6 @@ export default function DeepStudyPage() {
         </div>
       )}
 
-      {/* ESV Passage section and remaining content follows exactly as before... */}
       <section id="esv-study" className="card mt-8">
         <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
           <div>
@@ -1585,13 +1579,13 @@ export default function DeepStudyPage() {
           </div>
 
           <div className="flex items-center gap-2">
-<button onClick={bpFetch} disabled={esvLoading} className="btn">
-  {esvLoading ? (
-    <SmartLoader type="tools" duration={2000} className="py-8" />
-  ) : (
-    "Get ESV"
-  )}
-</button>
+            <button onClick={bpFetch} disabled={esvLoading} className="btn">
+              {esvLoading ? (
+                <SmartLoader type="tools" duration={2000} className="py-8" />
+              ) : (
+                "Get ESV"
+              )}
+            </button>
             {bpText && (
               <>
                 <button onClick={() => handleCopy(bpText, 'esv-text')} className="btn text-xs px-2 py-1" title="Copy text">
@@ -1670,34 +1664,66 @@ export default function DeepStudyPage() {
         © Cornerstone Church, Mandeville, LA – The Busy Christian • v{APP_VERSION}
       </footer>
 
-      {/* Word Study Popover */}
       {activeWord && popoverPos && (
         <div
-          className="hover-popover pointer-events-none fixed z-50 w-[360px] max-w-[90vw] rounded-lg border border-white/15 bg-slate-950/95 p-3 text-sm shadow-xl backdrop-blur"
-          style={{ left: popoverPos.x, top: popoverPos.y }}
+          className="hover-popover pointer-events-none fixed z-50 w-[360px] max-w-[90vw] rounded-lg shadow-xl backdrop-blur"
+          style={{ 
+            left: popoverPos.x, 
+            top: popoverPos.y,
+            backgroundColor: 'var(--card-bg)',
+            borderWidth: '1px',
+            borderStyle: 'solid',
+            borderColor: 'var(--card-border)',
+            padding: '0.75rem',
+            fontSize: '0.875rem'
+          }}
         >
           <div className="pointer-events-auto">
             <div className="mb-1 flex items-center justify-between gap-2">
-              <div className="text-xs uppercase tracking-wide text-white/60">Word Study</div>
-              <button onClick={() => setPopoverPinned((p) => !p)} className="btn text-xs px-2 py-1">
+              <div className="text-xs uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>
+                Word Study
+              </div>
+              <button 
+                onClick={() => setPopoverPinned((p) => !p)} 
+                className="rounded-lg px-2 py-1 text-xs transition-colors hover:bg-white/10"
+                style={{
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: 'var(--card-border)',
+                  color: 'var(--text-primary)'
+                }}
+              >
                 {popoverPinned ? "Unpin" : "Pin"}
               </button>
             </div>
 
-            <div className="text-base font-semibold">{activeWord}</div>
+            <div className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
+              {activeWord}
+            </div>
             <div className="mt-1 grid grid-cols-[80px_1fr] gap-x-3 gap-y-1">
-              <div className="text-xs text-white/60">Lemma</div>
-              <div className="text-sm">{hoverData?.lemma ?? "…"}</div>
-              <div className="text-xs text-white/60">Strong's #</div>
-              <div className="text-sm">{hoverData?.strongs ?? "…"}</div>
+              <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>Lemma</div>
+              <div className="text-sm" style={{ color: 'var(--text-primary)' }}>
+                {hoverData?.lemma ?? "…"}
+              </div>
+              <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>Strong's #</div>
+              <div className="text-sm" style={{ color: 'var(--text-primary)' }}>
+                {hoverData?.strongs ?? "…"}
+              </div>
             </div>
 
-            <div className="mt-2 border-t border-white/10 pt-2 text-sm leading-6">
+            <div 
+              className="mt-2 pt-2 text-sm leading-6"
+              style={{ 
+                borderTopWidth: '1px',
+                borderTopStyle: 'solid',
+                borderTopColor: 'var(--card-border)',
+                color: 'var(--text-primary)'
+              }}
+            >
               {hoverData?.plain ?? (hoverLoading ? "Thinking…" : "—")}
             </div>
           </div>
         </div>
-      )}
-    </main>
+      )}    </main>
   );
 }

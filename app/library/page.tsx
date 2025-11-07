@@ -263,7 +263,7 @@ export default function LibraryPage() {
               <svg className="w-16 h-16 mx-auto mb-4 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
               </svg>
-              <p className="text-white/60 light:text-black/60 mb-2">
+              <p style={{ color: 'var(--text-secondary)' }} className=" mb-2">
                 {searchQuery ? "No studies match your search" : "No saved studies yet"}
               </p>
               <p className="text-white/40 text-sm">
@@ -314,7 +314,7 @@ export default function LibraryPage() {
               <svg className="w-16 h-16 mx-auto mb-4 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
-              <p className="text-white/60 light:text-black/60 mb-2">
+              <p style={{ color: 'var(--text-secondary)' }} className=" mb-2">
                 {searchQuery ? "No notes match your search" : "No notes yet"}
               </p>
               <p className="text-white/40 text-sm">
@@ -348,7 +348,7 @@ export default function LibraryPage() {
                             e.stopPropagation();
                             copyToClipboard(note.note, note.timestamp);
                           }}
-                          className="text-white/60 light:text-black/60 hover:text-yellow-400 transition"
+                          style={{ color: 'var(--text-secondary)' }} className=" hover:text-yellow-400 transition"
                           aria-label="Copy note"
                         >
                           {copied === note.timestamp ? (

@@ -1175,7 +1175,7 @@ const handleKeywordResultSelect = (reference: string) => {
                 style={{ width: `${progress}%`, animation: progress > 0 ? undefined : "none" }}
               />
             </div>
-            <div className="h-4 text-center text-xs text-white/60">
+<div className="h-4 text-center text-xs text-secondary" style={{ color: 'var(--text-secondary)' }}>
               {progress > 0 ? statusWord : " "}
             </div>
           </div>

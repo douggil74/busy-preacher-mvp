@@ -336,34 +336,34 @@ function copyToClipboard(text: string) {
 import { APP_VERSION } from "@/lib/version";
 export default function DeepStudyPage() {
   const mdComponents = {
-    p: ({ children }: any) => (
-      <p className="text-white/90 light:text-black/90 leading-relaxed mb-3">{children}</p>
+  p: ({ children }: any) => (
+    <p style={{ color: 'var(--text-primary)' }} className="leading-relaxed mb-3">{children}</p>
+  ),
+  strong: ({ children }: any) => (
+      <strong style={{ color: 'var(--text-primary)' }} className="font-semibold">{children}</strong>
     ),
-    strong: ({ children }: any) => (
-      <strong className="font-semibold text-white light:text-black">{children}</strong>
-    ),
-    em: ({ children }: any) => <em className="italic text-white/90 light:text-black/90">{children}</em>,
+    em: ({ children }: any) => <em style={{ color: 'var(--text-primary)' }} className="italic">{children}</em>,
     ul: ({ children }: any) => (
-      <ul className="list-disc list-outside ml-5 space-y-1 text-white/90 light:text-black/90 mb-3">
+      <ul style={{ color: 'var(--text-primary)' }} className="list-disc list-outside ml-5 space-y-1 mb-3">
         {children}
       </ul>
     ),
     ol: ({ children }: any) => (
-      <ol className="list-decimal list-outside ml-5 space-y-1 text-white/90 light:text-black/90 mb-3">
+      <ol style={{ color: 'var(--text-primary)' }} className="list-decimal list-outside ml-5 space-y-1 mb-3">
         {children}
       </ol>
     ),
-    li: ({ children }: any) => <li className="marker:text-white/60 light:text-black/60">{children}</li>,
+    li: ({ children }: any) => <li style={{ color: 'var(--text-primary)' }}>{children}</li>,
     blockquote: ({ children }: any) => (
-      <blockquote className="border-l-4 border-white/20 pl-4 text-white/80 light:text-black/80 italic mb-3">
+      <blockquote style={{ borderLeftColor: 'var(--card-border)', color: 'var(--text-secondary)' }} className="border-l-4 pl-4 italic mb-3">
         {children}
       </blockquote>
     ),
     h3: ({ children }: any) => (
-      <h3 className="text-white/90 light:text-black/90 font-semibold text-lg mt-4 mb-2">{children}</h3>
+      <h3 style={{ color: 'var(--text-primary)' }} className="font-semibold text-lg mt-4 mb-2">{children}</h3>
     ),
     h4: ({ children }: any) => (
-      <h4 className="text-white/80 light:text-black/80 font-semibold mt-3 mb-2">{children}</h4>
+      <h4 style={{ color: 'var(--text-primary)' }} className="font-semibold mt-3 mb-2">{children}</h4>
     ),
     a: ({ href, children }: any) => (
       <a
@@ -860,7 +860,7 @@ export default function DeepStudyPage() {
     <main className="mx-auto max-w-5xl px-4 py-8">
       <button
         onClick={() => window.history.back()}
-        className="mb-6 flex items-center gap-2 text-sm text-white/60 hover:text-white/90 transition-colors"
+        className="mb-6 flex items-center gap-2 text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -868,10 +868,10 @@ export default function DeepStudyPage() {
         Back
       </button>
 
-      <h1 className={`${playfair.className} text-4xl md:text-5xl font-bold mb-3 text-white/95 light:text-black/95 text-center`}>
+      <h1 className={`${playfair.className} text-4xl md:text-5xl font-bold mb-3" style={{ color: 'var(--text-primary)' }} text-center`}>
         Deep Study
       </h1>
-      <p className="text-white/70 light:text-black/70 mb-8 text-center">
+      <p style={{ color: 'var(--text-secondary)' }} className="mb-8 text-center">
         Compare translations, read commentary, watch teaching videos, and explore study tools
       </p>
 
@@ -895,9 +895,9 @@ export default function DeepStudyPage() {
                 <div key={study.timestamp} className="flex items-center justify-between gap-2 p-2 rounded hover:bg-white/5">
                   <button
                     onClick={() => loadSavedStudy(study)}
-                    className="flex-1 text-left text-sm text-white/80 light:text-black/80 hover:text-white light:text-black truncate"
+                    style={{ color: 'var(--text-secondary)' }} className="flex-1 text-left text-sm hover:opacity-100 truncate"
                   >
-                    <span className="text-xs text-white/50 light:text-black/50 mr-2">
+                    <span style={{ color: 'var(--text-muted)' }} className="text-xs mr-2">
                       {new Date(study.timestamp).toLocaleDateString()}
                     </span>
                     {study.reference}
@@ -916,7 +916,7 @@ export default function DeepStudyPage() {
         )}
 
         <div className="mb-4">
-          <label htmlFor="reference" className="mb-2 block text-sm text-white/80 light:text-black/80">
+          <label htmlFor="reference" style={{ color: 'var(--text-secondary)' }} className="mb-2 block text-sm">
             Enter a Bible Reference
           </label>
           <input
@@ -928,14 +928,14 @@ export default function DeepStudyPage() {
             onKeyDown={handleKeyPress}
             className="input"
           />
-          <p className="text-xs text-white/50 light:text-black/50 mt-1">
+          <p style={{ color: 'var(--text-muted)' }} className="text-xs mt-1">
             💡 Supports single verses (John 3:16), verse ranges (John 3:16-18), or entire chapters (Psalms 51)
           </p>
         </div>
 
         <div className="mb-4">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-white/60 light:text-black/60">
+            <p style={{ color: 'var(--text-secondary)' }} className="text-sm">
               {savedStudies.length > 0 ? "Your Saved Passages:" : "Quick References:"}
             </p>
             {savedStudies.length > 0 && (
@@ -958,7 +958,7 @@ export default function DeepStudyPage() {
               </button>
             ))}
             {savedStudies.length === 0 && (
-              <p className="text-xs text-white/40 mt-1 w-full">
+              <p style={{ color: 'var(--text-muted)' }} className="text-xs mt-1 w-full">
                 💡 Tip: Save passages to see your own quick links here!
               </p>
             )}
@@ -1029,16 +1029,16 @@ export default function DeepStudyPage() {
         <>
           {data.parsed && data.isChapter && (
             <div className="mb-6 text-center">
-              <h2 className="text-2xl font-semibold text-white/90 light:text-black/90">
+              <h2 style={{ color: 'var(--text-primary)' }} className="text-2xl font-semibold">
                 {data.reference}
-                <span className="text-white/60 light:text-black/60 text-lg ml-2">(Entire Chapter)</span>
+                <span style={{ color: 'var(--text-secondary)' }} className="text-lg ml-2">(Entire Chapter)</span>
               </h2>
             </div>
           )}
 
           {additionalCommentaries?.crossReferences && additionalCommentaries.crossReferences.length > 0 && (
             <div className="mb-6 rounded-xl border border-white/10 bg-white/5 p-4">
-              <h3 className="text-sm font-semibold text-white/70 light:text-black/70 mb-3 flex items-center gap-2">
+              <h3 style={{ color: 'var(--text-secondary)' }} className="text-sm font-semibold mb-3 flex items-center gap-2">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                 </svg>

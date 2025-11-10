@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Playfair_Display } from "next/font/google";
-import logo from "@/public/logo.png";
 
 const playfair = Playfair_Display({
   weight: ["400", "600", "700"],
@@ -61,7 +60,7 @@ export default function SplashPage() {
         }}
       >
         <Image
-          src={logo}
+          src="/logo.png" // ✅ direct path to /public/logo.png
           alt="The Busy Christian"
           width={200}
           height={200}

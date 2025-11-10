@@ -1,4 +1,6 @@
-// app/page.tsx
+// app/home/page.tsx
+"use client";
+// app/home/page.tsx
 "use client";
 
 import type { JSX } from "react";
@@ -16,13 +18,13 @@ import { CheckInModal } from "@/components/CheckInModal";
 import { JourneyDashboard } from "@/components/JourneyDashboard";
 import { SettingsModal } from "@/components/SettingsModal";
 import { CrisisModal } from "@/components/CrisisModal";
-import { progressTracker } from '@/lib/progressTracker';
-import { DailyDevotional } from '@/devotional/DailyDevotional';
+import { progressTracker } from "@/lib/progressTracker";
+import { DailyDevotional } from "@/devotional/DailyDevotional";
 import { DevotionalModal } from "@/components/DevotionalModal";
-import { NotificationService } from '@/lib/notificationService';
-import { StudyReminderBanner } from '@/components/StudyReminderBanner';
-import { RelatedCoursesPanel } from '@/components/RelatedCoursesPanel';
-import { safeStorage } from '@/utils/safeStorage';
+import { NotificationService } from "@/lib/notificationService";
+import { StudyReminderBanner } from "@/components/StudyReminderBanner";
+import { RelatedCoursesPanel } from "@/components/RelatedCoursesPanel";
+import { safeStorage } from "@/utils/safeStorage";
 import { KeywordSearchResults } from "@/components/KeywordSearchResults";
 
 function copyToClipboard(text: string) {

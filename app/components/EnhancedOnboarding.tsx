@@ -208,19 +208,11 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
               </div>
 
               {/* Sign In Modal */}
-              {showSignIn && (
-                <div className="fixed inset-0 z-50" onClick={() => setShowSignIn(false)}>
-                  <div onClick={(e) => e.stopPropagation()}>
-                    <SignInPrompt
-                      onClose={() => setShowSignIn(false)}
-                      onSignInSuccess={() => {
-                        setShowSignIn(false);
-                        // Auth context will update and useEffect will handle the rest
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
+              <SignInPrompt
+                isOpen={showSignIn}
+                onClose={() => setShowSignIn(false)}
+                message="Sign in to unlock all features including Ask the Pastor, Deep Study, and Prayer Community"
+              />
             </div>
           )}
 

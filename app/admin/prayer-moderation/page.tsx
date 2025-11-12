@@ -220,20 +220,20 @@ export default function PrayerModerationPage() {
         {/* COMPACT PRAYER TABLE */}
         <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden">
           {/* Table Header */}
-          <div className="grid grid-cols-13 gap-3 px-4 py-3 bg-white/5 border-b border-white/10 text-xs font-semibold text-white/80">
-            <div className="col-span-1 text-center flex items-center justify-center">
+          <div className="grid grid-cols-12 gap-3 px-4 py-3 bg-white/5 border-b border-white/10 text-xs font-semibold text-white/80">
+            <div className="col-span-3 flex items-center gap-2">
               <input
                 type="checkbox"
                 checked={selectedIds.size === filteredPrayers.length && filteredPrayers.length > 0}
                 onChange={toggleSelectAll}
                 className="w-4 h-4 rounded border-white/30 bg-white/10 cursor-pointer"
               />
+              <span>User / Category</span>
             </div>
-            <div className="col-span-3">User / Category</div>
-            <div className="col-span-4">Prayer Request</div>
+            <div className="col-span-5">Prayer Request</div>
             <div className="col-span-1 text-center">Status</div>
             <div className="col-span-1 text-center">❤️</div>
-            <div className="col-span-3 text-center">Actions</div>
+            <div className="col-span-2 text-center">Actions</div>
           </div>
 
           {/* Table Body */}
@@ -253,25 +253,23 @@ export default function PrayerModerationPage() {
                   }`}
                 >
                   {/* Main Row */}
-                  <div className="grid grid-cols-13 gap-3 px-4 py-3 text-sm items-start">
-                    {/* Checkbox */}
-                    <div className="col-span-1 flex items-start justify-center pt-1">
+                  <div className="grid grid-cols-12 gap-3 px-4 py-3 text-sm items-start">
+                    {/* User / Category with Checkbox */}
+                    <div className="col-span-3 flex items-start gap-2">
                       <input
                         type="checkbox"
                         checked={selectedIds.has(prayer.id)}
                         onChange={() => toggleSelect(prayer.id)}
-                        className="w-4 h-4 rounded border-white/30 bg-white/10 cursor-pointer"
+                        className="w-4 h-4 rounded border-white/30 bg-white/10 cursor-pointer mt-1"
                       />
-                    </div>
-
-                    {/* User / Category */}
-                    <div className="col-span-3">
-                      <div className="font-medium text-white truncate">{prayer.userName}</div>
-                      <div className="text-xs text-white/50">{prayer.category}</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-white truncate">{prayer.userName}</div>
+                        <div className="text-xs text-white/50">{prayer.category}</div>
+                      </div>
                     </div>
 
                     {/* Prayer Preview */}
-                    <div className="col-span-4">
+                    <div className="col-span-5">
                       <button
                         onClick={() => toggleExpand(prayer.id)}
                         className="text-left text-white/70 hover:text-white transition-colors w-full"
@@ -307,7 +305,7 @@ export default function PrayerModerationPage() {
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="col-span-3 flex gap-1">
+                    <div className="col-span-2 flex gap-1">
                       <button
                         onClick={() => handleEdit(prayer)}
                         className="flex-1 px-2 py-1 bg-blue-500/80 text-white rounded text-xs hover:bg-blue-600 transition-colors font-medium"

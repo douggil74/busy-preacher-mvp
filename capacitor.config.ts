@@ -22,7 +22,7 @@ const config: CapacitorConfig = {
   // Plugin configuration
   plugins: {
     SplashScreen: {
-      launchShowDuration: 3500,  // Show for 3.5 seconds - enough time to read
+      launchShowDuration: 10000,  // Show for 10 seconds
       backgroundColor: '#0f1729',
       showSpinner: false,  // No spinner, just the beautiful splash image
       launchAutoHide: true,

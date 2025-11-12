@@ -114,41 +114,49 @@ export async function POST(request: NextRequest) {
 
     // Search for relevant sermons in the database
     // This automatically scans ALL uploaded sermons and finds the most relevant ones
+    // Skip sermon search for brief follow-ups to improve response time
     let relevantSermons: Sermon[] = [];
     let sermonContext = '';
 
-    try {
-      const searchResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/sermons/search`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          query: question,
-          limit: 3, // Get top 3 most relevant sermons
-          threshold: 0.75, // High relevance threshold
-        }),
-      });
+    const briefFollowUpPatterns = /^(thank you|thanks|ok|okay|got it|makes sense|i see|alright|appreciate it|understood|cool|right|yes|no|yeah|yep|nope)[\s\.\!]*$/i;
+    const isBriefFollowUp = briefFollowUpPatterns.test(question.trim());
 
-      if (searchResponse.ok) {
-        const searchData = await searchResponse.json();
-        relevantSermons = searchData.sermons || [];
+    if (!isBriefFollowUp) {
+      try {
+        const searchResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/sermons/search`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            query: question,
+            limit: 3, // Get top 3 most relevant sermons
+            threshold: 0.75, // High relevance threshold
+          }),
+        });
 
-        if (relevantSermons.length > 0) {
-          sermonContext = '\n\nRELEVANT TEACHINGS FROM CORNERSTONE CHURCH SERMONS:\n\n';
-          relevantSermons.forEach((sermon, index) => {
-            sermonContext += `--- Sermon ${index + 1}: "${sermon.title}" ---\n`;
-            if (sermon.scripture_reference) {
-              sermonContext += `Scripture: ${sermon.scripture_reference}\n`;
-            }
-            if (sermon.date) {
-              sermonContext += `Date: ${new Date(sermon.date).toLocaleDateString()}\n`;
-            }
-            sermonContext += `\nKey Excerpt:\n${sermon.content.substring(0, 1500)}...\n\n`;
-          });
+        if (searchResponse.ok) {
+          const searchData = await searchResponse.json();
+          relevantSermons = searchData.sermons || [];
+
+          if (relevantSermons.length > 0) {
+            sermonContext = '\n\nRELEVANT TEACHINGS FROM CORNERSTONE CHURCH SERMONS:\n\n';
+            relevantSermons.forEach((sermon, index) => {
+              sermonContext += `--- Sermon ${index + 1}: "${sermon.title}" ---\n`;
+              if (sermon.scripture_reference) {
+                sermonContext += `Scripture: ${sermon.scripture_reference}\n`;
+              }
+              if (sermon.date) {
+                sermonContext += `Date: ${new Date(sermon.date).toLocaleDateString()}\n`;
+              }
+              sermonContext += `\nKey Excerpt:\n${sermon.content.substring(0, 800)}...\n\n`;
+            });
+          }
         }
+      } catch (searchError) {
+        console.error('Sermon search failed (continuing without):', searchError);
+        // Continue without sermon context if search fails
       }
-    } catch (searchError) {
-      console.error('Sermon search failed (continuing without):', searchError);
-      // Continue without sermon context if search fails
+    } else {
+      console.log('[OPTIMIZATION] Skipping sermon search for brief follow-up');
     }
 
     // Build conversation context for OpenAI
@@ -397,7 +405,7 @@ ${relevantSermons.length === 0 ? 'Note: No specific sermon content is available 
         'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'gpt-4-turbo-preview',
+        model: 'gpt-4o', // Faster and cheaper than gpt-4-turbo-preview
         max_tokens: 1024,
         temperature: 0.7,
         messages,

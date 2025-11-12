@@ -79,11 +79,16 @@ export default function AdminDashboard() {
 
   return (
     <AdminAuth>
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-sm border-b border-slate-800">
+      <div className="sticky top-0 z-10 backdrop-blur-sm" style={{
+        backgroundColor: 'var(--card-bg)',
+        borderBottomWidth: '1px',
+        borderBottomStyle: 'solid',
+        borderBottomColor: 'var(--card-border)'
+      }}>
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Admin Dashboard</h1>
         </div>
       </div>
 
@@ -91,18 +96,33 @@ export default function AdminDashboard() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Stats Bar - Small & Non-clickable */}
         <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="bg-slate-800/30 border border-slate-700/50 rounded-lg p-3">
-            <p className="text-xs text-slate-400 mb-1">Sermons in Database</p>
+          <div className="rounded-lg p-3" style={{
+            backgroundColor: 'var(--card-bg)',
+            borderWidth: '1px',
+            borderStyle: 'solid',
+            borderColor: 'var(--card-border)'
+          }}>
+            <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>Sermons in Database</p>
             <p className="text-2xl font-bold text-blue-400">817</p>
           </div>
 
-          <div className="bg-slate-800/30 border border-slate-700/50 rounded-lg p-3">
-            <p className="text-xs text-slate-400 mb-1">Ready to Upload</p>
+          <div className="rounded-lg p-3" style={{
+            backgroundColor: 'var(--card-bg)',
+            borderWidth: '1px',
+            borderStyle: 'solid',
+            borderColor: 'var(--card-border)'
+          }}>
+            <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>Ready to Upload</p>
             <p className="text-2xl font-bold text-amber-400">866</p>
           </div>
 
-          <div className="bg-slate-800/30 border border-slate-700/50 rounded-lg p-3">
-            <p className="text-xs text-slate-400 mb-1">AI Features</p>
+          <div className="rounded-lg p-3" style={{
+            backgroundColor: 'var(--card-bg)',
+            borderWidth: '1px',
+            borderStyle: 'solid',
+            borderColor: 'var(--card-border)'
+          }}>
+            <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>AI Features</p>
             <p className="text-2xl font-bold text-green-400">Active</p>
           </div>
         </div>
@@ -114,7 +134,9 @@ export default function AdminDashboard() {
 
         {/* Admin Tools Grid - Clearly Clickable */}
         <div className="mb-6">
-          <h2 className="text-xl font-bold text-white mb-4">Admin Tools <span className="text-sm text-slate-500 font-normal">(Click to open)</span></h2>
+          <h2 className="text-xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+            Admin Tools <span className="text-sm font-normal" style={{ color: 'var(--text-secondary)' }}>(Click to open)</span>
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {tools.map((tool) => (
               <Link
@@ -122,24 +144,33 @@ export default function AdminDashboard() {
                 href={tool.href}
                 target={tool.badge === 'External' ? '_blank' : undefined}
                 rel={tool.badge === 'External' ? 'noopener noreferrer' : undefined}
-                className="group bg-gradient-to-br from-slate-800 to-slate-800/50 border-2 border-slate-700 rounded-xl p-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20 transition-all duration-200 cursor-pointer"
+                className="group rounded-xl p-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20 transition-all duration-200 cursor-pointer"
+                style={{
+                  backgroundColor: 'var(--card-bg)',
+                  borderWidth: '2px',
+                  borderStyle: 'solid',
+                  borderColor: 'var(--card-border)'
+                }}
               >
                 <div className="flex items-center gap-3 mb-2">
                   <div className={`p-2 bg-gradient-to-br ${tool.color} rounded-lg text-white shrink-0`}>
                     {tool.icon}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-base font-semibold text-white group-hover:text-blue-400 transition-colors truncate">
+                    <h3 className="text-base font-semibold group-hover:text-blue-400 transition-colors truncate" style={{ color: 'var(--text-primary)' }}>
                       {tool.title}
                     </h3>
                   </div>
                   {tool.badge && (
-                    <span className="px-2 py-0.5 text-xs font-medium bg-slate-700/50 text-slate-300 rounded-full shrink-0">
+                    <span className="px-2 py-0.5 text-xs font-medium rounded-full shrink-0" style={{
+                      backgroundColor: 'var(--card-border)',
+                      color: 'var(--text-secondary)'
+                    }}>
                       {tool.badge}
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-slate-400 leading-relaxed line-clamp-2">
+                <p className="text-xs leading-relaxed line-clamp-2" style={{ color: 'var(--text-secondary)' }}>
                   {tool.description}
                 </p>
               </Link>
@@ -148,54 +179,69 @@ export default function AdminDashboard() {
         </div>
 
         {/* Quick Links */}
-        <div className="bg-slate-800/20 border border-slate-700/50 rounded-xl p-4">
-          <h2 className="text-base font-bold text-white mb-3">Quick Links</h2>
+        <div className="rounded-xl p-4" style={{
+          backgroundColor: 'var(--card-bg)',
+          borderWidth: '1px',
+          borderStyle: 'solid',
+          borderColor: 'var(--card-border)'
+        }}>
+          <h2 className="text-base font-bold mb-3" style={{ color: 'var(--text-primary)' }}>Quick Links</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <Link
               href="/pastoral-guidance"
-              className="flex items-center gap-2 p-2 bg-slate-800/30 rounded-lg hover:bg-slate-800/60 hover:border-amber-500/50 border border-transparent transition-all text-sm"
+              className="flex items-center gap-2 p-2 rounded-lg hover:border-amber-500/50 border border-transparent transition-all text-sm"
+              style={{ backgroundColor: 'var(--card-hover)' }}
             >
               <MessageCircle className="w-4 h-4 text-amber-400 shrink-0" />
-              <span className="text-white font-medium truncate">Pastoral Guidance</span>
+              <span className="font-medium truncate" style={{ color: 'var(--text-primary)' }}>Pastoral Guidance</span>
             </Link>
 
             <Link
               href="/prayer"
-              className="flex items-center gap-2 p-2 bg-slate-800/30 rounded-lg hover:bg-slate-800/60 hover:border-blue-500/50 border border-transparent transition-all text-sm"
+              className="flex items-center gap-2 p-2 rounded-lg hover:border-blue-500/50 border border-transparent transition-all text-sm"
+              style={{ backgroundColor: 'var(--card-hover)' }}
             >
               <Shield className="w-4 h-4 text-blue-400 shrink-0" />
-              <span className="text-white font-medium truncate">Prayer Center</span>
+              <span className="font-medium truncate" style={{ color: 'var(--text-primary)' }}>Prayer Center</span>
             </Link>
 
             <a
               href="https://supabase.com/dashboard/project/fteolzeggftsjevmseyn"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 p-2 bg-slate-800/30 rounded-lg hover:bg-slate-800/60 hover:border-green-500/50 border border-transparent transition-all text-sm"
+              className="flex items-center gap-2 p-2 rounded-lg hover:border-green-500/50 border border-transparent transition-all text-sm"
+              style={{ backgroundColor: 'var(--card-hover)' }}
             >
               <Database className="w-4 h-4 text-green-400 shrink-0" />
-              <span className="text-white font-medium truncate">Database</span>
+              <span className="font-medium truncate" style={{ color: 'var(--text-primary)' }}>Database</span>
             </a>
 
             <Link
               href="/"
-              className="flex items-center gap-2 p-2 bg-slate-800/30 rounded-lg hover:bg-slate-800/60 hover:border-slate-500/50 border border-transparent transition-all text-sm"
+              className="flex items-center gap-2 p-2 rounded-lg hover:border-slate-500/50 border border-transparent transition-all text-sm"
+              style={{ backgroundColor: 'var(--card-hover)' }}
             >
-              <ArrowLeft className="w-4 h-4 text-slate-400 shrink-0" />
-              <span className="text-white font-medium truncate">Home</span>
+              <ArrowLeft className="w-4 h-4 shrink-0" style={{ color: 'var(--text-secondary)' }} />
+              <span className="font-medium truncate" style={{ color: 'var(--text-primary)' }}>Home</span>
             </Link>
           </div>
         </div>
 
         {/* Documentation */}
-        <div className="mt-4 bg-blue-900/10 border border-blue-700/30 rounded-lg p-3">
-          <h2 className="text-sm font-bold text-blue-200 mb-2">Documentation</h2>
+        <div className="mt-4 rounded-lg p-3" style={{
+          backgroundColor: 'var(--card-bg)',
+          borderWidth: '1px',
+          borderStyle: 'solid',
+          borderColor: 'var(--card-border)'
+        }}>
+          <h2 className="text-sm font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Documentation</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
             <a
               href="https://github.com/douggil74/busy-preacher-mvp/blob/main/SUPABASE_SETUP.md"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-300 hover:text-blue-100 hover:underline transition-colors cursor-pointer"
+              className="hover:underline transition-colors cursor-pointer"
+              style={{ color: 'var(--text-link)' }}
             >
               • SUPABASE_SETUP.md
             </a>
@@ -203,7 +249,8 @@ export default function AdminDashboard() {
               href="https://github.com/douggil74/busy-preacher-mvp/blob/main/SERMON_DATABASE_SUMMARY.md"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-300 hover:text-blue-100 hover:underline transition-colors cursor-pointer"
+              className="hover:underline transition-colors cursor-pointer"
+              style={{ color: 'var(--text-link)' }}
             >
               • SERMON_DATABASE_SUMMARY.md
             </a>
@@ -211,7 +258,8 @@ export default function AdminDashboard() {
               href="https://github.com/douggil74/busy-preacher-mvp/blob/main/ONEDRIVE_SETUP.md"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-300 hover:text-blue-100 hover:underline transition-colors cursor-pointer"
+              className="hover:underline transition-colors cursor-pointer"
+              style={{ color: 'var(--text-link)' }}
             >
               • ONEDRIVE_SETUP.md
             </a>
@@ -219,7 +267,8 @@ export default function AdminDashboard() {
               href="https://github.com/douggil74/busy-preacher-mvp/blob/main/THIRD_PARTY_SERVICES.md"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-300 hover:text-blue-100 hover:underline transition-colors cursor-pointer"
+              className="hover:underline transition-colors cursor-pointer"
+              style={{ color: 'var(--text-link)' }}
             >
               • THIRD_PARTY_SERVICES.md
             </a>

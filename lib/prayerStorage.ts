@@ -1,4 +1,5 @@
 // Prayer Journal Storage Utilities
+import storage, { STORAGE_KEYS } from './storage';
 
 export interface Prayer {
   id: string;
@@ -15,33 +16,29 @@ export interface Prayer {
 
 export type PrayerFilter = 'all' | 'active' | 'answered';
 
-const STORAGE_KEY = 'busyChristian_prayers';
-
-/** Load all prayers from localStorage */
-export function getPrayers(): Prayer[] {
+/** Load all prayers from storage (async) */
+export async function getPrayers(): Promise<Prayer[]> {
   if (typeof window === 'undefined') return [];
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) return [];
-    return JSON.parse(stored);
+    return await storage.getJSON<Prayer[]>(STORAGE_KEYS.PRAYERS) || [];
   } catch (error) {
     console.error('Error loading prayers:', error);
     return [];
   }
 }
 
-/** Save all prayers */
-export function savePrayers(prayers: Prayer[]): void {
+/** Save all prayers (async) */
+export async function savePrayers(prayers: Prayer[]): Promise<void> {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(prayers));
+    await storage.setJSON(STORAGE_KEYS.PRAYERS, prayers);
   } catch (error) {
     console.error('Error saving prayers:', error);
   }
 }
 
-/** Add a new prayer */
-export function addPrayer(prayer: Omit<Prayer, 'id' | 'dateAdded' | 'isAnswered'>): Prayer {
+/** Add a new prayer (async) */
+export async function addPrayer(prayer: Omit<Prayer, 'id' | 'dateAdded' | 'isAnswered'>): Promise<Prayer> {
   const newPrayer: Prayer = {
     ...prayer,
     id: crypto.randomUUID(),
@@ -49,36 +46,36 @@ export function addPrayer(prayer: Omit<Prayer, 'id' | 'dateAdded' | 'isAnswered'
     isAnswered: false,
   };
 
-  const prayers = getPrayers();
+  const prayers = await getPrayers();
   prayers.unshift(newPrayer);
-  savePrayers(prayers);
+  await savePrayers(prayers);
   return newPrayer;
 }
 
-/** Update prayer by ID */
-export function updatePrayer(id: string, updates: Partial<Prayer>): void {
-  const prayers = getPrayers();
+/** Update prayer by ID (async) */
+export async function updatePrayer(id: string, updates: Partial<Prayer>): Promise<void> {
+  const prayers = await getPrayers();
   const index = prayers.findIndex(p => p.id === id);
   if (index !== -1) {
     prayers[index] = { ...prayers[index], ...updates };
-    savePrayers(prayers);
+    await savePrayers(prayers);
   }
 }
 
-/** Mark prayer answered */
-export function markAnswered(id: string, answerNotes?: string): void {
-  updatePrayer(id, {
+/** Mark prayer answered (async) */
+export async function markAnswered(id: string, answerNotes?: string): Promise<void> {
+  await updatePrayer(id, {
     isAnswered: true,
     dateAnswered: new Date().toISOString(),
     answerNotes: answerNotes || undefined,
   });
 }
 
-/** Delete prayer */
-export function deletePrayer(id: string): void {
-  const prayers = getPrayers();
+/** Delete prayer (async) */
+export async function deletePrayer(id: string): Promise<void> {
+  const prayers = await getPrayers();
   const filtered = prayers.filter(p => p.id !== id);
-  savePrayers(filtered);
+  await savePrayers(filtered);
 }
 
 /** Filter prayers by active/answered status */
@@ -151,9 +148,10 @@ export function getPrayerStats(prayers: Prayer[]) {
   };
 }
 
-/** ✅ Community prayers only (for /community-prayers) */
-export function getCommunityPrayers(): Prayer[] {
-  return getPrayers().filter(p => p.isShared === true);
+/** ✅ Community prayers only (for /community-prayers) (async) */
+export async function getCommunityPrayers(): Promise<Prayer[]> {
+  const prayers = await getPrayers();
+  return prayers.filter(p => p.isShared === true);
 }
 
 /** Format timestamps for UI */

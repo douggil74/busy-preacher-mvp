@@ -45,5 +45,60 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+
+	<!-- Push Notifications -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+		<string>fetch</string>
+	</array>
+
+	<!-- App Transport Security -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<false/>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>localhost</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+			</dict>
+		</dict>
+	</dict>
+
+	<!-- User Notifications -->
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>We'd like to send you prayer reminders and daily devotional notifications to help you stay connected with God throughout your day.</string>
+
+	<!-- Photo Library (for sharing study content) -->
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Allow The Busy Christian to save study notes and verses to your photo library for sharing.</string>
+
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Allow The Busy Christian to access your photos to share study content.</string>
+
+	<!-- Camera (for sharing) -->
+	<key>NSCameraUsageDescription</key>
+	<string>Allow The Busy Christian to use your camera to capture and share study moments.</string>
+
+	<!-- Calendar (for prayer reminders) -->
+	<key>NSCalendarsUsageDescription</key>
+	<string>Allow The Busy Christian to add prayer reminders to your calendar.</string>
+
+	<!-- Location (optional - for community features) -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Your location helps us connect you with nearby prayer warriors and community groups.</string>
+
+	<!-- Status bar style -->
+	<key>UIStatusBarStyle</key>
+	<string>UIStatusBarStyleLightContent</string>
+
+	<!-- Prevent backup of sensitive data -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>

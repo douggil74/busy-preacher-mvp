@@ -1,0 +1,21 @@
+{
+  "ios": {
+    "icon": {
+      "sources": [
+        {
+          "src": "resources/icon.png",
+          "background": "#1a1a1a",
+          "foreground": "resources/icon-foreground.png"
+        }
+      ]
+    },
+    "splash": {
+      "sources": [
+        {
+          "src": "resources/splash.png",
+          "background": "#1a1a1a"
+        }
+      ]
+    }
+  }
+}

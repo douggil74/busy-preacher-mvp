@@ -327,6 +327,14 @@ function HeaderBarContent() {
                 >
                   Prayer Center
                 </Link>
+                <Link
+                  href="/pastoral-guidance"
+                  className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+                  style={{ color: 'var(--text-primary)' }}
+                  onClick={() => setOpen(false)}
+                >
+                  Pastoral Guidance
+                </Link>
                 <div className="border-t my-1" style={{ borderColor: 'var(--card-border)' }} />
                 <Link
                   href="/about"

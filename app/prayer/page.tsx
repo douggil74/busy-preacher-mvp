@@ -134,7 +134,9 @@ export default function PrayerPage() {
 
   // Load private prayers from localStorage
   useEffect(() => {
-    setPrivatePrayers(getPrayers().filter(p => !p.isAnswered));
+    getPrayers().then(prayers => {
+      setPrivatePrayers(prayers.filter(p => !p.isAnswered));
+    });
   }, []);
 
   // Subscribe to community prayers
@@ -241,8 +243,9 @@ export default function PrayerPage() {
           tags: [category],
           isShared: false,
         };
-        addPrayer(newPrayer);
-        setPrivatePrayers(getPrayers().filter(p => !p.isAnswered));
+        await addPrayer(newPrayer);
+        const prayers = await getPrayers();
+        setPrivatePrayers(prayers.filter(p => !p.isAnswered));
         alert('✅ Private prayer saved!');
       } else {
         if (!isAuthenticated) {
@@ -302,19 +305,21 @@ export default function PrayerPage() {
     }
   };
 
-  const handleMarkPrivateAnswered = (prayerId: string) => {
+  const handleMarkPrivateAnswered = async (prayerId: string) => {
     const prayer = privatePrayers.find(p => p.id === prayerId);
     if (prayer) {
       const answer = prompt('How was this prayer answered? (Optional)');
-      markAnswered(prayerId, answer || '');
-      setPrivatePrayers(getPrayers().filter(p => !p.isAnswered));
+      await markAnswered(prayerId, answer || '');
+      const prayers = await getPrayers();
+      setPrivatePrayers(prayers.filter(p => !p.isAnswered));
     }
   };
 
-  const handleDeletePrivatePrayer = (prayerId: string) => {
+  const handleDeletePrivatePrayer = async (prayerId: string) => {
     if (confirm('Delete this prayer?')) {
-      deletePrayer(prayerId);
-      setPrivatePrayers(getPrayers().filter(p => !p.isAnswered));
+      await deletePrayer(prayerId);
+      const prayers = await getPrayers();
+      setPrivatePrayers(prayers.filter(p => !p.isAnswered));
     }
   };
 

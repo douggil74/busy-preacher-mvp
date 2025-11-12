@@ -155,8 +155,9 @@ export async function POST(request: NextRequest) {
     const messages: Array<{role: string; content: string}> = [];
 
     // SAFETY CHECK: Detect crisis situations
-    const crisisKeywords = /\b(suicid|kill myself|end my life|want to die|self harm|hurt myself|abuse|being hurt|molest|assault|overdose)\b/i;
+    const crisisKeywords = /(suicid|kill myself|end my life|want to die|self.?harm|hurt myself|abus|being hurt|molest|assault|overdose)/i;
     const isCrisis = crisisKeywords.test(question);
+    console.log(`🔍 Crisis check: question="${question}", isCrisis=${isCrisis}`);
 
     // Add system prompt with safety guardrails
     const systemPrompt = `You are Pastor Doug providing spiritual guidance. You're a real person with years of pastoral experience at Cornerstone Church. Respond as YOURSELF using "I", "me", and "my" - this is a personal conversation between you and someone who needs guidance.
@@ -373,17 +374,19 @@ ${relevantSermons.length === 0 ? 'Note: No specific sermon content is available 
     const answer = responseData.choices[0]?.message?.content || 'I apologize, but I was unable to generate a response.';
 
     // Check if this is a serious situation that needs pastor attention
-    const seriousKeywords = /\b(suicid|kill myself|end my life|want to die|self harm|hurt myself|abuse|being hurt|molest|assault|overdose|divorce|leaving god|walk away from faith|addiction|alcoholic|pornography|terminal|cancer|died|death of|lost my|job loss)\b/i;
+    const seriousKeywords = /(suicid|kill myself|end my life|want to die|self.?harm|hurt myself|abus|being hurt|molest|assault|overdose|divorc|leaving god|walk away from faith|addict|alcohol|pornograph|terminal|cancer|died|death of|lost my|job loss)/i;
     const shouldEmailPastor = isCrisis || seriousKeywords.test(question) || seriousKeywords.test(answer);
+    console.log(`📊 Email check: isCrisis=${isCrisis}, seriousInQuestion=${seriousKeywords.test(question)}, seriousInAnswer=${seriousKeywords.test(answer)}, shouldEmail=${shouldEmailPastor}`);
 
     // Send email notification for serious situations
     if (shouldEmailPastor) {
       try {
+        console.log(`🔔 Crisis/serious situation detected! Sending email...`);
         const userIp = request.headers.get('x-forwarded-for') ||
                        request.headers.get('x-real-ip') ||
                        'unknown';
 
-        await resend.emails.send({
+        const emailResult = await resend.emails.send({
           from: 'Pastoral Guidance Alert <onboarding@resend.dev>',
           to: process.env.ADMIN_EMAIL || 'doug.cag@gmail.com',
           subject: isCrisis ? '🚨 CRISIS - Immediate Pastoral Attention Needed' : '⚠️ Serious Pastoral Situation - Follow-up Needed',
@@ -424,11 +427,14 @@ ${relevantSermons.length === 0 ? 'Note: No specific sermon content is available 
           `,
         });
 
+        console.log(`✅ 📧 Email sent successfully to pastor!`, emailResult);
         console.log(`📧 Pastor notified of ${isCrisis ? 'CRISIS' : 'serious'} situation`);
       } catch (emailError) {
-        console.error('Failed to send pastor notification email:', emailError);
+        console.error('❌ Failed to send pastor notification email:', emailError);
         // Don't fail the request if email fails - user still gets their response
       }
+    } else {
+      console.log(`ℹ️ No crisis detected, no email sent`);
     }
 
     return NextResponse.json({ answer });

@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { Playfair_Display } from 'next/font/google';
 import { card, button, input, typography, cn } from '@/lib/ui-constants';
 import { PastorNote } from '@/components/PastorNote';
+import PastoralContactModal from '@/components/PastoralContactModal';
+import PastoralInbox from '@/components/PastoralInbox';
 
 const playfair = Playfair_Display({
   weight: ["600", "700"],
@@ -26,13 +28,49 @@ export default function PastoralGuidancePage() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [firstName, setFirstName] = useState('');
+  const [sessionId, setSessionId] = useState('');
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [isCrisisModal, setIsCrisisModal] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Get user's first name from localStorage
     const name = localStorage.getItem('bc-user-name') || 'Anonymous';
     setFirstName(name);
+
+    // Get or create session ID
+    let session = localStorage.getItem('bc-pastoral-session-id');
+    if (!session) {
+      session = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      localStorage.setItem('bc-pastoral-session-id', session);
+    }
+    setSessionId(session);
   }, []);
+
+  // Create or get conversation when session ID is available
+  useEffect(() => {
+    const createConversation = async () => {
+      if (!sessionId || !firstName) return;
+
+      try {
+        const response = await fetch('/api/pastoral-conversations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId, firstName }),
+        });
+
+        const data = await response.json();
+        if (data.conversation) {
+          setConversationId(data.conversation.id);
+        }
+      } catch (error) {
+        console.error('Failed to create conversation:', error);
+      }
+    };
+
+    createConversation();
+  }, [sessionId, firstName]);
 
   const getUserEmail = () => {
     return localStorage.getItem('bc-user-email') || undefined;
@@ -86,6 +124,52 @@ export default function PastoralGuidancePage() {
 
       setMessages(prev => [...prev, assistantMessage]);
 
+      // Check for crisis/serious keywords
+      const crisisKeywords = /\b(suicid|kill myself|end my life|want to die|self harm|hurt myself)\b/i;
+      const seriousKeywords = /\b(abuse|being hurt|molest|assault|overdose|divorce|leaving god|walk away from faith|addiction|alcoholic|pornography|terminal|cancer|died|death of|lost my|job loss)\b/i;
+
+      const isCrisis = crisisKeywords.test(userMessage.content);
+      const isSerious = !isCrisis && seriousKeywords.test(userMessage.content);
+
+      // Save messages to pastoral_messages table
+      if (conversationId) {
+        try {
+          // Save user message
+          await fetch('/api/pastoral-messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              conversationId,
+              sender: 'user',
+              message: userMessage.content,
+              isAiResponse: false,
+              flaggedSerious: isCrisis || isSerious,
+            }),
+          });
+
+          // Save AI response
+          await fetch('/api/pastoral-messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              conversationId,
+              sender: 'assistant',
+              message: data.answer,
+              isAiResponse: true,
+              flaggedSerious: isCrisis || isSerious,
+            }),
+          });
+        } catch (saveError) {
+          console.error('Failed to save messages:', saveError);
+        }
+      }
+
+      // Show contact modal for crisis or serious situations
+      if (isCrisis || isSerious) {
+        setIsCrisisModal(isCrisis);
+        setShowContactModal(true);
+      }
+
       // Log the question for learning and improvement (privacy-safe)
       try {
         await fetch('/api/guidance-logs', {
@@ -95,7 +179,7 @@ export default function PastoralGuidancePage() {
             firstName: firstName,
             question: userMessage.content,
             answer: data.answer,
-            flagged: false,
+            flagged: isCrisis || isSerious,
           }),
         });
       } catch (logError) {
@@ -295,6 +379,20 @@ export default function PastoralGuidancePage() {
           </form>
         </div>
       </div>
+
+      {/* Pastoral Inbox - Shows messages from pastor */}
+      {sessionId && (
+        <PastoralInbox sessionId={sessionId} firstName={firstName} />
+      )}
+
+      {/* Contact Modal - Shown for crisis/serious situations */}
+      <PastoralContactModal
+        isOpen={showContactModal}
+        onClose={() => setShowContactModal(false)}
+        isCrisis={isCrisisModal}
+        sessionId={sessionId}
+        firstName={firstName}
+      />
     </div>
   );
 }

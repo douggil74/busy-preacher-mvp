@@ -125,7 +125,7 @@ export default function PastoralGuidancePage() {
 
         <div className="text-center mb-8">
           <h1 className={cn(playfair.className, typography.h1, 'mb-3')} style={{ color: 'var(--text-primary)' }}>
-            Pastoral Guidance
+            Ask the Pastor
           </h1>
           <div className="h-[2px] w-24 bg-gradient-to-r from-yellow-400 to-amber-400 mx-auto mb-4"></div>
           <p className={cn(typography.body, 'mb-4')} style={{ color: 'var(--text-secondary)' }}>
@@ -168,57 +168,88 @@ export default function PastoralGuidancePage() {
               </p>
             </div>
 
-            {/* Suggested Questions */}
-            <div className="grid gap-2 max-w-2xl mx-auto">
-              {[
-                "How do I deal with anxiety and fear?",
-                "What does the Bible say about forgiveness?",
-                "How can I grow closer to God?",
-                "How do I handle conflict in relationships?",
-              ].map((suggestion, i) => (
-                <button
-                  key={i}
-                  onClick={() => setInput(suggestion)}
-                  className={cn(button.secondary, 'text-left')}
-                >
-                  {suggestion}
-                </button>
-              ))}
+            {/* Example Questions */}
+            <div className="max-w-2xl mx-auto">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="h-px flex-1" style={{ backgroundColor: 'var(--card-border)' }}></div>
+                <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
+                  Example Questions
+                </p>
+                <div className="h-px flex-1" style={{ backgroundColor: 'var(--card-border)' }}></div>
+              </div>
+              <div className="grid gap-2">
+                {[
+                  "How do I deal with anxiety and fear?",
+                  "What does the Bible say about forgiveness?",
+                  "How can I grow closer to God?",
+                  "How do I handle conflict in relationships?",
+                ].map((suggestion, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setInput(suggestion)}
+                    className={cn(button.secondary, 'text-left')}
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} items-end gap-2`}
               >
-                <div
-                  className={cn(
-                    'max-w-[80%] rounded-2xl px-4 py-3',
-                    message.role === 'user' && 'bg-gradient-to-br from-amber-500 to-amber-600 text-white'
+                {message.role === 'assistant' && (
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white text-xs font-bold mb-1">
+                    P
+                  </div>
+                )}
+                <div className="flex flex-col" style={{ maxWidth: '70%' }}>
+                  {message.role === 'assistant' && (
+                    <p className="text-xs font-medium mb-1 ml-2" style={{ color: 'var(--text-secondary)' }}>
+                      Pastor
+                    </p>
                   )}
-                  style={message.role === 'assistant' ? {
-                    backgroundColor: 'var(--card-bg)',
-                    borderWidth: '1px',
-                    borderStyle: 'solid',
-                    borderColor: 'var(--card-border)',
-                    color: 'var(--text-primary)'
-                  } : undefined}
-                >
-                  <p className={cn(typography.body, 'whitespace-pre-wrap')}>{message.content}</p>
+                  <div
+                    className={cn(
+                      'px-4 py-2.5 shadow-sm',
+                      message.role === 'user'
+                        ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-t-2xl rounded-bl-2xl rounded-br-md'
+                        : 'rounded-t-2xl rounded-br-2xl rounded-bl-md'
+                    )}
+                    style={message.role === 'assistant' ? {
+                      backgroundColor: 'var(--card-bg)',
+                      borderWidth: '1px',
+                      borderStyle: 'solid',
+                      borderColor: 'var(--card-border)',
+                      color: 'var(--text-primary)'
+                    } : undefined}
+                  >
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                  </div>
                   <p
-                    className={cn(typography.xs, 'mt-2')}
-                    style={message.role === 'assistant' ? { color: 'var(--text-secondary)' } : { color: 'rgba(251, 191, 36, 0.6)' }}
+                    className="text-xs mt-1 px-2"
+                    style={{ color: 'var(--text-secondary)' }}
                   >
                     {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>
+                {message.role === 'user' && (
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xs font-bold mb-1">
+                    {firstName.charAt(0).toUpperCase()}
+                  </div>
+                )}
               </div>
             ))}
             {isLoading && (
-              <div className="flex justify-start">
-                <div className="rounded-2xl px-4 py-3" style={{
+              <div className="flex justify-start items-end gap-2">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white text-xs font-bold mb-1">
+                  P
+                </div>
+                <div className="rounded-t-2xl rounded-br-2xl rounded-bl-md px-4 py-3" style={{
                   backgroundColor: 'var(--card-bg)',
                   borderWidth: '1px',
                   borderStyle: 'solid',
@@ -246,7 +277,7 @@ export default function PastoralGuidancePage() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="What's on your heart?"
+              placeholder="Message Pastor..."
               disabled={isLoading}
               className="flex-1 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all duration-200 disabled:opacity-50"
               style={{

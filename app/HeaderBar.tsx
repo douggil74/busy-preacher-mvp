@@ -305,7 +305,7 @@ function HeaderBarContent() {
                   style={{ color: 'var(--text-primary)' }}
                   onClick={() => setOpen(false)}
                 >
-                  Pastoral Guidance
+                  Ask the Pastor
                 </Link>
                 <div className="border-t my-1" style={{ borderColor: 'var(--card-border)' }} />
                 <Link

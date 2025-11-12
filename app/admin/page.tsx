@@ -28,7 +28,7 @@ export default function AdminDashboard() {
       color: 'from-red-500 to-red-600',
     },
     {
-      title: 'Pastoral Guidance Logs',
+      title: 'Ask the Pastor Logs',
       description: 'Monitor flagged questions (abusive, spam, off-topic). Track moderation events.',
       href: '/admin/moderation',
       icon: <Shield className="w-8 h-8" />,
@@ -193,7 +193,7 @@ export default function AdminDashboard() {
               style={{ backgroundColor: 'var(--card-hover)' }}
             >
               <MessageCircle className="w-4 h-4 text-amber-400 shrink-0" />
-              <span className="font-medium truncate" style={{ color: 'var(--text-primary)' }}>Pastoral Guidance</span>
+              <span className="font-medium truncate" style={{ color: 'var(--text-primary)' }}>Ask the Pastor</span>
             </Link>
 
             <Link

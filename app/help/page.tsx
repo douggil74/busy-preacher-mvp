@@ -94,7 +94,7 @@ export default function HelpPage() {
         </div>
 
         <div className={card.warning}>
-          <h2 className={cn(typography.h2, 'mb-4')}>💬 Pastoral Guidance</h2>
+          <h2 className={cn(typography.h2, 'mb-4')}>💬 Ask the Pastor</h2>
           <p className="text-white/80 light:text-black/80 mb-3">
             Get AI-powered biblical counsel and spiritual guidance:
           </p>
@@ -280,7 +280,7 @@ export default function HelpPage() {
             </li>
             <li className="flex items-start gap-2">
               <span className="text-yellow-400">•</span>
-              <span>Ask Pastoral Guidance questions about real-life situations for personalized biblical counsel</span>
+              <span>Use Ask the Pastor to get biblical counsel and spiritual guidance on real-life situations</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-yellow-400">•</span>

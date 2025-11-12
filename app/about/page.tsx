@@ -60,7 +60,7 @@ export default function AboutPage() {
               with time-tested resources from trusted scholars and teachers.
             </p>
             <p className="leading-relaxed">
-              Our revolutionary <strong>Pastoral Guidance</strong> feature uses AI to provide biblically-grounded counsel
+              Our revolutionary <strong>Ask the Pastor</strong> feature uses AI to provide biblically-grounded counsel
               rooted in YOUR church's actual teachings. Upload your sermon archive and watch as the AI cites your own
               messages when answering spiritual questions—making pastoral care scalable and personalized.
             </p>
@@ -106,7 +106,7 @@ export default function AboutPage() {
             <div>
               <h3 className="font-semibold text-white/90 light:text-black/90 mb-2 flex items-center gap-2">
                 <span className="text-yellow-400">💬</span>
-                Pastoral Guidance (AI + Your Sermons)
+                Ask the Pastor (AI + Your Sermons)
               </h3>
               <p className="text-sm text-white/70 light:text-black/70 ml-6">
                 Revolutionary AI-powered pastoral counseling that cites YOUR actual sermons. Upload your sermon archive
@@ -314,7 +314,7 @@ export default function AboutPage() {
         <div className="card bg-red-500/10 border-red-500/30">
           <h2 className="text-xl font-semibold mb-3 text-white/90 light:text-black/90">🛡️ Pastoral Care & Safety</h2>
           <p className="text-white/80 light:text-black/80 leading-relaxed mb-3">
-            Our Prayer Center and Pastoral Guidance include sophisticated pastoral care features:
+            Our Prayer Center and Ask the Pastor include sophisticated pastoral care features:
           </p>
           <ul className="space-y-2 text-sm text-white/70 light:text-black/70">
             <li className="flex items-start gap-2">
@@ -332,7 +332,7 @@ export default function AboutPage() {
             </li>
             <li className="flex items-start gap-2">
               <span className="text-yellow-400">•</span>
-              <span><strong>Pastoral Guidance Monitoring:</strong> Admin logs track all guidance questions with automatic
+              <span><strong>Ask the Pastor Monitoring:</strong> Admin logs track all guidance questions with automatic
               flagging of abusive, spam, or off-topic content for review</span>
             </li>
             <li className="flex items-start gap-2">
@@ -387,7 +387,7 @@ export default function AboutPage() {
               href="/pastoral-guidance"
               className={button.secondary}
             >
-              Get Pastoral Guidance
+              Ask the Pastor
             </Link>
             <Link
               href="/prayer"

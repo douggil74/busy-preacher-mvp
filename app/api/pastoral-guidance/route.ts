@@ -39,9 +39,26 @@ async function logModerationEvent(
   }
 }
 
+// Dynamic sign-off options for pastoral responses
+const signOffOptions = [
+  "Praying for you, Your pastor",
+  "Blessings to you, Your pastor",
+  "Love you, Your pastor",
+  "Grace and peace, Your pastor",
+  "In His love, Your pastor",
+  "Walking with you, Your pastor",
+  "You're in my prayers, Your pastor",
+  "God bless you, Your pastor",
+  "In Christ's love, Your pastor",
+  "Peace be with you, Your pastor",
+];
+
 export async function POST(request: NextRequest) {
   try {
     const { question, conversationHistory } = await request.json();
+
+    // Select a random sign-off for this response
+    const signOff = signOffOptions[Math.floor(Math.random() * signOffOptions.length)];
 
     if (!question || typeof question !== 'string') {
       return NextResponse.json(
@@ -62,7 +79,7 @@ export async function POST(request: NextRequest) {
     const isTesting = testingPatterns.test(question.trim());
 
     if (isAbusive) {
-      const response = "I understand you may be going through a difficult time, but I'm here to provide compassionate spiritual guidance. If you're feeling angry or frustrated, I encourage you to reach out to a counselor who can help you process those emotions.\n\nFor now, I think it's best we end our conversation tonight. You're welcome to return when you're ready for genuine spiritual support.\n\nBlessings to you, Your pastor";
+      const response = `I understand you may be going through a difficult time, but I'm here to provide compassionate spiritual guidance. If you're feeling angry or frustrated, I encourage you to reach out to a counselor who can help you process those emotions.\n\nFor now, I think it's best we end our conversation tonight. You're welcome to return when you're ready for genuine spiritual support.\n\n${signOff}`;
 
       await logModerationEvent('abusive', question, response, request);
 
@@ -70,7 +87,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (isSpam) {
-      const response = "This space is dedicated to spiritual guidance and pastoral care. If you have questions about faith, life challenges, or spiritual growth, I'm here to help.\n\nBlessings to you, Your pastor";
+      const response = `This space is dedicated to spiritual guidance and pastoral care. If you have questions about faith, life challenges, or spiritual growth, I'm here to help.\n\n${signOff}`;
 
       await logModerationEvent('spam', question, response, request);
 
@@ -78,7 +95,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (isOffTopic) {
-      const response = "I'm here specifically to provide spiritual guidance and biblical wisdom. For questions about general topics like weather, sports, or practical advice, you might find other resources more helpful.\n\nIf you have questions about faith, relationships, struggles, or spiritual growth, I'm here to help.\n\nBlessings to you, Your pastor";
+      const response = `I'm here specifically to provide spiritual guidance and biblical wisdom. For questions about general topics like weather, sports, or practical advice, you might find other resources more helpful.\n\nIf you have questions about faith, relationships, struggles, or spiritual growth, I'm here to help.\n\n${signOff}`;
 
       await logModerationEvent('off-topic', question, response, request);
 
@@ -88,7 +105,7 @@ export async function POST(request: NextRequest) {
     if (isTesting) {
       console.log('[MODERATION] Testing/greeting detected:', question);
       return NextResponse.json({
-        answer: "Hello! I'm here to provide spiritual guidance and biblical wisdom. Feel free to ask me about:\n\n• Faith and spiritual growth\n• Life challenges and struggles\n• Relationships and forgiveness\n• Questions about God and the Bible\n• Finding hope and encouragement\n\nWhat's on your heart today?\n\nBlessings to you, Your pastor"
+        answer: `Hello! I'm here to provide spiritual guidance and biblical wisdom. Feel free to ask me about:\n\n• Faith and spiritual growth\n• Life challenges and struggles\n• Relationships and forgiveness\n• Questions about God and the Bible\n• Finding hope and encouragement\n\nWhat's on your heart today?\n\n${signOff}`
       });
     }
 
@@ -214,7 +231,7 @@ ${relevantSermons.length > 0 ? '- Quote from sermon teachings when relevant (in 
 - If they're dealing with serious trauma, mental health, or addiction - gently but clearly suggest they need professional help alongside spiritual support
 - End with genuine hope - not fake positivity, but real truth about God's faithfulness
 `}
-- ALWAYS sign your response with "Blessings to you, Your pastor" on a new line at the end
+- ALWAYS sign your response with "${signOff}" on a new line at the end
 
 ${relevantSermons.length === 0 ? 'Note: No specific sermon content is available for this question, but draw from general biblical wisdom and pastoral insight - speaking from experience and truth, not just theory.' : ''}`;
 

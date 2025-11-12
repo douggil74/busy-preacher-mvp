@@ -185,11 +185,39 @@ export default function AdminDashboard() {
         {/* Documentation */}
         <div className="mt-4 bg-blue-900/10 border border-blue-700/30 rounded-lg p-3">
           <h2 className="text-sm font-bold text-blue-200 mb-2">Documentation</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-blue-300">
-            <p>• SUPABASE_SETUP.md</p>
-            <p>• SERMON_DATABASE_SUMMARY.md</p>
-            <p>• ONEDRIVE_SETUP.md</p>
-            <p>• THIRD_PARTY_SERVICES.md</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+            <a
+              href="https://github.com/douggil74/busy-preacher-mvp/blob/main/SUPABASE_SETUP.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-300 hover:text-blue-100 hover:underline transition-colors cursor-pointer"
+            >
+              • SUPABASE_SETUP.md
+            </a>
+            <a
+              href="https://github.com/douggil74/busy-preacher-mvp/blob/main/SERMON_DATABASE_SUMMARY.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-300 hover:text-blue-100 hover:underline transition-colors cursor-pointer"
+            >
+              • SERMON_DATABASE_SUMMARY.md
+            </a>
+            <a
+              href="https://github.com/douggil74/busy-preacher-mvp/blob/main/ONEDRIVE_SETUP.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-300 hover:text-blue-100 hover:underline transition-colors cursor-pointer"
+            >
+              • ONEDRIVE_SETUP.md
+            </a>
+            <a
+              href="https://github.com/douggil74/busy-preacher-mvp/blob/main/THIRD_PARTY_SERVICES.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-300 hover:text-blue-100 hover:underline transition-colors cursor-pointer"
+            >
+              • THIRD_PARTY_SERVICES.md
+            </a>
           </div>
         </div>
       </div>

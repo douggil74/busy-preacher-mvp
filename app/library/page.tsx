@@ -273,7 +273,16 @@ export default function LibraryPage() {
           ) : (
             <div className="grid md:grid-cols-2 gap-4">
               {filteredStudies.map((study) => (
-                <div key={study.timestamp} className="card hover:bg-white/[0.07] transition cursor-default">
+                <div
+                  key={study.timestamp}
+                  className="card hover:bg-white/[0.07] transition cursor-pointer"
+                  onClick={(e) => {
+                    // Only open if not clicking delete button
+                    if (!(e.target as HTMLElement).closest('button[aria-label="Delete study"]')) {
+                      openStudy(e, study.reference);
+                    }
+                  }}
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-white/90 light:text-black/90 mb-1 truncate">
@@ -282,15 +291,12 @@ export default function LibraryPage() {
                       <p className="text-xs text-white/50 light:text-black/50 mb-3">
                         {new Date(study.timestamp).toLocaleDateString()} • {study.type || 'study'}
                       </p>
-                      <button
-                        onClick={(e) => openStudy(e, study.reference)}
-                        className="inline-flex items-center gap-1 text-sm text-yellow-400 hover:text-yellow-300 transition"
-                      >
+                      <span className="inline-flex items-center gap-1 text-sm text-yellow-400 group-hover:text-yellow-300 transition">
                         Open Study
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
-                      </button>
+                      </span>
                     </div>
                     <button
                       onClick={(e) => deleteStudy(e, study.timestamp)}

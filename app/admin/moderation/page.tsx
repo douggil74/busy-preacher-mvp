@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, AlertTriangle, Ban, MessageSquareOff } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import AdminAuth from '@/components/AdminAuth';
 
 interface ModerationLog {
   id: string;
@@ -68,6 +69,7 @@ export default function ModerationLogsPage() {
   };
 
   return (
+    <AdminAuth>
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-sm border-b border-slate-800">
@@ -177,5 +179,7 @@ export default function ModerationLogsPage() {
         )}
       </div>
     </div>
+  );
+    </AdminAuth>
   );
 }

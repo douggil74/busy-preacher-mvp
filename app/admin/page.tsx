@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { ArrowLeft, Shield, Upload, Cloud, FileText, Database, MessageCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import AdminAuth from '@/components/AdminAuth';
 
 interface AdminTool {
   title: string;
@@ -68,6 +69,7 @@ export default function AdminDashboard() {
   ];
 
   return (
+    <AdminAuth>
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-sm border-b border-slate-800">
@@ -192,5 +194,6 @@ export default function AdminDashboard() {
         </div>
       </div>
     </div>
+    </AdminAuth>
   );
 }

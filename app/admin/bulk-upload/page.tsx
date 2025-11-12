@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import { ArrowLeft, Upload, File, CheckCircle, XCircle, Loader2, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import AdminAuth from '@/components/AdminAuth';
 
 interface FileStatus {
   file: File;
@@ -153,11 +154,14 @@ export default function BulkUploadPage() {
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    if (bytes < 1024 * 1024) return (
+    <AdminAuth>bytes / 1024).toFixed(1) + ' KB';
+    return (
+    <AdminAuth>bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
   return (
+    <AdminAuth>
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
@@ -330,5 +334,7 @@ export default function BulkUploadPage() {
         </div>
       </div>
     </div>
+  );
+    </AdminAuth>
   );
 }

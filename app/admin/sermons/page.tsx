@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ArrowLeft, Upload, Loader2, CheckCircle, FileStack } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import AdminAuth from '@/components/AdminAuth';
 
 export default function AdminSermonsPage() {
   const router = useRouter();
@@ -62,6 +63,7 @@ export default function AdminSermonsPage() {
   };
 
   return (
+    <AdminAuth>
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
@@ -244,5 +246,6 @@ export default function AdminSermonsPage() {
         </form>
       </div>
     </div>
+    </AdminAuth>
   );
 }

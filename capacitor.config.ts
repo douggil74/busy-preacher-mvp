@@ -1,46 +1,35 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
-// Environment configuration
-// Production mode for App Store upload
-const isDevelopment = false; // Use production URL for App Store
-const serverUrl = isDevelopment
-  ? 'http://localhost:3000'  // Local Next.js dev server
-  : 'https://thebusychristianapp.com';
-
 const config: CapacitorConfig = {
   appId: 'com.busychristian.app',
   appName: 'The Busy Christian',
   webDir: 'www',
 
-  // Server configuration - point to web app URL
-  server: isDevelopment ? {
-    url: serverUrl,
-    cleartext: true, // Allow HTTP in development
-    androidScheme: 'http'
-  } : {
-    url: serverUrl,
-    cleartext: false // HTTPS only in production
+  // Point to production website
+  server: {
+    url: 'https://thebusychristianapp.com',
+    cleartext: false
   },
 
   // iOS specific configuration
   ios: {
     contentInset: 'automatic',
     scrollEnabled: true,
-    backgroundColor: '#1a1a1a'
+    backgroundColor: '#0f1729',
+    allowsLinkPreview: false  // Disable link previews for more native feel
   },
 
   // Plugin configuration
   plugins: {
     SplashScreen: {
-      launchShowDuration: 2000,  // Show for 2 seconds
-      backgroundColor: '#1a1a1a',
-      showSpinner: true,
-      spinnerColor: '#FFD700',
-      androidSpinnerStyle: 'small',
-      iosSpinnerStyle: 'small',
+      launchShowDuration: 2500,  // Show for 2.5 seconds
+      backgroundColor: '#0f1729',
+      showSpinner: false,  // No spinner, just the beautiful splash image
       launchAutoHide: true,
       splashFullScreen: false,
-      splashImmersive: false
+      splashImmersive: false,
+      androidSplashResourceName: 'splash',
+      iosSplashResourceName: 'Splash'
     },
     PushNotifications: {
       presentationOptions: ['badge', 'sound', 'alert']

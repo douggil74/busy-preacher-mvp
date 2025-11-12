@@ -34,6 +34,10 @@ export default function PastoralGuidancePage() {
     setFirstName(name);
   }, []);
 
+  const getUserEmail = () => {
+    return localStorage.getItem('bc-user-email') || undefined;
+  };
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -64,6 +68,8 @@ export default function PastoralGuidancePage() {
         body: JSON.stringify({
           question: userMessage.content,
           conversationHistory: messages.slice(-4), // Send last 4 messages for context
+          userName: firstName,
+          userEmail: getUserEmail(),
         }),
       });
 

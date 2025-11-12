@@ -58,7 +58,7 @@ const signOffOptions = [
 
 export async function POST(request: NextRequest) {
   try {
-    const { question, conversationHistory } = await request.json();
+    const { question, conversationHistory, userName, userEmail } = await request.json();
 
     // Select a random sign-off for this response
     const signOff = signOffOptions[Math.floor(Math.random() * signOffOptions.length)];
@@ -396,6 +396,33 @@ ${relevantSermons.length === 0 ? 'Note: No specific sermon content is available 
                 ${isCrisis ? '🚨 CRISIS SITUATION DETECTED' : '⚠️ Serious Pastoral Situation'}
               </h2>
 
+              ${userEmail || userName ? `
+              <div style="background: #dbeafe; padding: 16px; border-radius: 8px; margin: 16px 0; border: 2px solid #3b82f6;">
+                <h3 style="margin-top: 0; color: #1e40af;">👤 User Contact Information</h3>
+                ${userName ? `<p style="margin: 4px 0;"><strong>Name:</strong> ${userName}</p>` : ''}
+                ${userEmail ? `<p style="margin: 4px 0;"><strong>Email:</strong> ${userEmail}</p>` : ''}
+
+                ${userEmail ? `
+                <div style="margin-top: 16px;">
+                  <a href="mailto:${userEmail}?subject=Following up on your pastoral guidance question&body=Hi ${userName || 'there'},%0D%0A%0D%0AI received your question through the pastoral guidance app and wanted to reach out personally.%0D%0A%0D%0AYour question was: "${question.substring(0, 100)}..."%0D%0A%0D%0AI'd love to talk with you more about this. When would be a good time for us to connect?%0D%0A%0D%0ABlessings,%0D%0APastor Doug"
+                     style="display: inline-block; padding: 12px 24px; background: #3b82f6; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 8px;">
+                    📧 Respond Now via Email
+                  </a>
+                </div>
+                ` : `
+                <p style="color: #92400e; font-size: 14px; margin-top: 12px;">
+                  ℹ️ No email provided. User can only be reached through the app or if they contact you directly.
+                </p>
+                `}
+              </div>
+              ` : `
+              <div style="background: #fef3c7; padding: 16px; border-radius: 8px; margin: 16px 0; border: 1px solid #fbbf24;">
+                <p style="margin: 0; color: #92400e;">
+                  ℹ️ <strong>No contact information available.</strong> User is using the app anonymously.
+                </p>
+              </div>
+              `}
+
               <div style="background: #f3f4f6; padding: 16px; border-radius: 8px; margin: 16px 0;">
                 <h3 style="margin-top: 0;">Question from user:</h3>
                 <p style="white-space: pre-wrap; background: white; padding: 12px; border-radius: 4px; border-left: 4px solid ${isCrisis ? '#dc2626' : '#f59e0b'};">
@@ -413,7 +440,7 @@ ${relevantSermons.length === 0 ? 'Note: No specific sermon content is available 
               <div style="background: #fef3c7; padding: 16px; border-radius: 8px; margin: 16px 0; border: 1px solid #fbbf24;">
                 <p style="margin: 0; font-weight: bold; color: #92400e;">
                   ${isCrisis ?
-                    '⚠️ This person may be in immediate danger. Consider reaching out directly if you have their contact information.' :
+                    '⚠️ This person may be in immediate danger. Consider reaching out directly.' :
                     '💡 This situation may benefit from personal follow-up or in-person pastoral care.'}
                 </p>
               </div>

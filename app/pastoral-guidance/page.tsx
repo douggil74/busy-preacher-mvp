@@ -3,7 +3,15 @@
 import { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Send, Loader2, MessageCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { Playfair_Display } from 'next/font/google';
 import { card, button, input, typography, cn } from '@/lib/ui-constants';
+import { PastorNote } from '@/components/PastorNote';
+
+const playfair = Playfair_Display({
+  weight: ["600", "700"],
+  subsets: ["latin"],
+  display: "swap",
+});
 
 interface Message {
   id: string;
@@ -103,24 +111,28 @@ export default function PastoralGuidancePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
-          <button
-            onClick={() => router.push('/')}
-            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-          </button>
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg">
-              <MessageCircle className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className={cn(typography.h3, 'text-slate-900 dark:text-white')}>Pastoral Guidance</h1>
-              <p className={cn(typography.xs, 'text-slate-600 dark:text-slate-400')}>Biblical wisdom and guidance</p>
-            </div>
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <button
+          onClick={() => router.push('/')}
+          className="mb-6 flex items-center gap-2 text-sm transition-colors"
+          style={{ color: 'var(--text-secondary)' }}
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </button>
+
+        <div className="text-center mb-8">
+          <h1 className={cn(playfair.className, typography.h1, 'mb-3')} style={{ color: 'var(--text-primary)' }}>
+            Pastoral Guidance
+          </h1>
+          <div className="h-[2px] w-24 bg-gradient-to-r from-yellow-400 to-amber-400 mx-auto mb-4"></div>
+          <p className={cn(typography.body, 'mb-4')} style={{ color: 'var(--text-secondary)' }}>
+            Biblical wisdom and guidance for life's questions - ask anything on your heart
+          </p>
+          <div className="max-w-3xl mx-auto">
+            <PastorNote variant="encouragement" />
           </div>
         </div>
       </div>
@@ -132,17 +144,24 @@ export default function PastoralGuidancePage() {
             <div className="inline-flex p-3 bg-gradient-to-br from-amber-500/10 to-amber-600/10 rounded-full mb-3">
               <MessageCircle className="w-10 h-10 text-amber-500" />
             </div>
-            <h2 className={cn(typography.h3, 'mb-2 text-slate-900 dark:text-white')}>How can I help you today?</h2>
-            <p className={cn(typography.small, 'text-slate-600 dark:text-slate-400 mb-6 max-w-md mx-auto')}>
-              Ask any question about faith, life challenges, relationships, or spiritual growth.
+            <h2 className={cn(typography.h3, 'mb-2')} style={{ color: 'var(--text-primary)' }}>
+              What's on your heart today?
+            </h2>
+            <p className={cn(typography.small, 'mb-6 max-w-md mx-auto')} style={{ color: 'var(--text-secondary)' }}>
+              No question is too big or too small. Let's talk about what's going on in your life.
             </p>
 
             {/* Safety Disclaimer */}
-            <div className="max-w-2xl mx-auto mb-6 p-4 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 text-left">
-              <p className={cn(typography.small, 'text-blue-900 dark:text-blue-200 mb-2')}>
+            <div className="max-w-2xl mx-auto mb-6 p-4 rounded-xl text-left" style={{
+              backgroundColor: 'var(--card-bg)',
+              borderWidth: '1px',
+              borderStyle: 'solid',
+              borderColor: 'var(--card-border)'
+            }}>
+              <p className={cn(typography.small, 'mb-2')} style={{ color: 'var(--text-primary)' }}>
                 <strong>Important:</strong> This is AI-assisted spiritual guidance based on pastoral teachings.
               </p>
-              <p className={cn(typography.xs, 'text-blue-800 dark:text-blue-300')}>
+              <p className={cn(typography.xs)} style={{ color: 'var(--text-secondary)' }}>
                 • Not a substitute for professional counseling or medical care<br/>
                 • For crisis situations, please call 988 (Suicide & Crisis Lifeline) or 911<br/>
                 • Seek licensed professional help for serious mental health concerns
@@ -177,18 +196,20 @@ export default function PastoralGuidancePage() {
                 <div
                   className={cn(
                     'max-w-[80%] rounded-2xl px-4 py-3',
-                    message.role === 'user'
-                      ? 'bg-gradient-to-br from-amber-500 to-amber-600 text-white'
-                      : 'bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-slate-100'
+                    message.role === 'user' && 'bg-gradient-to-br from-amber-500 to-amber-600 text-white'
                   )}
+                  style={message.role === 'assistant' ? {
+                    backgroundColor: 'var(--card-bg)',
+                    borderWidth: '1px',
+                    borderStyle: 'solid',
+                    borderColor: 'var(--card-border)',
+                    color: 'var(--text-primary)'
+                  } : undefined}
                 >
                   <p className={cn(typography.body, 'whitespace-pre-wrap')}>{message.content}</p>
                   <p
-                    className={cn(
-                      typography.xs,
-                      'mt-2',
-                      message.role === 'user' ? 'text-amber-100' : 'text-slate-500 dark:text-slate-500'
-                    )}
+                    className={cn(typography.xs, 'mt-2')}
+                    style={message.role === 'assistant' ? { color: 'var(--text-secondary)' } : { color: 'rgba(251, 191, 36, 0.6)' }}
                   >
                     {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
@@ -197,7 +218,12 @@ export default function PastoralGuidancePage() {
             ))}
             {isLoading && (
               <div className="flex justify-start">
-                <div className={cn(card.default, 'rounded-2xl px-4 py-3')}>
+                <div className="rounded-2xl px-4 py-3" style={{
+                  backgroundColor: 'var(--card-bg)',
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: 'var(--card-border)'
+                }}>
                   <Loader2 className="w-5 h-5 text-amber-500 animate-spin" />
                 </div>
               </div>
@@ -208,7 +234,12 @@ export default function PastoralGuidancePage() {
       </div>
 
       {/* Input Form */}
-      <div className="fixed bottom-4 left-0 right-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border border-slate-200 dark:border-slate-800 rounded-t-2xl shadow-xl">
+      <div className="fixed bottom-4 left-0 right-0 backdrop-blur-sm rounded-t-2xl shadow-xl" style={{
+        backgroundColor: 'var(--card-bg)',
+        borderWidth: '1px',
+        borderStyle: 'solid',
+        borderColor: 'var(--card-border)'
+      }}>
         <div className="max-w-4xl mx-auto px-4 py-3">
           <form onSubmit={handleSubmit} className="flex gap-2">
             <input
@@ -217,7 +248,14 @@ export default function PastoralGuidancePage() {
               onChange={(e) => setInput(e.target.value)}
               placeholder="What's on your heart?"
               disabled={isLoading}
-              className="flex-1 px-4 py-3 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-300 dark:border-white/20 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all duration-200 disabled:opacity-50"
+              className="flex-1 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all duration-200 disabled:opacity-50"
+              style={{
+                backgroundColor: 'var(--input-bg)',
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                borderColor: 'var(--input-border)',
+                color: 'var(--text-primary)'
+              }}
             />
             <button
               type="submit"

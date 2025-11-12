@@ -1,5 +1,5 @@
-import { getSyncQueue, clearSyncQueue } from "./prayedForStorage";
-import { getMetrics, clearMetrics } from "./metricsTracker";
+import { getSyncQueue, clearSyncQueue } from "@/lib/prayedForStorage";
+import { getMetrics, clearMetrics } from "@/lib/metricsTracker";
 
 // Wait a bit after load, then attempt to sync
 export function startBackgroundSync(intervalHours = 3) {

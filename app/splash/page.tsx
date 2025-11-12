@@ -41,8 +41,8 @@ export default function SplashPage() {
 
   return (
     <main
-      className={`flex flex-col items-center justify-center h-[100svh] w-full transition-opacity duration-[1500ms] ease-in-out ${
-        visible ? "opacity-100" : "opacity-0"
+      className={`flex flex-col items-center justify-center h-[100svh] w-full transition-all duration-[1500ms] ease-in-out ${
+        visible ? "opacity-100 scale-100" : "opacity-0 scale-105"
       } ${playfair.className}`}
       style={{
         backgroundColor: "#0f1729",

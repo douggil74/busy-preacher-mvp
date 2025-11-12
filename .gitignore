@@ -25,6 +25,7 @@ pnpm-lock.yaml
 # === APP-SPECIFIC ===
 # Email subscriber data (sensitive)
 data/subscribers.txt
+data/banner.json
 
 # === FIREBASE / CLOUD FUNCTIONS (if present) ===
 .firebase/

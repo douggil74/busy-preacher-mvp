@@ -5,6 +5,7 @@ import { startBackgroundSync } from "@/lib/backgroundSync";
 import { StudyStyleProvider } from './hooks/useStudyStyle';
 import { AuthProvider } from '@/contexts/AuthContext';
 import HeaderBar from './HeaderBar';
+import AdminBanner from '@/components/AdminBanner';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -15,6 +16,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     <AuthProvider>
       <StudyStyleProvider>
         <HeaderBar />
+        <AdminBanner />
         <main className="pt-16" style={{ backgroundColor: 'var(--bg-color)' }}>
           {children}
         </main>

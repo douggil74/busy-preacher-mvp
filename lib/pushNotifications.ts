@@ -143,15 +143,33 @@ export class PushNotificationService {
    */
   private async onTokenReceived(token: string): Promise<void> {
     console.log('FCM Token received:', token);
-    
-    // TODO: Send token to your backend server
-    // Example: await sendTokenToServer(token);
-    
-    // You can also store it in Firebase Firestore for the user
+
     try {
       // Store token in localStorage/preferences for later use
       const storage = (await import('./storage')).default;
       await storage.setItem('fcm-token', token);
+
+      // Save token to Firestore for broadcast notifications
+      const { db } = await import('./firebase');
+      const { doc, setDoc, serverTimestamp } = await import('firebase/firestore');
+
+      // Get or generate a device ID
+      let deviceId = await storage.getItem('device-id');
+      if (!deviceId) {
+        deviceId = `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        await storage.setItem('device-id', deviceId);
+      }
+
+      // Save token to Firestore
+      await setDoc(doc(db, 'fcm_tokens', deviceId), {
+        token,
+        deviceId,
+        platform: Capacitor.getPlatform(),
+        lastUpdated: serverTimestamp(),
+        enabled: true
+      });
+
+      console.log('FCM token saved to Firestore:', deviceId);
     } catch (error) {
       console.error('Error storing FCM token:', error);
     }

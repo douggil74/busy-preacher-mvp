@@ -5,7 +5,6 @@ import { Playfair_Display } from "next/font/google";
 import { getAllCourses } from "@/lib/courseDatabase";
 import { CourseTracker } from "@/lib/courseTracker";
 import { useEffect, useState, useMemo } from "react";
-import { typography, cn } from '@/lib/ui-constants';
 
 const playfair = Playfair_Display({
   weight: ["600", "700"],
@@ -51,15 +50,17 @@ export default function CoursesPage() {
   }, {} as Record<string, typeof courses>);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-slate-100 to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 text-slate-900 dark:text-white">
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white">
       <div className="max-w-5xl mx-auto px-4 py-16">
         {/* PAGE HEADER */}
         <div className="text-center sm:text-left mb-16">
-          <h1 className={cn(playfair.className, typography.h1, 'mb-4 text-slate-900 dark:text-white')}>
+          <h1
+            className={`${playfair.className} text-5xl sm:text-6xl font-bold mb-4 text-white tracking-tight`}
+          >
             Study Courses
           </h1>
           <div className="h-[2px] w-24 bg-gradient-to-r from-yellow-400 to-amber-400 mx-auto sm:mx-0 mb-4"></div>
-          <p className={cn(typography.bodyLarge, 'text-slate-600 dark:text-white/70 italic')}>
+          <p className="text-white/70 text-lg italic">
             Structured learning paths to deepen your faith
           </p>
         </div>
@@ -71,10 +72,12 @@ export default function CoursesPage() {
               {/* CATEGORY HEADER */}
               <div className="flex items-center gap-3 mb-8">
                 <span className="text-3xl">{getCategoryIcon(category)}</span>
-                <h2 className={cn(playfair.className, typography.h2, 'text-slate-900 dark:text-white')}>
+                <h2
+                  className={`${playfair.className} text-3xl sm:text-4xl font-bold text-white`}
+                >
                   {getCategoryName(category)}
                 </h2>
-                <div className="flex-1 h-px bg-gradient-to-r from-slate-300 dark:from-white/20 to-transparent" />
+                <div className="flex-1 h-px bg-gradient-to-r from-white/20 to-transparent" />
               </div>
 
               {/* COURSE CARDS */}
@@ -87,7 +90,7 @@ export default function CoursesPage() {
                     <Link
                       key={course.id}
                       href={`/courses/${course.id}`}
-                      className="relative group rounded-3xl overflow-hidden bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 backdrop-blur-sm hover:border-yellow-400/40 transition-all duration-300 shadow-lg"
+                      className="relative group rounded-3xl overflow-hidden bg-white/5 border border-white/10 backdrop-blur-sm hover:border-yellow-400/40 transition-all duration-300 shadow-lg"
                     >
                       {/* Glow Border on Hover */}
                       <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-yellow-400/10 to-orange-400/10 opacity-0 group-hover:opacity-100 transition duration-500 blur-md" />
@@ -95,28 +98,28 @@ export default function CoursesPage() {
                       {/* Inner Content */}
                       <div className="relative p-6">
                         <div className="flex items-start gap-5 mb-4">
-                          <div className="text-4xl flex-shrink-0 w-14 h-14 rounded-xl bg-slate-200 dark:bg-white/10 border border-slate-300 dark:border-white/10 flex items-center justify-center">
+                          <div className="text-4xl flex-shrink-0 w-14 h-14 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center">
                             {getCategoryIcon(category)}
                           </div>
 
                           <div className="flex-1 min-w-0">
                             <h3
-                              className={`${playfair.className} text-xl font-bold text-slate-900 dark:text-white mb-1 group-hover:text-yellow-400 transition-colors`}
+                              className={`${playfair.className} text-xl font-bold text-white mb-1 group-hover:text-yellow-400 transition-colors`}
                             >
                               {course.title}
                             </h3>
                             {course.subtitle && (
-                              <p className="text-sm text-slate-500 dark:text-white/50">{course.subtitle}</p>
+                              <p className="text-sm text-white/50">{course.subtitle}</p>
                             )}
                           </div>
                         </div>
 
-                        <p className="text-sm text-slate-600 dark:text-white/70 leading-relaxed mb-4">
+                        <p className="text-sm text-white/70 leading-relaxed mb-4">
                           {course.description}
                         </p>
 
                         {/* Course Meta */}
-                        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-white/50 mb-4">
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-white/50 mb-4">
                           <span>📘 {course.totalSessions} sessions</span>
                           <span>•</span>
                           <span className="capitalize">{course.difficulty}</span>
@@ -126,10 +129,10 @@ export default function CoursesPage() {
                         {hasStarted ? (
                           <div>
                             <div className="flex items-center justify-between text-xs mb-2">
-                              <span className="text-slate-600 dark:text-white/60 font-medium">In Progress</span>
+                              <span className="text-white/60 font-medium">In Progress</span>
                               <span className="text-yellow-400 font-bold">{progress}%</span>
                             </div>
-                            <div className="h-2 bg-slate-300 dark:bg-white/10 rounded-full overflow-hidden">
+                            <div className="h-2 bg-white/10 rounded-full overflow-hidden">
                               <div
                                 className="h-full bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full transition-all duration-500"
                                 style={{ width: `${progress}%` }}
@@ -167,7 +170,7 @@ export default function CoursesPage() {
         <div className="text-center mt-24">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-slate-600 dark:text-white/60 hover:text-yellow-400 transition-colors"
+            className="inline-flex items-center gap-2 text-white/60 hover:text-yellow-400 transition-colors"
           >
             <svg
               className="w-4 h-4"

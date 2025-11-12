@@ -6,7 +6,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { Playfair_Display } from "next/font/google";
 import { useSearchParams } from "next/navigation";
-import { useStudyStyle } from "./hooks/useStudyStyle";
 import { UserProfileMenu } from '@/components/UserProfileMenu';
 
 const playfair = Playfair_Display({
@@ -16,12 +15,6 @@ const playfair = Playfair_Display({
   display: "swap",
 });
 
-const studyStyleIcons = {
-  "Casual Devotional": "☕",
-  "Bible Student": "📖",
-  "Pastor / Teacher": "👨‍🏫",
-} as const;
-
 function HeaderBarContent() {
   const [open, setOpen] = useState(false);
   const [scale, setScale] = useState(1);
@@ -29,12 +22,8 @@ function HeaderBarContent() {
   const [mounted, setMounted] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const { style, hydrated } = useStudyStyle();
   const searchParams = useSearchParams();
   const reference = searchParams.get("reference") || "";
-
-  const displayStyle = hydrated ? style : ("…" as typeof style);
-  const displayIcon = (hydrated && studyStyleIcons[style]) || ("✨" as string);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -154,23 +143,6 @@ function HeaderBarContent() {
 
         {/* Controls */}
         <div className="flex items-center gap-2">
-          {/* Style indicator */}
-          <Link
-            href="/personalize"
-            className="hidden md:flex items-center gap-2 rounded-xl px-3 h-9 hover:bg-white/10 text-sm transition-colors"
-            style={{
-              borderWidth: '1px',
-              borderStyle: 'solid',
-              borderColor: 'var(--card-border)'
-            }}
-            title={`Current style: ${displayStyle}; Click to change.`}
-          >
-            <span className="text-base">{displayIcon}</span>
-            <span style={{ color: 'var(--text-secondary)' }} suppressHydrationWarning>
-              {displayStyle}
-            </span>
-          </Link>
-
           {/* Font resize */}
           <div 
             className="hidden sm:flex rounded-xl overflow-hidden"

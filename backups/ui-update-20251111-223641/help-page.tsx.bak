@@ -11,7 +11,6 @@ const playfair = Playfair_Display({
 });
 
 import { APP_VERSION } from "@/lib/version";
-import { card, typography, cn } from '@/lib/ui-constants';
 
 export default function HelpPage() {
   return (
@@ -26,16 +25,16 @@ export default function HelpPage() {
         Back
       </button>
       
-      <h1 className={cn(playfair.className, typography.h1, 'text-center mb-3')}>
+      <h1 className={`${playfair.className} text-4xl md:text-5xl font-bold mb-3 text-white/95 light:text-black/95 text-center`}>
         Help & Guide
       </h1>
-      <p className={cn(typography.body, 'text-white/80 mb-8 text-center')}>
+      <p className="text-white/70 light:text-black/70 mb-8 text-center">
         Everything you need to know to get the most out of The Busy Christian
       </p>
 
       <section className="space-y-6">
-        <div className={card.default}>
-          <h2 className={cn(typography.h2, 'mb-3')}>Getting Started</h2>
+        <div className="card">
+          <h2 className="text-xl font-semibold mb-3 text-white/90 light:text-black/90">Getting Started</h2>
           <p className="text-white/80 light:text-black/80 mb-4">
             <strong>The Busy Christian</strong> helps preachers, teachers, and devoted students 
             prepare outlines and explore Scripture faster — while encouraging faithful, Spirit-led study 
@@ -93,8 +92,8 @@ export default function HelpPage() {
           </div>
         </div>
 
-        <div className={card.warning}>
-          <h2 className={cn(typography.h2, 'mb-4')}>💬 Pastoral Guidance</h2>
+        <div className="card bg-amber-500/10 border-amber-500/30">
+          <h2 className="text-xl font-semibold mb-4 text-white/90 light:text-black/90">💬 Pastoral Guidance</h2>
           <p className="text-white/80 light:text-black/80 mb-3">
             Get AI-powered biblical counsel and spiritual guidance:
           </p>
@@ -130,8 +129,8 @@ export default function HelpPage() {
           </div>
         </div>
 
-        <div className={card.info}>
-          <h2 className={cn(typography.h2, 'mb-4')}>🙏 Prayer Center</h2>
+        <div className="card bg-blue-500/10 border-blue-500/30">
+          <h2 className="text-xl font-semibold mb-4 text-white/90 light:text-black/90">🙏 Prayer Center</h2>
           <p className="text-white/80 light:text-black/80 mb-3">
             Connect with your community through prayer requests and real-time notifications:
           </p>

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ArrowLeft, Shield, Upload, Cloud, FileText, Database, MessageCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import AdminAuth from '@/components/AdminAuth';
+import SetAdminBanner from '@/components/SetAdminBanner';
 
 interface AdminTool {
   title: string;
@@ -96,6 +97,11 @@ export default function AdminDashboard() {
             <p className="text-xs text-slate-400 mb-1">AI Features</p>
             <p className="text-2xl font-bold text-green-400">Active</p>
           </div>
+        </div>
+
+        {/* Admin Banner Section */}
+        <div className="mb-8">
+          <SetAdminBanner />
         </div>
 
         {/* Admin Tools Grid - Clearly Clickable */}

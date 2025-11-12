@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Send, Loader2, MessageCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { card, button, input, typography, cn } from '@/lib/ui-constants';
 
 interface Message {
   id: string;
@@ -79,46 +78,46 @@ export default function PastoralGuidancePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
+      <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-sm border-b border-slate-800">
+        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
           <button
             onClick={() => router.push('/')}
-            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+            className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
           >
-            <ArrowLeft className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+            <ArrowLeft className="w-5 h-5 text-slate-400" />
           </button>
           <div className="flex items-center gap-3">
             <div className="p-2 bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg">
               <MessageCircle className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className={cn(typography.h3, 'text-slate-900 dark:text-white')}>Pastoral Guidance</h1>
-              <p className={cn(typography.xs, 'text-slate-600 dark:text-slate-400')}>Biblical wisdom and guidance</p>
+              <h1 className="text-xl font-bold text-white">Pastoral Guidance</h1>
+              <p className="text-sm text-slate-400">Ask for guidance rooted in biblical wisdom</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Messages Container */}
-      <div className="max-w-4xl mx-auto px-4 py-4 pb-20">
+      <div className="max-w-4xl mx-auto px-4 py-6 pb-32">
         {messages.length === 0 ? (
-          <div className="text-center py-8">
-            <div className="inline-flex p-3 bg-gradient-to-br from-amber-500/10 to-amber-600/10 rounded-full mb-3">
-              <MessageCircle className="w-10 h-10 text-amber-500" />
+          <div className="text-center py-12">
+            <div className="inline-flex p-4 bg-gradient-to-br from-amber-500/10 to-amber-600/10 rounded-full mb-4">
+              <MessageCircle className="w-12 h-12 text-amber-500" />
             </div>
-            <h2 className={cn(typography.h3, 'mb-2 text-slate-900 dark:text-white')}>How can I help you today?</h2>
-            <p className={cn(typography.small, 'text-slate-600 dark:text-slate-400 mb-6 max-w-md mx-auto')}>
+            <h2 className="text-2xl font-bold text-white mb-2">How can I help you today?</h2>
+            <p className="text-slate-400 mb-6 max-w-md mx-auto">
               Ask any question about faith, life challenges, relationships, or spiritual growth.
             </p>
 
             {/* Safety Disclaimer */}
-            <div className="max-w-2xl mx-auto mb-6 p-4 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 text-left">
-              <p className={cn(typography.small, 'text-blue-900 dark:text-blue-200 mb-2')}>
-                <strong>Important:</strong> This is AI-assisted spiritual guidance based on pastoral teachings.
+            <div className="max-w-2xl mx-auto mb-8 p-4 bg-blue-900/30 border border-blue-700/50 rounded-lg text-left">
+              <p className="text-sm text-blue-200 mb-2">
+                <strong>Important:</strong> This is AI-assisted spiritual guidance based on pastoral teachings from Cornerstone Church.
               </p>
-              <p className={cn(typography.xs, 'text-blue-800 dark:text-blue-300')}>
+              <p className="text-xs text-blue-300">
                 • Not a substitute for professional counseling or medical care<br/>
                 • For crisis situations, please call 988 (Suicide & Crisis Lifeline) or 911<br/>
                 • Seek licensed professional help for serious mental health concerns
@@ -126,7 +125,7 @@ export default function PastoralGuidancePage() {
             </div>
 
             {/* Suggested Questions */}
-            <div className="grid gap-2 max-w-2xl mx-auto">
+            <div className="grid gap-3 max-w-2xl mx-auto">
               {[
                 "How do I deal with anxiety and fear?",
                 "What does the Bible say about forgiveness?",
@@ -136,7 +135,7 @@ export default function PastoralGuidancePage() {
                 <button
                   key={i}
                   onClick={() => setInput(suggestion)}
-                  className={cn(button.secondary, 'text-left')}
+                  className="p-4 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-lg text-left text-slate-300 hover:text-white transition-all"
                 >
                   {suggestion}
                 </button>
@@ -144,27 +143,24 @@ export default function PastoralGuidancePage() {
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {messages.map((message) => (
               <div
                 key={message.id}
                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={cn(
-                    'max-w-[80%] rounded-2xl px-4 py-3',
+                  className={`max-w-[80%] rounded-2xl px-4 py-3 ${
                     message.role === 'user'
                       ? 'bg-gradient-to-br from-amber-500 to-amber-600 text-white'
-                      : 'bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-slate-100'
-                  )}
+                      : 'bg-slate-800 text-slate-100 border border-slate-700'
+                  }`}
                 >
-                  <p className={cn(typography.body, 'whitespace-pre-wrap')}>{message.content}</p>
+                  <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
                   <p
-                    className={cn(
-                      typography.xs,
-                      'mt-2',
-                      message.role === 'user' ? 'text-amber-100' : 'text-slate-500 dark:text-slate-500'
-                    )}
+                    className={`text-xs mt-2 ${
+                      message.role === 'user' ? 'text-amber-100' : 'text-slate-500'
+                    }`}
                   >
                     {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
@@ -173,7 +169,7 @@ export default function PastoralGuidancePage() {
             ))}
             {isLoading && (
               <div className="flex justify-start">
-                <div className={cn(card.default, 'rounded-2xl px-4 py-3')}>
+                <div className="bg-slate-800 border border-slate-700 rounded-2xl px-4 py-3">
                   <Loader2 className="w-5 h-5 text-amber-500 animate-spin" />
                 </div>
               </div>
@@ -185,20 +181,20 @@ export default function PastoralGuidancePage() {
 
       {/* Input Form */}
       <div className="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-sm border-t border-slate-800">
-        <div className="max-w-4xl mx-auto px-4 py-3">
+        <div className="max-w-4xl mx-auto px-4 py-4">
           <form onSubmit={handleSubmit} className="flex gap-2">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="What's on your heart?"
+              placeholder="Ask your question..."
               disabled={isLoading}
-              className="flex-1 px-4 py-3 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-300 dark:border-white/20 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all duration-200 disabled:opacity-50"
+              className="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 disabled:opacity-50"
             />
             <button
               type="submit"
               disabled={!input.trim() || isLoading}
-              className={cn(button.primary, 'flex items-center gap-2')}
+              className="px-6 py-3 bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -207,6 +203,9 @@ export default function PastoralGuidancePage() {
               )}
             </button>
           </form>
+          <p className="text-xs text-slate-500 mt-2 text-center">
+            Future: Answers will be enhanced with 25 years of pastoral teachings
+          </p>
         </div>
       </div>
     </div>

@@ -11,7 +11,6 @@ const playfair = Playfair_Display({
 });
 
 import { APP_VERSION } from "@/lib/version";
-import { card, button, typography, cn } from '@/lib/ui-constants';
 
 export default function AboutPage() {
   return (
@@ -28,16 +27,16 @@ export default function AboutPage() {
         </button>
       </div>
 
-      <h1 className={cn(playfair.className, typography.h1, 'text-center mb-3')}>
+      <h1 className={`${playfair.className} text-4xl md:text-5xl font-bold mb-3 text-white/95 light:text-black/95 text-center`}>
         About The Busy Christian
       </h1>
-      <p className={cn(typography.body, 'text-white/80 mb-8 text-center')}>
+      <p className="text-white/70 light:text-black/70 mb-8 text-center">
         Modern Bible study tools combining cutting-edge technology with pastoral care—built for pastors, teachers, and serious students
       </p>
 
       <section className="space-y-6">
-        <div className={card.default}>
-          <h2 className={cn(typography.h2, 'mb-3')}>Our Mission</h2>
+        <div className="card">
+          <h2 className="text-xl font-semibold mb-3 text-white/90 light:text-black/90">Our Mission</h2>
           <p className="text-white/80 light:text-black/80 leading-relaxed mb-3">
             <strong className="text-white/95 light:text-black/95">The Busy Christian</strong> exists to help you 
             "rightly handle the word of truth" (2 Timothy 2:15) with excellence and efficiency. Developed by{" "}
@@ -51,8 +50,8 @@ export default function AboutPage() {
           </p>
         </div>
 
-        <div className={card.highlight}>
-          <h2 className={cn(typography.h2, 'mb-4')}>✨ What Makes Us Different</h2>
+        <div className="card bg-gradient-to-br from-yellow-400/10 to-amber-500/10 border-yellow-400/30">
+          <h2 className="text-xl font-semibold mb-4 text-white/90 light:text-black/90">✨ What Makes Us Different</h2>
           <div className="space-y-3 text-white/80 light:text-black/80">
             <p className="leading-relaxed">
               Unlike generic Bible apps, <strong>The Busy Christian</strong> is purpose-built for sermon preparation,
@@ -371,27 +370,27 @@ export default function AboutPage() {
           </p>
         </div>
 
-        <div className={cn(card.highlight, 'text-center')}>
-          <h2 className={cn(typography.h3, 'mb-2')}>Ready to dive deeper?</h2>
-          <p className={cn(typography.small, 'text-white/70 mb-4')}>
+        <div className="card bg-gradient-to-br from-yellow-400/10 to-amber-500/10 border-yellow-400/30 text-center">
+          <h2 className="text-lg font-semibold mb-2 text-white/90 light:text-black/90">Ready to dive deeper?</h2>
+          <p className="text-sm text-white/70 light:text-black/70 mb-4">
             Start studying Scripture with confidence, clarity, and community support.
           </p>
           <div className="flex gap-3 justify-center flex-wrap">
             <Link
               href="/deep-study"
-              className={button.primary}
+              className="inline-block rounded-lg bg-yellow-400 text-black px-6 py-2 font-semibold hover:bg-yellow-300 transition-colors"
             >
               Try Deep Study →
             </Link>
             <Link
               href="/pastoral-guidance"
-              className={button.secondary}
+              className="inline-block rounded-lg border border-amber-400 bg-amber-400/20 text-amber-400 px-6 py-2 font-semibold hover:bg-amber-400/30 transition-colors"
             >
               Get Pastoral Guidance
             </Link>
             <Link
               href="/prayer"
-              className={button.secondary}
+              className="inline-block rounded-lg border border-yellow-400 bg-yellow-400/20 text-yellow-400 px-6 py-2 font-semibold hover:bg-yellow-400/30 transition-colors"
             >
               Visit Prayer Center
             </Link>

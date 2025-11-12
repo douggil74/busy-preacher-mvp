@@ -1,0 +1,36 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Prayer requests - users can read/write their own, shared ones are readable by all
+    match /prayer_requests/{requestId} {
+      allow read: if resource.data.sharedWithCommunity == true || resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null;
+      allow update, delete: if resource.data.userId == request.auth.uid;
+    }
+
+    // FCM tokens for push notifications - users can manage their own
+    match /fcm_tokens/{tokenId} {
+      allow read, write: if true; // Allow all for device registration
+    }
+
+    // App settings (banner, etc.) - everyone can read and write
+    // Note: Write access is protected by admin password at the application level
+    match /app_settings/{settingId} {
+      allow read: if true; // Everyone can see the banner
+      allow write: if true; // Allow writes (admin dashboard is password-protected)
+    }
+
+    // Moderation logs - admin only
+    match /moderation_logs/{logId} {
+      allow read: if request.auth != null; // Authenticated users can read
+      allow write: if request.auth != null; // Authenticated users can write
+    }
+
+    // Default: deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

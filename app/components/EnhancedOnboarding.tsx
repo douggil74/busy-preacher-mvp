@@ -51,11 +51,12 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
     email: "",
   });
 
-  // If user is authenticated, use their display name and skip to step 2
+  // If user is authenticated AND has already onboarded before, use their display name and skip to step 2
   useEffect(() => {
-    if (isAuthenticated && user?.displayName) {
+    const hasOnboarded = localStorage.getItem('bc-study-style');
+    if (isAuthenticated && user?.displayName && hasOnboarded) {
       setData(prev => ({ ...prev, name: user.displayName || "" }));
-      setStep(2); // Skip name question
+      setStep(2); // Skip name question only if they've onboarded before
     }
   }, [isAuthenticated, user]);
 

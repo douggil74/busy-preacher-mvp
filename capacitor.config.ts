@@ -28,8 +28,7 @@ const config: CapacitorConfig = {
       launchAutoHide: false,  // Manual control - we'll hide it ourselves after exactly 10 seconds
       splashFullScreen: false,
       splashImmersive: false,
-      androidSplashResourceName: 'splash',
-      iosSplashResourceName: 'Splash'
+      androidSplashResourceName: 'splash'
     },
     PushNotifications: {
       presentationOptions: ['badge', 'sound', 'alert']

@@ -202,11 +202,6 @@ export default function PastoralGuidancePage() {
                 key={message.id}
                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} items-end gap-2`}
               >
-                {message.role === 'assistant' && (
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white text-xs font-bold mb-1">
-                    P
-                  </div>
-                )}
                 <div className="flex flex-col" style={{ maxWidth: '70%' }}>
                   {message.role === 'assistant' && (
                     <p className="text-xs font-medium mb-1 ml-2" style={{ color: 'var(--text-secondary)' }}>
@@ -237,18 +232,10 @@ export default function PastoralGuidancePage() {
                     {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>
-                {message.role === 'user' && (
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xs font-bold mb-1">
-                    {firstName.charAt(0).toUpperCase()}
-                  </div>
-                )}
               </div>
             ))}
             {isLoading && (
               <div className="flex justify-start items-end gap-2">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white text-xs font-bold mb-1">
-                  P
-                </div>
                 <div className="rounded-t-2xl rounded-br-2xl rounded-bl-md px-4 py-3" style={{
                   backgroundColor: 'var(--card-bg)',
                   borderWidth: '1px',

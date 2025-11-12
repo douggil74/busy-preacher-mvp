@@ -56,7 +56,6 @@ export default function SplashPage() {
         className="flex flex-col items-center justify-center"
         style={{
           textAlign: "center",
-          paddingBottom: "env(safe-area-inset-bottom)", // iPhone safe-area support
         }}
       >
         <Image

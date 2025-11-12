@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { Playfair_Display } from "next/font/google";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { PastorNote } from '@/components/PastorNote';
+import { getEmptyStateMessage } from '@/lib/personalMessages';
 import { card, button, input, typography, cn } from '@/lib/ui-constants';
 
 const playfair = Playfair_Display({
@@ -185,11 +187,14 @@ export default function LibraryPage() {
       </div>
 
       <h1 className={cn(playfair.className, typography.h1, 'text-center mb-3 text-slate-900 dark:text-white')}>
-        My Library
+        Your Library
       </h1>
-      <p className={cn(typography.body, 'text-center text-slate-600 dark:text-white/70 mb-8')}>
-        Your saved studies and notes in one place
+      <p className={cn(typography.body, 'text-center text-slate-600 dark:text-white/70 mb-4')}>
+        Everything you've been learning and discovering
       </p>
+      <div className="max-w-2xl mx-auto mb-8">
+        <PastorNote />
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6 border-b border-slate-200 dark:border-white/10">
@@ -265,10 +270,10 @@ export default function LibraryPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
               </svg>
               <p className="text-slate-600 dark:text-white/60 mb-2">
-                {searchQuery ? "No studies match your search" : "No saved studies yet"}
+                {searchQuery ? "No studies match your search" : "Nothing saved yet? That's okay!"}
               </p>
               <p className="text-slate-500 dark:text-white/40 text-sm">
-                {!searchQuery && "Click 'Save to Library' on any study to bookmark it"}
+                {!searchQuery && getEmptyStateMessage('library')}
               </p>
             </div>
           ) : (
@@ -322,10 +327,10 @@ export default function LibraryPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
               <p className="text-slate-600 dark:text-white/60 mb-2">
-                {searchQuery ? "No notes match your search" : "No notes yet"}
+                {searchQuery ? "No notes match your search" : "No notes yet? No worries!"}
               </p>
               <p className="text-slate-500 dark:text-white/40 text-sm">
-                {!searchQuery && "Add notes to any study to save your thoughts"}
+                {!searchQuery && getEmptyStateMessage('notes')}
               </p>
             </div>
           ) : (

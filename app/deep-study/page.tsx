@@ -10,6 +10,7 @@ import remarkGfm from "remark-gfm";
 import { SmartLoader } from "@/components/SmartLoader";
 import { card, button, input, typography, cn } from '@/lib/ui-constants';
 import WordStudyModal from "@/components/WordStudyModal";
+import { PastorNote } from '@/components/PastorNote';
 
 const playfair = Playfair_Display({
   weight: ["600", "700"],
@@ -947,9 +948,12 @@ export default function DeepStudyPage() {
       <h1 className={cn(playfair.className, typography.h1, 'text-center mb-3')}>
         Deep Study
       </h1>
-      <p className={cn(typography.body, 'text-white/80 mb-8 text-center')}>
-        Compare translations, read commentary, watch teaching videos, and explore study tools
+      <p className={cn(typography.body, 'text-white/80 mb-4 text-center')}>
+        Compare translations, read commentary, watch teaching videos, and dig deep into God's Word
       </p>
+      <div className="max-w-3xl mx-auto mb-8">
+        <PastorNote />
+      </div>
 
       <section className={cn(card.default, 'section-spacing', 'max-w-3xl mx-auto')}>
         <div>

@@ -6,6 +6,7 @@ import { getAllCourses } from "@/lib/courseDatabase";
 import { CourseTracker } from "@/lib/courseTracker";
 import { useEffect, useState, useMemo } from "react";
 import { typography, cn } from '@/lib/ui-constants';
+import { PastorNote } from '@/components/PastorNote';
 
 const playfair = Playfair_Display({
   weight: ["600", "700"],
@@ -59,9 +60,12 @@ export default function CoursesPage() {
             Study Courses
           </h1>
           <div className="h-[2px] w-24 bg-gradient-to-r from-yellow-400 to-amber-400 mx-auto sm:mx-0 mb-4"></div>
-          <p className={cn(typography.bodyLarge, 'text-slate-600 dark:text-white/70 italic')}>
-            Structured learning paths to deepen your faith
+          <p className={cn(typography.bodyLarge, 'text-slate-600 dark:text-white/70 italic mb-6')}>
+            Structured learning paths to deepen your faith - pick one that speaks to where you are right now
           </p>
+          <div className="max-w-2xl mx-auto sm:mx-0">
+            <PastorNote />
+          </div>
         </div>
 
         {/* COURSE CATEGORIES */}

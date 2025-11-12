@@ -1,25 +1,18 @@
 import storage, { STORAGE_KEYS } from '@/lib/storage';
 
-const ADMIN_PASSWORD_KEY = 'bc-admin-password';
-
-// Add to storage keys if not already there
-if (!Object.values(STORAGE_KEYS).includes(ADMIN_PASSWORD_KEY)) {
-  (STORAGE_KEYS as any).ADMIN_PASSWORD = ADMIN_PASSWORD_KEY;
-}
-
 export async function hasAdminPassword(): Promise<boolean> {
-  const password = await storage.getItem(ADMIN_PASSWORD_KEY);
+  const password = await storage.getItem(STORAGE_KEYS.ADMIN_PASSWORD);
   return !!password;
 }
 
 export async function setAdminPassword(password: string): Promise<void> {
   // Simple hash (in production, use bcrypt or similar)
   const hashed = btoa(password); // Base64 encoding for now
-  await storage.setItem(ADMIN_PASSWORD_KEY, hashed);
+  await storage.setItem(STORAGE_KEYS.ADMIN_PASSWORD, hashed);
 }
 
 export async function verifyAdminPassword(password: string): Promise<boolean> {
-  const stored = await storage.getItem(ADMIN_PASSWORD_KEY);
+  const stored = await storage.getItem(STORAGE_KEYS.ADMIN_PASSWORD);
   if (!stored) return false;
 
   const hashed = btoa(password);

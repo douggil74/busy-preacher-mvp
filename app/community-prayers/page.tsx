@@ -17,19 +17,24 @@ export default function CommunityPrayerNetwork() {
   const [counts, setCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    const all = getPrayers();
-    const shared = all.filter((p) => p.isShared);
-    setSharedPrayers(shared);
+    async function loadPrayers() {
+      const all = await getPrayers();
+      const shared = all.filter((p) => p.isShared);
+      setSharedPrayers(shared);
 
-    const c: Record<string, number> = {};
-    shared.forEach((p) => (c[p.id] = getPrayedCount(p.id)));
-    setCounts(c);
+      const c: Record<string, number> = {};
+      for (const p of shared) {
+        c[p.id] = await getPrayedCount(p.id);
+      }
+      setCounts(c);
+    }
+    loadPrayers();
   }, []);
 
-  const handlePray = (id: string) => {
-    const newCount = incrementPrayedCount(id);
+  const handlePray = async (id: string) => {
+    const newCount = await incrementPrayedCount(id);
     setCounts((prev) => ({ ...prev, [id]: newCount }));
-    recordMetric('prayed_for');
+    await recordMetric('prayed_for');
   };
 
   return (

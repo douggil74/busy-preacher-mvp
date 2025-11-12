@@ -124,7 +124,7 @@ export class PushNotificationService {
     if (!isNative) return;
 
     await PushNotifications.removeDeliveredNotifications({
-      notifications: ids.map(id => ({ id }))
+      notifications: ids.map(id => ({ id, data: {} }))
     });
   }
 

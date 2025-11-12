@@ -54,17 +54,23 @@ export default function AboutPage() {
           <h2 className="text-xl font-semibold mb-4 text-white/90 light:text-black/90">✨ What Makes Us Different</h2>
           <div className="space-y-3 text-white/80 light:text-black/80">
             <p className="leading-relaxed">
-              Unlike generic Bible apps, <strong>The Busy Christian</strong> is purpose-built for sermon preparation, 
-              teaching, and deep theological study—with integrated pastoral care tools. We combine AI-powered insights 
+              Unlike generic Bible apps, <strong>The Busy Christian</strong> is purpose-built for sermon preparation,
+              teaching, and deep theological study—with integrated pastoral care tools. We combine AI-powered insights
               with time-tested resources from trusted scholars and teachers.
             </p>
             <p className="leading-relaxed">
-              Our <strong>Prayer Center</strong> connects your community in real-time with push notifications, 
+              Our revolutionary <strong>Pastoral Guidance</strong> feature uses AI to provide biblically-grounded counsel
+              rooted in YOUR church's actual teachings. Upload your sermon archive and watch as the AI cites your own
+              messages when answering spiritual questions—making pastoral care scalable and personalized.
+            </p>
+            <p className="leading-relaxed">
+              Our <strong>Prayer Center</strong> connects your community in real-time with push notifications,
               crisis detection, and support resources—because ministry is about more than just Sunday sermons.
             </p>
             <p className="leading-relaxed">
-              Everything is designed for speed without sacrificing depth—from intelligent outline generation to 
-              one-click PDF exports ready for the pulpit.
+              Everything is designed for speed without sacrificing depth—from intelligent outline generation to
+              one-click PDF exports ready for the pulpit. Available as a <strong>web app</strong> and <strong>native iOS app</strong>
+              for seamless ministry on the go.
             </p>
           </div>
         </div>
@@ -90,9 +96,44 @@ export default function AboutPage() {
                 Prayer Center with Pastoral Care
               </h3>
               <p className="text-sm text-white/70 light:text-black/70 ml-6">
-                Real-time community prayer requests with push notifications when someone prays for you. 
-                Built-in crisis detection automatically flags concerning prayers and provides 988 Suicide Prevention 
+                Real-time community prayer requests with push notifications when someone prays for you.
+                Built-in crisis detection automatically flags concerning prayers and provides 988 Suicide Prevention
                 Lifeline resources. Track prayer warriors with badges, and moderate content with admin tools.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-white/90 light:text-black/90 mb-2 flex items-center gap-2">
+                <span className="text-yellow-400">💬</span>
+                Pastoral Guidance (AI + Your Sermons)
+              </h3>
+              <p className="text-sm text-white/70 light:text-black/70 ml-6">
+                Revolutionary AI-powered pastoral counseling that cites YOUR actual sermons. Upload your sermon archive
+                and watch as Claude AI provides guidance rooted in 25 years of your ministry. Every answer includes
+                citations to specific sermons, making your wisdom accessible 24/7.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-white/90 light:text-black/90 mb-2 flex items-center gap-2">
+                <span className="text-yellow-400">🗄️</span>
+                Sermon Database with Vector Search
+              </h3>
+              <p className="text-sm text-white/70 light:text-black/70 ml-6">
+                Store your entire sermon archive with AI-powered semantic search. Upload individual sermons, bulk upload
+                multiple files, or import directly from OneDrive. Powered by Supabase with pgvector for lightning-fast
+                similarity search across thousands of messages.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-white/90 light:text-black/90 mb-2 flex items-center gap-2">
+                <span className="text-yellow-400">⚙️</span>
+                Admin Panel & Management Tools
+              </h3>
+              <p className="text-sm text-white/70 light:text-black/70 ml-6">
+                Comprehensive admin dashboard for sermon management (manual upload, bulk upload, OneDrive import),
+                prayer moderation, and pastoral guidance monitoring. All your ministry tools in one place.
               </p>
             </div>
 
@@ -254,33 +295,53 @@ export default function AboutPage() {
             </li>
             <li className="flex items-center gap-2">
               <span className="text-yellow-400">•</span>
-              OpenAI GPT-4 Integration
+              Anthropic Claude AI (Sonnet 4.5)
             </li>
             <li className="flex items-center gap-2">
               <span className="text-yellow-400">•</span>
-              ESV API
+              OpenAI Embeddings API
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-yellow-400">•</span>
+              Supabase + pgvector
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-yellow-400">•</span>
+              ESV Bible API
             </li>
             <li className="flex items-center gap-2">
               <span className="text-yellow-400">•</span>
               React PDF Renderer
             </li>
+            <li className="flex items-center gap-2">
+              <span className="text-yellow-400">•</span>
+              Capacitor (iOS Native)
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-yellow-400">•</span>
+              OneDrive API Integration
+            </li>
           </ul>
-          <p className="text-white/80 light:text-black/80 leading-relaxed">
-            <strong className="text-white/95 light:text-black/95">Your privacy matters.</strong> Study notes and 
-            preferences are stored locally in your browser. Prayer requests use Firebase with proper security rules. 
+          <p className="text-white/80 light:text-black/80 leading-relaxed mb-2">
+            <strong className="text-white/95 light:text-black/95">Your privacy matters.</strong> Study notes and
+            preferences are stored locally on your device. Prayer requests use Firebase with proper security rules.
             Push notifications are optional and can be disabled anytime.
+          </p>
+          <p className="text-white/80 light:text-black/80 leading-relaxed">
+            <strong className="text-white/95 light:text-black/95">iOS Ready:</strong> Available as a native iOS app
+            with offline support, push notifications, and native storage. Works seamlessly on iPhone and iPad.
           </p>
         </div>
 
         <div className="card bg-red-500/10 border-red-500/30">
           <h2 className="text-xl font-semibold mb-3 text-white/90 light:text-black/90">🛡️ Pastoral Care & Safety</h2>
           <p className="text-white/80 light:text-black/80 leading-relaxed mb-3">
-            Our Prayer Center includes sophisticated pastoral care features:
+            Our Prayer Center and Pastoral Guidance include sophisticated pastoral care features:
           </p>
           <ul className="space-y-2 text-sm text-white/70 light:text-black/70">
             <li className="flex items-start gap-2">
               <span className="text-yellow-400">•</span>
-              <span><strong>Crisis Detection:</strong> Automatic flagging of prayers with concerning keywords, 
+              <span><strong>Crisis Detection:</strong> Automatic flagging of prayers with concerning keywords,
               with immediate display of 988 Suicide Prevention Lifeline</span>
             </li>
             <li className="flex items-start gap-2">
@@ -293,7 +354,13 @@ export default function AboutPage() {
             </li>
             <li className="flex items-start gap-2">
               <span className="text-yellow-400">•</span>
-              <span><strong>Real-time Notifications:</strong> Instant push notifications when someone prays for your request</span>
+              <span><strong>Pastoral Guidance Monitoring:</strong> Admin logs track all guidance questions with automatic
+              flagging of abusive, spam, or off-topic content for review</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400">•</span>
+              <span><strong>Real-time Notifications:</strong> Instant push notifications when someone prays for your request
+              (works on both web and iOS)</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-yellow-400">•</span>
@@ -301,7 +368,7 @@ export default function AboutPage() {
             </li>
           </ul>
           <p className="text-sm text-white/60 light:text-black/60 mt-3 italic">
-            All running at $0.00/month on Firebase's free tier with room to scale.
+            All running affordably with Firebase's free tier and Supabase's generous limits.
           </p>
         </div>
 
@@ -337,6 +404,12 @@ export default function AboutPage() {
               className="inline-block rounded-lg bg-yellow-400 text-black px-6 py-2 font-semibold hover:bg-yellow-300 transition-colors"
             >
               Try Deep Study →
+            </Link>
+            <Link
+              href="/pastoral-guidance"
+              className="inline-block rounded-lg border border-amber-400 bg-amber-400/20 text-amber-400 px-6 py-2 font-semibold hover:bg-amber-400/30 transition-colors"
+            >
+              Get Pastoral Guidance
             </Link>
             <Link
               href="/prayer"

@@ -128,5 +128,6 @@ export const STORAGE_KEYS = {
   LAST_SYNC: 'bc-last-sync',
   READING_PLAN_PROGRESS: 'bc-reading-plan-progress',
   STUDY_STREAK: 'bc-study-streak',
-  COURSES_PROGRESS: 'bc-courses-progress'
+  COURSES_PROGRESS: 'bc-courses-progress',
+  ADMIN_PASSWORD: 'bc-admin-password'
 } as const;

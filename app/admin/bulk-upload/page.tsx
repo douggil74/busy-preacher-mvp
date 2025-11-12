@@ -154,10 +154,8 @@ export default function BulkUploadPage() {
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (
-    <AdminAuth>bytes / 1024).toFixed(1) + ' KB';
-    return (
-    <AdminAuth>bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
   return (
@@ -334,7 +332,6 @@ export default function BulkUploadPage() {
         </div>
       </div>
     </div>
-  );
     </AdminAuth>
   );
 }

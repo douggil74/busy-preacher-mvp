@@ -41,14 +41,18 @@ export default function PrayerJournalPage() {
   const [locationError, setLocationError] = useState<string | null>(null);
 
   useEffect(() => {
-    setPrayers(getPrayers());
-    
+    async function loadPrayers() {
+      const prayers = await getPrayers();
+      setPrayers(prayers);
+    }
+    loadPrayers();
+
     // Check if user name and location are already stored
     const storedName = localStorage.getItem('busy_christian_user_name');
     if (storedName) {
       setUserName(storedName);
     }
-    
+
     const storedLocation = getStoredLocation();
     if (storedLocation) {
       setUserLocation(storedLocation);
@@ -81,24 +85,26 @@ export default function PrayerJournalPage() {
     setIsModalOpen(true);
   };
 
-  const handleSavePrayer = (
+  const handleSavePrayer = async (
     prayerData: Omit<Prayer, "id" | "dateAdded" | "isAnswered">
   ) => {
     if (isAnswering && editingPrayer) {
-      markAnswered(editingPrayer.id, prayerData.answerNotes);
+      await markAnswered(editingPrayer.id, prayerData.answerNotes);
     } else if (editingPrayer) {
-      updatePrayer(editingPrayer.id, prayerData);
+      await updatePrayer(editingPrayer.id, prayerData);
     } else {
-      addPrayer(prayerData);
+      await addPrayer(prayerData);
     }
-    setPrayers(getPrayers());
+    const prayers = await getPrayers();
+    setPrayers(prayers);
     setEditingPrayer(null);
     setIsAnswering(false);
   };
 
-  const handleDeletePrayer = (id: string) => {
-    deletePrayer(id);
-    setPrayers(getPrayers());
+  const handleDeletePrayer = async (id: string) => {
+    await deletePrayer(id);
+    const prayers = await getPrayers();
+    setPrayers(prayers);
   };
 
   const handleGetLocation = async () => {
@@ -149,7 +155,8 @@ export default function PrayerJournalPage() {
       );
       
       if (success) {
-        setPrayers(getPrayers());
+        const prayers = await getPrayers();
+        setPrayers(prayers);
         alert("✅ Prayer shared to the community!");
       } else {
         alert("❌ Failed to share prayer. Please try again.");

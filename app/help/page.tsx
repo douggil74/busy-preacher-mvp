@@ -92,6 +92,44 @@ export default function HelpPage() {
           </div>
         </div>
 
+        <div className="card bg-amber-500/10 border-amber-500/30">
+          <h2 className="text-xl font-semibold mb-4 text-white/90 light:text-black/90">💬 Pastoral Guidance</h2>
+          <p className="text-white/80 light:text-black/80 mb-3">
+            Get AI-powered pastoral counseling rooted in biblical wisdom and your church's actual teachings:
+          </p>
+          <div className="space-y-3 text-white/70 light:text-black/70">
+            <div>
+              <h3 className="font-semibold text-white/90 mb-1">How It Works</h3>
+              <ul className="ml-4 space-y-1 text-sm">
+                <li>• Ask any spiritual question or describe a situation you're facing</li>
+                <li>• The AI searches your church's sermon database for relevant teachings</li>
+                <li>• Get biblically-grounded answers with citations to specific sermons</li>
+                <li>• Conversation history maintained for context</li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-white/90 mb-1">What Makes It Special</h3>
+              <ul className="ml-4 space-y-1 text-sm">
+                <li>• Powered by Anthropic Claude AI (Sonnet 4.5)</li>
+                <li>• Uses semantic search to find relevant sermon content</li>
+                <li>• Answers are rooted in YOUR pastor's actual teachings</li>
+                <li>• Available 24/7 for pastoral care and spiritual guidance</li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-white/90 mb-1">Safety Features</h3>
+              <ul className="ml-4 space-y-1 text-sm">
+                <li>• <strong>Content Moderation:</strong> Admin logs track all questions</li>
+                <li>• <strong>Automatic Flagging:</strong> Abusive, spam, or off-topic content flagged for review</li>
+                <li>• <strong>Crisis Resources:</strong> Crisis keywords trigger 988 Lifeline information</li>
+                <li>• <strong>Not a Substitute:</strong> Disclaimer that AI guidance should not replace professional counseling</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
         <div className="card bg-blue-500/10 border-blue-500/30">
           <h2 className="text-xl font-semibold mb-4 text-white/90 light:text-black/90">🙏 Prayer Center</h2>
           <p className="text-white/80 light:text-black/80 mb-3">
@@ -144,7 +182,7 @@ export default function HelpPage() {
           <h2 className="text-xl font-semibold mb-4 text-white/90 light:text-black/90">📚 Courses & Learning</h2>
           <div className="space-y-2 text-white/80 light:text-black/80">
             <p>
-              <strong>Spiritual Foundations Course:</strong> A 16-lesson interactive course perfect for 
+              <strong>Spiritual Foundations Course:</strong> A 16-lesson interactive course perfect for
               new believers or discipleship classes.
             </p>
             <ul className="ml-4 space-y-1 text-sm text-white/70 light:text-black/70">
@@ -219,7 +257,7 @@ export default function HelpPage() {
             </li>
             <li className="flex items-start gap-2">
               <span className="text-yellow-400">•</span>
-              <span>Enable push notifications to stay connected with your prayer community</span>
+              <span>Enable push notifications to stay connected with your prayer community (works on web and iOS)</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-yellow-400">•</span>
@@ -240,6 +278,14 @@ export default function HelpPage() {
             <li className="flex items-start gap-2">
               <span className="text-yellow-400">•</span>
               <span>Pray for others regularly to earn prayer warrior badges</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400">•</span>
+              <span>Ask Pastoral Guidance questions about real-life situations for personalized biblical counsel</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400">•</span>
+              <span><strong>iOS Users:</strong> Download the native iOS app from the App Store for offline access and better performance</span>
             </li>
           </ul>
         </div>
@@ -282,12 +328,49 @@ export default function HelpPage() {
             <li>• Firebase Cloud Functions</li>
             <li>• Real-time Firestore Database</li>
             <li>• Firebase Cloud Messaging</li>
-            <li>• OpenAI GPT-4</li>
+            <li>• Anthropic Claude AI (Sonnet 4.5)</li>
+            <li>• OpenAI Embeddings API</li>
+            <li>• Supabase + pgvector</li>
             <li>• ESV Bible API</li>
+            <li>• Capacitor (iOS Native)</li>
+            <li>• OneDrive API Integration</li>
           </ul>
           <p className="text-sm text-white/60 light:text-black/60 mt-3">
-            All running on modern, secure infrastructure with 99.9% uptime.
+            All running on modern, secure infrastructure with 99.9% uptime. Available as a web app and native iOS app.
           </p>
+        </div>
+
+        <div className="card bg-green-500/10 border-green-500/30">
+          <h2 className="text-xl font-semibold mb-3 text-white/90 light:text-black/90">📱 iOS App Features</h2>
+          <p className="text-white/80 light:text-black/80 mb-3">
+            The native iOS app offers enhanced functionality:
+          </p>
+          <ul className="space-y-2 text-sm text-white/70 light:text-black/70">
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400">•</span>
+              <span><strong>Native Performance:</strong> Faster load times and smoother interactions</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400">•</span>
+              <span><strong>Offline Support:</strong> Access saved content without internet connection</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400">•</span>
+              <span><strong>Push Notifications:</strong> Receive prayer notifications even when app is closed</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400">•</span>
+              <span><strong>Native Storage:</strong> Secure local storage using iOS Keychain</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400">•</span>
+              <span><strong>Share Integration:</strong> Native iOS share sheet for sharing content</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400">•</span>
+              <span><strong>Optimized for iPad:</strong> Works beautifully on both iPhone and iPad</span>
+            </li>
+          </ul>
         </div>
 
         <div className="card">

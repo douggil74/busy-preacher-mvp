@@ -58,15 +58,28 @@ export default function SplashPage() {
           textAlign: "center",
         }}
       >
+        <h2
+          className={`text-3xl font-semibold mb-8 text-center transition-opacity duration-700 ${
+            showText ? "opacity-100" : "opacity-0"
+          }`}
+          style={{
+            color: "#FFD700",
+            letterSpacing: "0.05em",
+            textShadow: "0 0 10px rgba(255,215,0,0.25)",
+          }}
+        >
+          Welcome to the
+        </h2>
+
         <Image
-          src="/logo.png" // ✅ direct path to /public/logo.png
+          src="/logo.png"
           alt="The Busy Christian"
           width={200}
           height={200}
           priority
           className="select-none"
           style={{
-            filter: "drop-shadow(0 0 25px rgba(255,255,255,0.25))",
+            filter: "drop-shadow(0 0 25px rgba(255,215,0,0.35))",
             transition: "transform 1.2s ease-in-out, opacity 1.2s ease-in-out",
             transform: visible ? "scale(1)" : "scale(1.1)",
             opacity: visible ? 1 : 0.6,

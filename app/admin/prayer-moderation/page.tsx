@@ -247,34 +247,30 @@ export default function PrayerModerationPage() {
                     <div className="col-span-2 flex gap-1">
                       <button
                         onClick={() => handleEdit(prayer)}
-                        className="flex-1 px-2 py-1 bg-blue-500/80 text-white rounded text-xs hover:bg-blue-600 transition-colors"
-                        title="Edit"
+                        className="flex-1 px-2 py-1 bg-blue-500/80 text-white rounded text-xs hover:bg-blue-600 transition-colors font-medium"
                       >
-                        ✏️
+                        Edit
                       </button>
                       {prayer.status === 'hidden' ? (
                         <button
                           onClick={() => handleUnhide(prayer.id)}
-                          className="flex-1 px-2 py-1 bg-green-500/80 text-white rounded text-xs hover:bg-green-600 transition-colors"
-                          title="Unhide"
+                          className="flex-1 px-2 py-1 bg-green-500/80 text-white rounded text-xs hover:bg-green-600 transition-colors font-medium"
                         >
-                          👁️
+                          Show
                         </button>
                       ) : (
                         <button
                           onClick={() => handleHide(prayer.id)}
-                          className="flex-1 px-2 py-1 bg-orange-500/80 text-white rounded text-xs hover:bg-orange-600 transition-colors"
-                          title="Hide"
+                          className="flex-1 px-2 py-1 bg-orange-500/80 text-white rounded text-xs hover:bg-orange-600 transition-colors font-medium"
                         >
-                          🙈
+                          Hide
                         </button>
                       )}
                       <button
                         onClick={() => handleDelete(prayer.id, prayer.request)}
-                        className="flex-1 px-2 py-1 bg-red-500/80 text-white rounded text-xs hover:bg-red-600 transition-colors"
-                        title="Delete"
+                        className="flex-1 px-2 py-1 bg-red-500/80 text-white rounded text-xs hover:bg-red-600 transition-colors font-medium"
                       >
-                        🗑️
+                        Delete
                       </button>
                     </div>
                   </div>

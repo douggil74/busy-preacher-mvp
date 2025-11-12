@@ -25,7 +25,7 @@ const config: CapacitorConfig = {
       launchShowDuration: 10000,  // Show for 10 seconds
       backgroundColor: '#0f1729',
       showSpinner: false,  // No spinner, just the beautiful splash image
-      launchAutoHide: true,
+      launchAutoHide: false,  // Manual control - we'll hide it ourselves after exactly 10 seconds
       splashFullScreen: false,
       splashImmersive: false,
       androidSplashResourceName: 'splash',

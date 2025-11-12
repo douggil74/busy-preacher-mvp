@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, Cloud, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import AdminAuth from '@/components/AdminAuth';
+import { adminPostJSON } from '@/lib/adminApi';
 
 export default function ImportOneDrivePage() {
   const router = useRouter();
@@ -40,13 +41,9 @@ export default function ImportOneDrivePage() {
     setResult(null);
 
     try {
-      const response = await fetch('/api/sermons/import-onedrive', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          accessToken,
-          folderId: folderPath,
-        }),
+      const response = await adminPostJSON('/api/sermons/import-onedrive', {
+        accessToken,
+        folderId: folderPath,
       });
 
       const data = await response.json();

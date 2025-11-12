@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import { ArrowLeft, Upload, File, CheckCircle, XCircle, Loader2, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import AdminAuth from '@/components/AdminAuth';
+import { adminPostFormData } from '@/lib/adminApi';
 
 interface FileStatus {
   file: File;
@@ -86,10 +87,7 @@ export default function BulkUploadPage() {
         formData.append('file', fileStatus.file);
 
         // Upload file
-        const response = await fetch('/api/sermons/bulk-upload', {
-          method: 'POST',
-          body: formData,
-        });
+        const response = await adminPostFormData('/api/sermons/bulk-upload', formData);
 
         const result = await response.json();
 

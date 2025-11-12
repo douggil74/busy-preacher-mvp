@@ -2,17 +2,17 @@
 
 import React, { useState, useEffect } from 'react';
 import { Playfair_Display } from 'next/font/google';
-import { 
-  collection, 
-  query, 
-  orderBy, 
+import {
+  collection,
+  query,
+  orderBy,
   onSnapshot,
   doc,
   updateDoc,
-  deleteDoc,
-  getDoc
+  deleteDoc
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import AdminAuth from '@/components/AdminAuth';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -42,30 +42,11 @@ export const dynamic = 'force-dynamic'; // disables static generation
 export default function PrayerModerationPage() {
   const [prayers, setPrayers] = useState<PrayerRequest[]>([]);
   const [filter, setFilter] = useState<'all' | 'flagged' | 'crisis' | 'hidden'>('all');
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
-    const checkAdmin = async () => {
-      const adminId = 'admin_doug';
-      const userRef = doc(db, 'users', adminId);
-      const userSnap = await getDoc(userRef);
-      
-      if (userSnap.exists() && userSnap.data().isAdmin) {
-        setIsAdmin(true);
-      }
-      setLoading(false);
-    };
-    
-    checkAdmin();
-  }, []);
-
-  useEffect(() => {
-    if (!isAdmin) return;
-
     const q = query(
       collection(db, 'prayer_requests'),
       orderBy('createdAt', 'desc')
@@ -76,12 +57,12 @@ export default function PrayerModerationPage() {
         id: doc.id,
         ...doc.data()
       } as PrayerRequest));
-      
+
       setPrayers(prayerData);
     });
 
     return () => unsubscribe();
-  }, [isAdmin]);
+  }, []);
 
   const filteredPrayers = prayers.filter(p => {
     if (filter === 'all') return true;
@@ -142,28 +123,8 @@ export default function PrayerModerationPage() {
     setExpandedId(expandedId === id ? null : id);
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
-      </div>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white flex items-center justify-center">
-        <div className="text-center">
-          <h1 className={`${playfair.className} text-3xl font-bold text-red-400 mb-4`}>
-            🚫 Access Denied
-          </h1>
-          <p className="text-white/60">You do not have admin permissions.</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
+    <AdminAuth>
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white">
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* HEADER */}
@@ -358,5 +319,6 @@ export default function PrayerModerationPage() {
         )}
       </div>
     </div>
+    </AdminAuth>
   );
 }

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, AlertTriangle, Ban, MessageSquareOff } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import AdminAuth from '@/components/AdminAuth';
+import { adminGet } from '@/lib/adminApi';
 
 interface ModerationLog {
   id: string;
@@ -35,7 +36,7 @@ export default function ModerationLogsPage() {
 
   const fetchLogs = async () => {
     try {
-      const response = await fetch('/api/moderation-logs');
+      const response = await adminGet('/api/moderation-logs');
       const data = await response.json();
       setLogs(data.logs || []);
       setStats(data.stats || { total: 0, abusive: 0, spam: 0, offTopic: 0 });

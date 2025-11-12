@@ -1,7 +1,12 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { validateAdminRequest } from '@/lib/serverAuth';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // 🔒 SECURITY: Validate admin authentication
+  const authError = await validateAdminRequest(request);
+  if (authError) return authError;
+
   try {
     // Fetch moderation logs from last 30 days, most recent first
     const { data: logs, error } = await supabaseAdmin

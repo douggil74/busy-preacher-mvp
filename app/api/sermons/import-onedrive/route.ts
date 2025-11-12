@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { validateAdminRequest } from '@/lib/serverAuth';
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
@@ -14,6 +15,10 @@ interface OneDriveFile {
 }
 
 export async function POST(request: NextRequest) {
+  // 🔒 SECURITY: Validate admin authentication
+  const authError = await validateAdminRequest(request);
+  if (authError) return authError;
+
   try {
     const { accessToken, folderId } = await request.json();
 

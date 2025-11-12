@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ArrowLeft, Upload, Loader2, CheckCircle, FileStack } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import AdminAuth from '@/components/AdminAuth';
+import { adminPostJSON } from '@/lib/adminApi';
 
 export default function AdminSermonsPage() {
   const router = useRouter();
@@ -27,13 +28,9 @@ export default function AdminSermonsPage() {
     setUploadSuccess(false);
 
     try {
-      const response = await fetch('/api/sermons/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          topics: formData.topics.split(',').map(t => t.trim()).filter(Boolean),
-        }),
+      const response = await adminPostJSON('/api/sermons/upload', {
+        ...formData,
+        topics: formData.topics.split(',').map(t => t.trim()).filter(Boolean),
       });
 
       const data = await response.json();

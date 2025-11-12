@@ -116,29 +116,6 @@ export default function AboutPage() {
 
             <div>
               <h3 className="font-semibold text-white/90 light:text-black/90 mb-2 flex items-center gap-2">
-                <span className="text-yellow-400">🗄️</span>
-                Sermon Database with Vector Search
-              </h3>
-              <p className="text-sm text-white/70 light:text-black/70 ml-6">
-                Store your entire sermon archive with AI-powered semantic search. Upload individual sermons, bulk upload
-                multiple files, or import directly from OneDrive. Powered by Supabase with pgvector for lightning-fast
-                similarity search across thousands of messages.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-white/90 light:text-black/90 mb-2 flex items-center gap-2">
-                <span className="text-yellow-400">⚙️</span>
-                Admin Panel & Management Tools
-              </h3>
-              <p className="text-sm text-white/70 light:text-black/70 ml-6">
-                Comprehensive admin dashboard for sermon management (manual upload, bulk upload, OneDrive import),
-                prayer moderation, and pastoral guidance monitoring. All your ministry tools in one place.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-white/90 light:text-black/90 mb-2 flex items-center gap-2">
                 <span className="text-yellow-400">🔍</span>
                 Deep Study Tools
               </h3>

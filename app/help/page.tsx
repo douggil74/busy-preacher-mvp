@@ -95,16 +95,16 @@ export default function HelpPage() {
         <div className="card bg-amber-500/10 border-amber-500/30">
           <h2 className="text-xl font-semibold mb-4 text-white/90 light:text-black/90">💬 Pastoral Guidance</h2>
           <p className="text-white/80 light:text-black/80 mb-3">
-            Get AI-powered pastoral counseling rooted in biblical wisdom and your church's actual teachings:
+            Get AI-powered biblical counsel and spiritual guidance:
           </p>
           <div className="space-y-3 text-white/70 light:text-black/70">
             <div>
               <h3 className="font-semibold text-white/90 mb-1">How It Works</h3>
               <ul className="ml-4 space-y-1 text-sm">
                 <li>• Ask any spiritual question or describe a situation you're facing</li>
-                <li>• The AI searches your church's sermon database for relevant teachings</li>
-                <li>• Get biblically-grounded answers with citations to specific sermons</li>
+                <li>• Get biblically-grounded answers with relevant Scripture references</li>
                 <li>• Conversation history maintained for context</li>
+                <li>• Available 24/7 for spiritual guidance and encouragement</li>
               </ul>
             </div>
 
@@ -112,19 +112,18 @@ export default function HelpPage() {
               <h3 className="font-semibold text-white/90 mb-1">What Makes It Special</h3>
               <ul className="ml-4 space-y-1 text-sm">
                 <li>• Powered by Anthropic Claude AI (Sonnet 4.5)</li>
-                <li>• Uses semantic search to find relevant sermon content</li>
-                <li>• Answers are rooted in YOUR pastor's actual teachings</li>
-                <li>• Available 24/7 for pastoral care and spiritual guidance</li>
+                <li>• Rooted in biblical wisdom and sound doctrine</li>
+                <li>• Thoughtful, compassionate responses to life's challenges</li>
+                <li>• Always points you back to Scripture</li>
               </ul>
             </div>
 
             <div>
               <h3 className="font-semibold text-white/90 mb-1">Safety Features</h3>
               <ul className="ml-4 space-y-1 text-sm">
-                <li>• <strong>Content Moderation:</strong> Admin logs track all questions</li>
-                <li>• <strong>Automatic Flagging:</strong> Abusive, spam, or off-topic content flagged for review</li>
                 <li>• <strong>Crisis Resources:</strong> Crisis keywords trigger 988 Lifeline information</li>
-                <li>• <strong>Not a Substitute:</strong> Disclaimer that AI guidance should not replace professional counseling</li>
+                <li>• <strong>Biblical Foundation:</strong> All guidance is grounded in Scripture</li>
+                <li>• <strong>Not a Substitute:</strong> AI guidance should not replace pastoral counseling or professional care</li>
               </ul>
             </div>
           </div>
@@ -170,8 +169,7 @@ export default function HelpPage() {
               <h3 className="font-semibold text-white/90 mb-1">Safety Features</h3>
               <ul className="ml-4 space-y-1 text-sm">
                 <li>• <strong>Crisis Detection:</strong> Prayers with concerning keywords automatically show 988 Suicide Prevention Lifeline</li>
-                <li>• <strong>Spam Filtering:</strong> Inappropriate content is automatically flagged and hidden</li>
-                <li>• <strong>Admin Moderation:</strong> Trained moderators review flagged content</li>
+                <li>• <strong>Content Filtering:</strong> Inappropriate content is automatically flagged</li>
                 <li>• <strong>Report Button:</strong> Flag prayers that need attention</li>
               </ul>
             </div>

@@ -28,3 +28,6 @@ data/subscribers.txt
 
 # === FIREBASE / CLOUD FUNCTIONS (if present) ===
 .firebase/
+
+# === IOS SENSITIVE FILES ===
+ios/App/App/GoogleService-Info.plist

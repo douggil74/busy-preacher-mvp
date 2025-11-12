@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { validateAdminRequest } from '@/lib/serverAuth';
 import OpenAI from 'openai';
 import mammoth from 'mammoth';
 
@@ -8,6 +9,10 @@ const openai = new OpenAI({
 });
 
 export async function POST(request: NextRequest) {
+  // 🔒 SECURITY: Validate admin authentication
+  const authError = await validateAdminRequest(request);
+  if (authError) return authError;
+
   try {
     // Parse multipart form data
     const formData = await request.formData();

@@ -4,6 +4,7 @@ import "./globals.css";
 import ClientLayout from "./ClientLayout";
 import { GlobalSettingsManager } from "./components/GlobalSettingsManager";
 import { usePathname } from "next/navigation";
+import AdminBanner from "@/components/AdminBanner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -75,6 +76,7 @@ export default function RootLayout({
         ) : (
           <ClientLayout>
             <GlobalSettingsManager />
+            <AdminBanner />
             {children}
           </ClientLayout>
         )}

@@ -39,8 +39,8 @@ const config: CapacitorConfig = {
       androidSpinnerStyle: 'small',
       iosSpinnerStyle: 'small',
       launchAutoHide: true,
-      splashFullScreen: true,
-      splashImmersive: true
+      splashFullScreen: false,
+      splashImmersive: false
     },
     PushNotifications: {
       presentationOptions: ['badge', 'sound', 'alert']

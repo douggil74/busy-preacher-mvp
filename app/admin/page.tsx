@@ -36,6 +36,14 @@ export default function AdminDashboard() {
       color: 'from-amber-500 to-amber-600',
     },
     {
+      title: 'Pastoral Messages',
+      description: 'View and respond to pastoral guidance conversations. Message users who shared contact info.',
+      href: '/admin/pastoral-messages',
+      icon: <MessageCircle className="w-8 h-8" />,
+      badge: 'Messaging',
+      color: 'from-pink-500 to-pink-600',
+    },
+    {
       title: 'Question Analytics',
       description: 'View user questions and topics for AI learning. Track common themes and needs.',
       href: '/admin/guidance-logs',

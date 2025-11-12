@@ -217,18 +217,26 @@ export function AddPrayerModal({
 
           {/* ✅ NEW: Share with Community */}
           {!isAnswering && (
-            <div className="pt-2">
-              <label className="flex items-center gap-3 text-white/80 text-sm cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={isShared}
-                  onChange={() => setIsShared(!isShared)}
-                  className="w-4 h-4 accent-[#FFD966]"
-                />
-                <span>
-                  Share with <span className="text-[#FFD966] font-medium">Community Prayer Network</span>
-                </span>
-              </label>
+            <div className="pt-3">
+              <div className="bg-gradient-to-r from-yellow-400/10 to-amber-400/10 border-2 border-yellow-400/30 rounded-xl p-4">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isShared}
+                    onChange={() => setIsShared(!isShared)}
+                    className="w-5 h-5 accent-yellow-400 cursor-pointer"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-white font-semibold">Share with Community Prayer Network</span>
+                      <span className="text-lg">🙏</span>
+                    </div>
+                    <p className="text-white/60 text-xs mt-1">
+                      Let others pray alongside you and receive encouragement
+                    </p>
+                  </div>
+                </label>
+              </div>
             </div>
           )}
 

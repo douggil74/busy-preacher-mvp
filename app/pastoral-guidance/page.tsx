@@ -184,7 +184,7 @@ export default function PastoralGuidancePage() {
       </div>
 
       {/* Input Form */}
-      <div className="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-sm border-t border-slate-800">
+      <div className="fixed bottom-4 left-0 right-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border border-slate-200 dark:border-slate-800 rounded-t-2xl shadow-xl">
         <div className="max-w-4xl mx-auto px-4 py-3">
           <form onSubmit={handleSubmit} className="flex gap-2">
             <input

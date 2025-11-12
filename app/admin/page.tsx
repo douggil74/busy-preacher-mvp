@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowLeft, Shield, Upload, Cloud, FileText, Database, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Shield, Upload, Cloud, FileText, Database, MessageCircle, TrendingUp } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import AdminAuth from '@/components/AdminAuth';
 import SetAdminBanner from '@/components/SetAdminBanner';
@@ -34,6 +34,14 @@ export default function AdminDashboard() {
       icon: <Shield className="w-8 h-8" />,
       badge: 'Logs',
       color: 'from-amber-500 to-amber-600',
+    },
+    {
+      title: 'Question Analytics',
+      description: 'View user questions and topics for AI learning. Track common themes and needs.',
+      href: '/admin/guidance-logs',
+      icon: <TrendingUp className="w-8 h-8" />,
+      badge: 'Insights',
+      color: 'from-indigo-500 to-indigo-600',
     },
     {
       title: 'Manual Sermon Upload',

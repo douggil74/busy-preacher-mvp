@@ -17,7 +17,14 @@ export default function PastoralGuidancePage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [firstName, setFirstName] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Get user's first name from localStorage
+    const name = localStorage.getItem('bc-user-name') || 'Anonymous';
+    setFirstName(name);
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -64,6 +71,23 @@ export default function PastoralGuidancePage() {
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+
+      // Log the question for learning and improvement (privacy-safe)
+      try {
+        await fetch('/api/guidance-logs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            firstName: firstName,
+            question: userMessage.content,
+            answer: data.answer,
+            flagged: false,
+          }),
+        });
+      } catch (logError) {
+        console.error('Failed to log question:', logError);
+        // Don't show error to user - logging is non-critical
+      }
     } catch (error) {
       console.error('Error:', error);
       const errorMessage: Message = {

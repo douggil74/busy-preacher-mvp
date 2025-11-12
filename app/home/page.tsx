@@ -342,6 +342,7 @@ const [searchedKeyword, setSearchedKeyword] = useState("");
   const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const popoverRef = useRef<HTMLDivElement>(null);
   const [showWordStudyModal, setShowWordStudyModal] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [copied, setCopied] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [showStyleModal, setShowStyleModal] = useState(false);
@@ -368,6 +369,16 @@ const [searchedKeyword, setSearchedKeyword] = useState("");
       setShowCrisisModal(true);
     }
   }, [insight]);
+
+  // Detect mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Generate dynamic personal messages
   useEffect(() => {
@@ -828,6 +839,19 @@ const hasSubscribed = safeStorage.getItem("bc-subscribed");
 
   const onWordClick = (e: React.MouseEvent, w: string) => {
     e.preventDefault();
+
+    // On mobile, open modal directly
+    if (isMobile) {
+      setActiveWord(w);
+      requestHover(w);
+      // Wait for hover data to load, then open modal
+      setTimeout(() => {
+        setShowWordStudyModal(true);
+      }, 100);
+      return;
+    }
+
+    // Desktop behavior: show/hide popover
     if (popoverPinned && activeWord === w) {
       setPopoverPinned(false);
       onWordLeave();
@@ -836,25 +860,25 @@ const hasSubscribed = safeStorage.getItem("bc-subscribed");
       setActiveWord(w);
 
       const calculatePosition = () => {
-        const popoverWidth = 360;
-        const popoverHeight = 220;
+        const popoverWidth = 420; // Match actual popover width
+        const popoverHeight = 300;
         const margin = 16;
 
         let x = e.clientX;
         let y = e.clientY + 12;
 
+        // Keep within viewport horizontally
         if (x + popoverWidth > window.innerWidth - margin) {
           x = window.innerWidth - popoverWidth - margin;
         }
-
         if (x < margin) {
           x = margin;
         }
 
+        // Keep within viewport vertically
         if (y + popoverHeight > window.innerHeight - margin) {
           y = e.clientY - popoverHeight - 12;
         }
-
         if (y < margin) {
           y = margin;
         }
@@ -1706,7 +1730,7 @@ const handleKeywordResultSelect = (reference: string) => {
 
       <DailyDevotional />
 
-{activeWord && popoverPos && (
+{activeWord && popoverPos && !isMobile && (
         <div
           ref={popoverRef}
           className="hover-popover pointer-events-none fixed z-50 w-[420px] max-w-[90vw] rounded-2xl shadow-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700"

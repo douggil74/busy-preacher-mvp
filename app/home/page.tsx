@@ -27,6 +27,7 @@ import { RelatedCoursesPanel } from "@/components/RelatedCoursesPanel";
 import { safeStorage } from "@/utils/safeStorage";
 import { KeywordSearchResults } from "@/components/KeywordSearchResults";
 import WordStudyModal from "@/components/WordStudyModal";
+import { getTimeBasedGreeting, getLoadingMessage, getPastorNote, getStudyPrompt } from "@/lib/personalMessages";
 
 function copyToClipboard(text: string) {
   if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
@@ -353,6 +354,9 @@ const [searchedKeyword, setSearchedKeyword] = useState("");
   const [showDevotionalModal, setShowDevotionalModal] = useState(false);
   const [showStudyReminder, setShowStudyReminder] = useState(false);
   const [showReadingPlan, setShowReadingPlan] = useState(true);
+  const [personalGreeting, setPersonalGreeting] = useState("");
+  const [pastorNote, setPastorNote] = useState("");
+  const [studyPrompt, setStudyPrompt] = useState("");
   const hoverTimer = useRef<NodeJS.Timeout | null>(null);
   const statusWords = ["Fetching…", "Researching…", "Synthesizing…", "Formatting…", "Ready"];
 
@@ -364,6 +368,13 @@ const [searchedKeyword, setSearchedKeyword] = useState("");
       setShowCrisisModal(true);
     }
   }, [insight]);
+
+  // Generate dynamic personal messages
+  useEffect(() => {
+    setPersonalGreeting(getTimeBasedGreeting());
+    setPastorNote(getPastorNote());
+    setStudyPrompt(getStudyPrompt());
+  }, []);
 
   const displayIcon = hydrated 
     ? (displayStyle === "Casual Devotional" ? "☕" 
@@ -1074,11 +1085,16 @@ const handleKeywordResultSelect = (reference: string) => {
         <section className="card card-highlight mb-8 max-w-2xl mx-auto">
           <div className="text-center mb-6">
             <h2 className={`${nunitoSans.className} text-3xl font-bold mb-3 text-white`}>
-              Welcome back, {userName}! 👋
+              {personalGreeting}
             </h2>
-            <p className="text-white/80 text-lg leading-relaxed">
-              Ready to dive into Scripture today?
+            <p className="text-white/80 text-lg leading-relaxed mb-4">
+              Hey {userName}! {studyPrompt}
             </p>
+            {pastorNote && (
+              <div className="mt-4 p-4 bg-yellow-400/10 border border-yellow-400/30 rounded-xl">
+                <p className="text-white/90 text-sm italic">{pastorNote}</p>
+              </div>
+            )}
           </div>
 
           {!showReadingPlan && (
@@ -1149,7 +1165,7 @@ const handleKeywordResultSelect = (reference: string) => {
 
       <section className="card section-spacing">
         <div className="mb-6 pb-5 border-b border-white/10">
-          <p className="text-base text-white/80">What passage, topic or question can we research today?</p>
+          <p className="text-base text-white/80">{studyPrompt || "What's on your heart today?"}</p>
         </div>
 
         {savedStudies.length > 0 && (

@@ -23,6 +23,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { SignInPrompt } from '@/components/SignInPrompt';
 import { PrayerNotification } from '@/components/PrayerNotification';
+import { PastorNote } from '@/components/PastorNote';
 import { card, button, input, typography, cn } from '@/lib/ui-constants';
 
 const playfair = Playfair_Display({
@@ -416,7 +417,8 @@ function Header({ isAuthenticated, userName }: { isAuthenticated: boolean; userN
       <h1 className={`${playfair.className} ${typography.h1} mb-2`}>
         Prayer Center
       </h1>
-      <div className="h-[2px] w-20 bg-gradient-to-r from-yellow-400 to-amber-400 mb-3"></div>
+      <div className="h-[2px] w-20 bg-gradient-to-r from-yellow-400 to-amber-400 mb-4"></div>
+      <PastorNote variant="encouragement" className="mb-4" />
       <p className={cn(typography.small, 'text-white/70')}>
         {isAuthenticated
           ? `Welcome, ${getFirstName(userName)}! Share with community or keep private.`
@@ -697,7 +699,7 @@ function CommunityPrayerList({
   if (prayers.length === 0) {
     return (
       <div className={cn(typography.small, 'text-center py-20 text-white/50')}>
-        No community prayers yet. Be the first to share!
+        No community prayers yet, but that's okay! Someone needs to be first. Why not you? Your prayer could be exactly what someone else needs to see today.
       </div>
     );
   }
@@ -774,7 +776,7 @@ function PrivatePrayerList({ prayers, onMarkAnswered, onDelete }: PrivatePrayerL
   if (prayers.length === 0) {
     return (
       <div className={cn(typography.small, 'text-center py-20 text-white/50')}>
-        No private prayers yet. Add one above!
+        No prayers yet? That's fine! God hears your heart even before the words come. Ready to start? Add one above.
       </div>
     );
   }

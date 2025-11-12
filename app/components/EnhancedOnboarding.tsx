@@ -1,7 +1,7 @@
 // app/components/EnhancedOnboarding.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Playfair_Display, Nunito_Sans } from "next/font/google";
 import { useAuth } from "@/contexts/AuthContext";
 import { SignInPrompt } from "@/components/SignInPrompt";
@@ -50,6 +50,14 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
     enableReminders: true,
     email: "",
   });
+
+  // If user is authenticated, use their display name and skip to step 2
+  useEffect(() => {
+    if (isAuthenticated && user?.displayName) {
+      setData(prev => ({ ...prev, name: user.displayName || "" }));
+      setStep(2); // Skip name question
+    }
+  }, [isAuthenticated, user]);
 
   if (!isOpen) return null;
 
@@ -152,29 +160,67 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
 
         {/* Content */}
         <div className="p-8">
-          {/* Step 1: Welcome & Name */}
+          {/* Step 1: Welcome & Sign In or Guest */}
           {step === 1 && (
             <div className="space-y-6 text-center">
               <div className="text-6xl mb-4">📖</div>
               <h2 className={`${playfair.className} text-3xl font-bold text-yellow-400 mb-3`}>
                 Welcome to The Busy Christian
               </h2>
-              <p className="text-lg text-white/80 leading-relaxed">
+              <p className="text-lg text-white/80 leading-relaxed mb-6">
                 We're here to help you engage meaningfully with Scripture, no matter how busy life gets.
               </p>
-              <div className="mt-8 text-left max-w-md mx-auto">
-                <label className="block text-sm text-white/80 mb-2">
-                  What should we call you?
-                </label>
-                <input
-                  type="text"
-                  value={data.name}
-                  onChange={(e) => updateData({ name: e.target.value })}
-                  placeholder="Enter your first name"
-                  className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
-                  autoFocus
-                />
+
+              <div className="mt-8 space-y-4 max-w-md mx-auto">
+                {/* Sign In Button */}
+                <button
+                  onClick={() => setShowSignIn(true)}
+                  className="w-full px-6 py-4 bg-gradient-to-br from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-slate-900 rounded-lg font-semibold transition-all flex items-center justify-center gap-2"
+                >
+                  Sign In to Unlock All Features
+                </button>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-white/20"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-4 bg-slate-900 text-white/60">or</span>
+                  </div>
+                </div>
+
+                {/* Continue as Guest */}
+                <div className="text-left">
+                  <label className="block text-sm text-white/80 mb-2">
+                    Continue as Guest (limited features)
+                  </label>
+                  <input
+                    type="text"
+                    value={data.name}
+                    onChange={(e) => updateData({ name: e.target.value })}
+                    placeholder="Enter your first name"
+                    className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
+                  />
+                  <p className="mt-2 text-xs text-white/50">
+                    As a guest, you can use devotionals and reading plans. Sign in for Ask the Pastor, Deep Study, and Prayer Community.
+                  </p>
+                </div>
               </div>
+
+              {/* Sign In Modal */}
+              {showSignIn && (
+                <div className="fixed inset-0 z-50" onClick={() => setShowSignIn(false)}>
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <SignInPrompt
+                      onClose={() => setShowSignIn(false)}
+                      onSignInSuccess={() => {
+                        setShowSignIn(false);
+                        // Auth context will update and useEffect will handle the rest
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

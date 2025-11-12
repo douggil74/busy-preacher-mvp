@@ -30,9 +30,9 @@ export default function AdminAuth({ children }: AdminAuthProps) {
         return;
       }
 
-      // Check if password has been set up
-      const hasPassword = await hasAdminPassword();
-      setNeedsSetup(!hasPassword);
+      // Password is always set (default or custom)
+      await hasAdminPassword(); // Ensures default is set
+      setNeedsSetup(false); // Never show setup screen
       setIsLoading(false);
     } catch (err) {
       console.error('Auth check failed:', err);

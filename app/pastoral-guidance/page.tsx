@@ -222,6 +222,7 @@ export default function PastoralGuidancePage() {
   }, [sessionId, firstName]);
 
   const getUserEmail = () => {
+    if (typeof window === 'undefined') return undefined;
     return localStorage.getItem('bc-user-email') || undefined;
   };
 
@@ -633,7 +634,7 @@ export default function PastoralGuidancePage() {
           setShowMandatoryModal(false);
         }}
         sessionId={sessionId}
-        userEmail={user?.email}
+        userEmail={getUserEmail()}
       />
 
       {/* Contact Modal - Shown for crisis/serious situations (can skip) */}

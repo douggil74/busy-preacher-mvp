@@ -18,6 +18,7 @@ import { CheckInModal } from "@/components/CheckInModal";
 import { JourneyDashboard } from "@/components/JourneyDashboard";
 import { SettingsModal } from "@/components/SettingsModal";
 import { CrisisModal } from "@/components/CrisisModal";
+import { SignInPrompt } from "@/components/SignInPrompt";
 import { progressTracker } from "@/lib/progressTracker";
 import { DailyDevotional } from "@/devotional/DailyDevotional";
 import { DevotionalModal } from "@/components/DevotionalModal";
@@ -347,6 +348,7 @@ const [searchedKeyword, setSearchedKeyword] = useState("");
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [showStyleModal, setShowStyleModal] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showSignIn, setShowSignIn] = useState(false);
   const [userName, setUserName] = useState("");
   const [isOnboarded, setIsOnboarded] = useState(false);
   const [showJourney, setShowJourney] = useState(false);
@@ -1817,7 +1819,14 @@ const handleKeywordResultSelect = (reference: string) => {
 <EnhancedOnboarding
   isOpen={showOnboarding}
   onComplete={handleEnhancedOnboardingComplete}
-/>      
+  onRequestSignIn={() => setShowSignIn(true)}
+/>
+
+      <SignInPrompt
+        isOpen={showSignIn}
+        onClose={() => setShowSignIn(false)}
+        message="Sign in to unlock all features including Ask the Pastor, Deep Study, and Prayer Community"
+      />
 
       <StyleSelectorModal
         isOpen={showStyleModal}

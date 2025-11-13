@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 
 interface PastoralContactModalProps {
@@ -22,6 +22,16 @@ export default function PastoralContactModal({
   const [phone, setPhone] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  // Pre-fill with any saved contact info when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      const savedEmail = localStorage.getItem('bc-user-email') || '';
+      const savedPhone = localStorage.getItem('bc-user-phone') || '';
+      setEmail(savedEmail);
+      setPhone(savedPhone);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -34,7 +44,13 @@ export default function PastoralContactModal({
     setSubmitting(true);
 
     try {
-      // Save contact info to the conversation
+      // Save contact info to localStorage for future use
+      localStorage.setItem('bc-user-email', email.trim());
+      if (phone.trim()) {
+        localStorage.setItem('bc-user-phone', phone.trim());
+      }
+
+      // Save contact info to the conversation in Supabase
       await fetch('/api/pastoral-contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -59,32 +75,34 @@ export default function PastoralContactModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
       <div
-        className="max-w-md w-full rounded-2xl shadow-2xl overflow-hidden"
+        className="max-w-md w-full rounded-2xl shadow-xl overflow-hidden"
         style={{
           backgroundColor: 'var(--card-bg)',
-          borderWidth: '2px',
+          borderWidth: '1px',
           borderStyle: 'solid',
-          borderColor: isCrisis ? '#dc2626' : '#f59e0b',
+          borderColor: 'var(--card-border)',
         }}
       >
-        {/* Header */}
+        {/* Header - Softer, more gentle */}
         <div
-          className="px-6 py-4"
+          className="px-6 py-5"
           style={{
-            backgroundColor: isCrisis ? '#dc2626' : '#f59e0b',
+            background: isCrisis
+              ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)' // Soft purple gradient for crisis
+              : 'linear-gradient(135deg, #10b981 0%, #3b82f6 100%)', // Soft teal-blue for serious
           }}
         >
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <h2 className="text-xl font-bold text-white mb-1">
-                {isCrisis ? '🤍 I Care About You' : '💬 Let Me Help Personally'}
+              <h2 className="text-lg font-semibold text-white mb-1">
+                {isCrisis ? "💙 I'm Here for You" : "🤝 Let's Talk"}
               </h2>
               <p className="text-sm text-white/90">
                 {isCrisis
-                  ? "I'm genuinely concerned and want to support you personally"
-                  : "This feels like something we should talk about face-to-face"}
+                  ? "I care about you and want to help personally"
+                  : "This might be something we should talk through together"}
               </p>
             </div>
             <button
@@ -154,7 +172,12 @@ export default function PastoralContactModal({
               />
             </div>
 
-            <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+            <div className="rounded-lg p-3" style={{
+              backgroundColor: 'color-mix(in srgb, var(--accent-color) 10%, transparent)',
+              borderWidth: '1px',
+              borderStyle: 'solid',
+              borderColor: 'color-mix(in srgb, var(--accent-color) 30%, transparent)'
+            }}>
               <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                 🔒 Your contact info is kept private and only shared with Pastor Doug.
                 You'll also be able to message back and forth through the app.
@@ -165,9 +188,11 @@ export default function PastoralContactModal({
               <button
                 type="submit"
                 disabled={submitting || !email.trim()}
-                className="flex-1 px-4 py-3 rounded-lg font-semibold transition-colors disabled:opacity-50"
+                className="flex-1 px-4 py-3 rounded-lg font-semibold transition-all disabled:opacity-50 hover:opacity-90"
                 style={{
-                  backgroundColor: isCrisis ? '#dc2626' : '#f59e0b',
+                  background: isCrisis
+                    ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)'
+                    : 'linear-gradient(135deg, #10b981 0%, #3b82f6 100%)',
                   color: 'white',
                 }}
               >

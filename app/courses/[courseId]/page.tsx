@@ -3,11 +3,17 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
-import jsPDF from 'jspdf';
+import dynamic from 'next/dynamic';
 import { getCourseById } from '@/lib/courseDatabase';
 import { CourseTracker } from '@/lib/courseTracker';
 import { TopicalCourse } from '@/lib/courseTypes';
-import CertificateButton from '@/components/CertificateButton';
+
+// Lazy load heavy dependencies for better performance
+// jsPDF is imported dynamically in exportAnsweredQuestions() function
+const CertificateButton = dynamic(() => import('@/components/CertificateButton'), {
+  loading: () => <div className="animate-pulse bg-gray-200 h-10 w-48 rounded"></div>,
+  ssr: false
+});
 
 async function esvFetch(passage: string) {
   const res = await fetch("/api/esv", {
@@ -169,8 +175,10 @@ export default function CoursePage() {
     }));
   };
 
-  const exportAnsweredQuestions = () => {
-    const doc = new jsPDF({ unit: "pt", format: "letter" });
+  const exportAnsweredQuestions = async () => {
+    // Dynamically import jsPDF only when needed
+    const { default: jsPDFModule } = await import('jspdf');
+    const doc = new jsPDFModule({ unit: "pt", format: "letter" });
     const margin = 56;
     const width = 612 - margin * 2;
     let y = margin;

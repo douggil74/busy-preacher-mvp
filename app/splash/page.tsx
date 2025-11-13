@@ -10,6 +10,33 @@ const playfair = Playfair_Display({
   subsets: ["latin"],
 });
 
+// Add keyframes for glow animation
+const glowKeyframes = `
+  @keyframes glow {
+    0%, 100% {
+      filter: drop-shadow(0 0 20px rgba(255,215,0,0.4))
+              drop-shadow(0 0 40px rgba(255,215,0,0.3))
+              drop-shadow(0 0 60px rgba(255,215,0,0.2));
+    }
+    50% {
+      filter: drop-shadow(0 0 30px rgba(255,215,0,0.6))
+              drop-shadow(0 0 50px rgba(255,215,0,0.5))
+              drop-shadow(0 0 80px rgba(255,215,0,0.4));
+    }
+  }
+
+  @keyframes fadeOutZoom {
+    0% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.15);
+    }
+  }
+`;
+
 export default function SplashPage() {
   const router = useRouter();
   const [checked, setChecked] = useState(false);
@@ -40,18 +67,19 @@ export default function SplashPage() {
   if (!checked) return null;
 
   return (
-    <main
-      className={`flex flex-col items-center justify-center h-[100svh] w-full transition-all duration-[1500ms] ease-in-out ${
-        visible ? "opacity-100 scale-100" : "opacity-0 scale-105"
-      } ${playfair.className}`}
-      style={{
-        backgroundColor: "#0f1729",
-        color: "white",
-        overflow: "hidden",
-        margin: 0,
-        padding: 0,
-      }}
-    >
+    <>
+      <style>{glowKeyframes}</style>
+      <main
+        className={`flex flex-col items-center justify-center h-[100svh] w-full ${playfair.className}`}
+        style={{
+          backgroundColor: "#0f1729",
+          color: "white",
+          overflow: "hidden",
+          margin: 0,
+          padding: 0,
+          animation: visible ? 'none' : 'fadeOutZoom 1.5s ease-in-out forwards',
+        }}
+      >
       <div
         className="flex flex-col items-center justify-center"
         style={{
@@ -71,20 +99,25 @@ export default function SplashPage() {
           Welcome to the
         </h2>
 
-        <Image
-          src="/logo.png"
-          alt="The Busy Christian"
-          width={200}
-          height={200}
-          priority
-          className="select-none"
+        <div
           style={{
-            filter: "drop-shadow(0 0 25px rgba(255,215,0,0.35))",
-            transition: "transform 1.2s ease-in-out, opacity 1.2s ease-in-out",
-            transform: visible ? "scale(1)" : "scale(1.1)",
-            opacity: visible ? 1 : 0.6,
+            animation: visible ? 'glow 2s ease-in-out infinite' : 'none',
+            transition: 'all 1.5s ease-in-out',
           }}
-        />
+        >
+          <Image
+            src="/logo.webp"
+            alt="The Busy Christian"
+            width={220}
+            height={220}
+            priority
+            className="select-none"
+            style={{
+              transition: "transform 1.5s ease-in-out",
+              transform: visible ? "scale(1) rotate(0deg)" : "scale(1.2) rotate(5deg)",
+            }}
+          />
+        </div>
 
         <h1
           className={`text-2xl font-semibold mt-6 text-center transition-opacity duration-700 ${
@@ -100,5 +133,6 @@ export default function SplashPage() {
         </h1>
       </div>
     </main>
+    </>
   );
 }

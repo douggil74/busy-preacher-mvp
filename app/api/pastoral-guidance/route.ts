@@ -164,9 +164,13 @@ export async function POST(request: NextRequest) {
     const messages: Array<{role: string; content: string}> = [];
 
     // SAFETY CHECK: Detect crisis situations - EXPANDED DETECTION
+    // First check for biblical/religious context to avoid false positives
+    const biblicalPhrases = /(woman with an? issue of blood|blood of (the lamb|christ|jesus)|washed in the blood|shed (his|her|their) blood|drink (my|his) blood|crucif|passover|covenant|sacrifice|altar|testament)/i;
+    const isBiblicalContext = biblicalPhrases.test(question);
+
     const crisisKeywords = /(suicid|kill myself|end my life|want to die|going to die|gonna die|self.?harm|hurt myself|gun|bullet|hang myself|hanging|overdos|pills|jump off|slit|cut myself|razor|bleed|die tonight|die today|not worth living|better off dead|no reason to live|can't go on|goodbye world|final message|trigger|pointing gun|loading gun|abus|being hurt|molest|assault)/i;
-    const isCrisis = crisisKeywords.test(question);
-    console.log(`🔍 Crisis check: question="${question}", isCrisis=${isCrisis}`);
+    const isCrisis = !isBiblicalContext && crisisKeywords.test(question);
+    console.log(`🔍 Crisis check: question="${question}", biblical=${isBiblicalContext}, isCrisis=${isCrisis}`);
 
     // MANDATORY REPORTING: Detect if minor (under 18) reporting abuse
     const abuseKeywords = /(abus(e|ed|ing)|hurt(s|ing|ed)?\s+(me|us)|molest|assault|rape|touch(es|ed|ing)?\s+(me|us|my)|inappropriat|hitting\s+(me|us)|beating\s+(me|us)|hit(s|ting)?\s+(me|us)|punch(es|ed|ing)?\s+(me|us)|kick(s|ed|ing)?\s+(me|us)|slap(s|ped|ping)?\s+(me|us)|physical\s+abuse|being\s+(hurt|hit|beaten|abused))/i;

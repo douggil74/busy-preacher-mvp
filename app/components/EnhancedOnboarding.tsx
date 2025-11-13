@@ -4,6 +4,7 @@
 import { useState, useEffect } from "react";
 import { Playfair_Display, Nunito_Sans } from "next/font/google";
 import { useAuth } from "@/contexts/AuthContext";
+import { SignInPrompt } from "@/components/SignInPrompt";
 import { setDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
@@ -33,12 +34,12 @@ interface OnboardingData {
 interface EnhancedOnboardingProps {
   isOpen: boolean;
   onComplete: (data: OnboardingData) => void;
-  onRequestSignIn?: () => void;
 }
 
-export function EnhancedOnboarding({ isOpen, onComplete, onRequestSignIn }: EnhancedOnboardingProps) {
+export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingProps) {
   const { user, isAuthenticated } = useAuth();
   const [step, setStep] = useState(1);
+  const [showSignIn, setShowSignIn] = useState(false);
   const [data, setData] = useState<OnboardingData>({
     name: "",
     studyStyle: "Casual Devotional",
@@ -198,7 +199,7 @@ export function EnhancedOnboarding({ isOpen, onComplete, onRequestSignIn }: Enha
 
                 {/* Sign In Button - Secondary */}
                 <button
-                  onClick={() => onRequestSignIn?.()}
+                  onClick={() => setShowSignIn(true)}
                   className="w-full px-6 py-3 bg-white/5 hover:bg-white/10 text-white border border-white/20 rounded-lg font-medium transition-all flex items-center justify-center gap-2"
                 >
                   <span>Sign In with Google</span>
@@ -207,6 +208,13 @@ export function EnhancedOnboarding({ isOpen, onComplete, onRequestSignIn }: Enha
                   Sign in to sync your progress and access all features
                 </p>
               </div>
+
+              {/* Sign In Modal */}
+              <SignInPrompt
+                isOpen={showSignIn}
+                onClose={() => setShowSignIn(false)}
+                message="Sign in to unlock all features including Ask the Pastor, Deep Study, and Prayer Community"
+              />
             </div>
           )}
 

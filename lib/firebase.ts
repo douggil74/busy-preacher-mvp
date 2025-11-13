@@ -24,7 +24,7 @@ import {
   Timestamp,
   getDoc
 } from 'firebase/firestore';
-import { getAuth, Auth } from 'firebase/auth';
+import { getAuth, Auth, indexedDBLocalPersistence, setPersistence } from 'firebase/auth';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
 // ========== CONFIG ==========
@@ -52,6 +52,14 @@ if (!getApps().length) {
 
 db = getFirestore(app);
 auth = getAuth(app);
+
+// Set persistence to indexedDB for iOS/Capacitor compatibility
+// This fixes "storage-partitioned browser environment" errors
+if (typeof window !== 'undefined') {
+  setPersistence(auth, indexedDBLocalPersistence).catch((error) => {
+    console.warn('Failed to set auth persistence:', error);
+  });
+}
 
 // Messaging only works in browser
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {

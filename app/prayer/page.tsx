@@ -21,7 +21,6 @@ import {
   markAnswered,
 } from '@/lib/prayerStorage';
 import { useAuth } from '@/contexts/AuthContext';
-import { SignInPrompt } from '@/components/SignInPrompt';
 import { PrayerNotification } from '@/components/PrayerNotification';
 import { PastorNote } from '@/components/PastorNote';
 import { card, button, input, typography, cn } from '@/lib/ui-constants';
@@ -112,16 +111,15 @@ function playNotificationSound() {
 // ========================================
 
 export default function PrayerPage() {
-  const { user, isAuthenticated } = useAuth();
-  
+  const { user } = useAuth();
+
   // State
-  const [showSignIn, setShowSignIn] = useState(false);
   const [notification, setNotification] = useState<Notification | null>(null);
   const [privatePrayers, setPrivatePrayers] = useState<Prayer[]>([]);
   const [communityPrayers, setCommunityPrayers] = useState<CommunityPrayer[]>([]);
   const [activeTab, setActiveTab] = useState<'community' | 'private'>('community');
   const [filterCategory, setFilterCategory] = useState<Category | 'all'>('all');
-  
+
   // Form state
   const [isPrivate, setIsPrivate] = useState(false);
   const [prayerTitle, setPrayerTitle] = useState('');
@@ -185,7 +183,7 @@ export default function PrayerPage() {
 
   // Listen for prayers on MY requests
   useEffect(() => {
-    if (!isAuthenticated || !user) return;
+    if (!user) return;
 
     const myPrayersQuery = query(
       collection(db, 'prayer_requests'),
@@ -205,7 +203,7 @@ export default function PrayerPage() {
 
         if (currentHeartCount > previousCount && !isInitialLoad) {
           const lastHeart = prayer.hearts[prayer.hearts.length - 1];
-          
+
           if (lastHeart && lastHeart.userId !== user.uid) {
             setNotification({
               id: prayerId,
@@ -223,7 +221,7 @@ export default function PrayerPage() {
     });
 
     return () => unsubscribe();
-  }, [isAuthenticated, user]);
+  }, [user]);
 
   // ========================================
   // HANDLERS
@@ -250,15 +248,9 @@ export default function PrayerPage() {
         setPrivatePrayers(prayers.filter(p => !p.isAnswered));
         alert('✅ Private prayer saved!');
       } else {
-        if (!isAuthenticated) {
-          setShowSignIn(true);
-          setIsSubmitting(false);
-          return;
-        }
-
-        const userId = isAnonymous ? 'anonymous' : user!.uid;
-        const displayName = isAnonymous ? 'Anonymous' : (user!.displayName || 'Prayer Warrior');
-        const request = prayerDescription 
+        const userId = user?.uid || 'anonymous';
+        const displayName = isAnonymous ? 'Anonymous' : (user?.displayName || 'Prayer Warrior');
+        const request = prayerDescription
           ? `${prayerTitle}\n\n${prayerDescription}`
           : prayerTitle;
 
@@ -270,7 +262,7 @@ export default function PrayerPage() {
           isAnonymous,
           undefined
         );
-        
+
         alert('✅ Prayer shared with community!');
       }
 
@@ -278,7 +270,7 @@ export default function PrayerPage() {
       setPrayerDescription('');
       setCategory('other');
       setIsAnonymous(false);
-      
+
     } catch (error) {
       console.error('Error submitting prayer:', error);
       alert('❌ Failed to submit prayer. Please try again.');
@@ -288,18 +280,14 @@ export default function PrayerPage() {
   };
 
   const handlePrayForRequest = async (prayerId: string) => {
-    if (!isAuthenticated) {
-      setShowSignIn(true);
-      return;
-    }
-
     const prayer = communityPrayers.find(p => p.id === prayerId);
-    if (!prayer || prayer.hearts.some(h => h.userId === user!.uid)) return;
+    const currentUserId = user?.uid || `guest_${Date.now()}`;
+    if (!prayer || prayer.hearts.some(h => h.userId === currentUserId)) return;
 
     try {
       const prayerRef = doc(db, 'prayer_requests', prayerId);
       await updateDoc(prayerRef, {
-        hearts: [...prayer.hearts, { userId: user!.uid, timestamp: Date.now() }],
+        hearts: [...prayer.hearts, { userId: currentUserId, timestamp: Date.now() }],
         heartCount: increment(1)
       });
     } catch (error) {
@@ -329,66 +317,19 @@ export default function PrayerPage() {
   // FILTERS
   // ========================================
 
-  const filteredCommunityPrayers = filterCategory === 'all' 
-    ? communityPrayers 
+  const filteredCommunityPrayers = filterCategory === 'all'
+    ? communityPrayers
     : communityPrayers.filter(p => p.category === filterCategory);
 
   // ========================================
   // RENDER
   // ========================================
 
-  // Auth gate for Prayer Community
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white flex items-center justify-center p-4">
-        <div className="max-w-md w-full">
-          <div className={cn(card.default, 'text-center')}>
-            <div className="mb-6">
-              <div className="inline-flex p-4 bg-gradient-to-br from-amber-500/10 to-amber-600/10 rounded-full mb-4">
-                <svg className="w-12 h-12 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              </div>
-            </div>
-            <h2 className={`${playfair.className} ${typography.h2} mb-3`}>
-              Prayer Community
-            </h2>
-            <p className={cn(typography.body, 'text-white/70 mb-6')}>
-              Sign in to share prayers with the community, pray for others, and build meaningful connections in faith.
-            </p>
-            <button
-              onClick={() => setShowSignIn(true)}
-              className="w-full inline-flex items-center justify-center gap-3 rounded-lg bg-white text-gray-900 px-6 py-3 font-semibold hover:bg-gray-100 transition-all shadow-lg mb-4"
-            >
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-              </svg>
-              Sign in with Google
-            </button>
-            <p className={cn(typography.xs, 'text-white/50')}>
-              You can still access devotionals and reading plans without signing in
-            </p>
-          </div>
-
-          <SignInPrompt
-            isOpen={showSignIn}
-            onClose={() => setShowSignIn(false)}
-            message="Sign in to access the Prayer Community"
-          />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white">
       <div className="max-w-3xl mx-auto px-4 py-12">
 
         <Header
-          isAuthenticated={isAuthenticated}
           userName={user?.displayName}
         />
 
@@ -403,7 +344,6 @@ export default function PrayerPage() {
           setCategory={setCategory}
           isAnonymous={isAnonymous}
           setIsAnonymous={setIsAnonymous}
-          isAuthenticated={isAuthenticated}
           isSubmitting={isSubmitting}
           onSubmit={handleSubmitPrayer}
         />
@@ -426,9 +366,7 @@ export default function PrayerPage() {
           <CommunityPrayerList
             prayers={filteredCommunityPrayers}
             currentUser={user}
-            isAuthenticated={isAuthenticated}
             onPray={handlePrayForRequest}
-            onSignIn={() => setShowSignIn(true)}
           />
         ) : (
           <PrivatePrayerList
@@ -442,12 +380,6 @@ export default function PrayerPage() {
           notification={notification}
           onClose={() => setNotification(null)}
         />
-
-        <SignInPrompt
-          isOpen={showSignIn}
-          onClose={() => setShowSignIn(false)}
-          message="Sign in to share prayers with the community and pray for others"
-        />
       </div>
     </div>
   );
@@ -457,7 +389,7 @@ export default function PrayerPage() {
 // HEADER COMPONENT
 // ========================================
 
-function Header({ isAuthenticated, userName }: { isAuthenticated: boolean; userName?: string | null }) {
+function Header({ userName }: { userName?: string | null }) {
   return (
     <div className="section-spacing">
       <h1 className={`${playfair.className} ${typography.h1} mb-2`}>
@@ -466,9 +398,9 @@ function Header({ isAuthenticated, userName }: { isAuthenticated: boolean; userN
       <div className="h-[2px] w-20 bg-gradient-to-r from-yellow-400 to-amber-400 mb-4"></div>
       <PastorNote variant="encouragement" className="mb-4" />
       <p className={cn(typography.small, 'text-white/70')}>
-        {isAuthenticated
+        {userName
           ? `Welcome, ${getFirstName(userName)}! Share with community or keep private.`
-          : 'Create private prayers or sign in to join the community.'
+          : 'Create prayers and share them with the community.'
         }
       </p>
     </div>
@@ -490,7 +422,6 @@ interface PrayerSubmissionFormProps {
   setCategory: (val: Category) => void;
   isAnonymous: boolean;
   setIsAnonymous: (val: boolean) => void;
-  isAuthenticated: boolean;
   isSubmitting: boolean;
   onSubmit: () => void;
 }
@@ -506,7 +437,6 @@ function PrayerSubmissionForm({
   setCategory,
   isAnonymous,
   setIsAnonymous,
-  isAuthenticated,
   isSubmitting,
   onSubmit
 }: PrayerSubmissionFormProps) {
@@ -548,7 +478,7 @@ function PrayerSubmissionForm({
         ))}
       </div>
 
-      {!isPrivate && isAuthenticated && (
+      {!isPrivate && (
         <div className="mb-3">
           <label className="flex items-center gap-2 cursor-pointer text-xs">
             <input
@@ -572,7 +502,6 @@ function PrayerSubmissionForm({
           />
           <span className="text-sm text-white/80">
             🌍 Share with Community
-            {!isAuthenticated && <span className="text-yellow-400 ml-1">(requires sign-in)</span>}
           </span>
         </label>
         <label className="flex items-center gap-2 cursor-pointer">
@@ -586,23 +515,13 @@ function PrayerSubmissionForm({
         </label>
       </div>
 
-      {!isPrivate && !isAuthenticated && (
-        <div className={cn(card.info, 'mb-4')}>
-          <p className={cn(typography.small, 'text-blue-300')}>
-            ℹ️ Sign in to share prayers with the community and pray for others
-          </p>
-        </div>
-      )}
-
       <button
         onClick={onSubmit}
         disabled={isSubmitting || !prayerTitle.trim()}
         className={cn(button.primary, 'w-full')}
       >
         {isSubmitting ? 'Submitting...' :
-         isPrivate ? 'Submit Prayer' :
-         isAuthenticated ? 'Share with Community' :
-         'Sign In to Share'}
+         isPrivate ? 'Submit Prayer' : 'Share with Community'}
       </button>
     </div>
   );
@@ -612,12 +531,12 @@ function PrayerSubmissionForm({
 // TABS COMPONENT
 // ========================================
 
-function PrayerTabs({ 
-  activeTab, 
-  setActiveTab, 
-  communityCount, 
-  privateCount 
-}: { 
+function PrayerTabs({
+  activeTab,
+  setActiveTab,
+  communityCount,
+  privateCount
+}: {
   activeTab: 'community' | 'private';
   setActiveTab: (tab: 'community' | 'private') => void;
   communityCount: number;
@@ -653,10 +572,10 @@ function PrayerTabs({
 // CATEGORY FILTER COMPONENT
 // ========================================
 
-function CategoryFilter({ 
-  filterCategory, 
-  setFilterCategory 
-}: { 
+function CategoryFilter({
+  filterCategory,
+  setFilterCategory
+}: {
   filterCategory: Category | 'all';
   setFilterCategory: (cat: Category | 'all') => void;
 }) {
@@ -696,52 +615,14 @@ function CategoryFilter({
 interface CommunityPrayerListProps {
   prayers: CommunityPrayer[];
   currentUser: any;
-  isAuthenticated: boolean;
   onPray: (id: string) => void;
-  onSignIn: () => void;
 }
 
 function CommunityPrayerList({
   prayers,
   currentUser,
-  isAuthenticated,
-  onPray,
-  onSignIn
+  onPray
 }: CommunityPrayerListProps) {
-  if (!isAuthenticated) {
-    return (
-      <div className={cn(card.info, 'text-center')}>
-        <div className="mb-4">
-          <svg className="w-16 h-16 mx-auto text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-          </svg>
-        </div>
-        <h3 className={`${typography.h2} mb-3`}>
-          Sign In to View Community Prayers
-        </h3>
-        <p className={cn(typography.body, 'text-white/70 mb-6 max-w-md mx-auto')}>
-          For security and accountability, you need to sign in with Google to view and participate
-          in the prayer community.
-        </p>
-        <button
-          onClick={onSignIn}
-          className="inline-flex items-center gap-3 rounded-lg bg-white text-gray-900 px-6 py-3 font-semibold hover:bg-gray-100 transition-all shadow-lg"
-        >
-          <svg className="w-5 h-5" viewBox="0 0 24 24">
-            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-          </svg>
-          Sign in with Google
-        </button>
-        <p className={cn(typography.xs, 'text-white/50 mt-4')}>
-          You can create private prayers without signing in
-        </p>
-      </div>
-    );
-  }
-
   if (prayers.length === 0) {
     return (
       <div className={cn(typography.small, 'text-center py-20 text-white/50')}>
@@ -753,8 +634,9 @@ function CommunityPrayerList({
   return (
     <div className="space-y-3">
       {prayers.map(prayer => {
-        const isMyPrayer = currentUser?.uid === prayer.userId;
-        const hasUserPrayed = prayer.hearts.some(h => h.userId === currentUser?.uid);
+        const currentUserId = currentUser?.uid || `guest_${Date.now()}`;
+        const isMyPrayer = currentUserId === prayer.userId;
+        const hasUserPrayed = prayer.hearts.some(h => h.userId === currentUserId);
 
         return (
           <div

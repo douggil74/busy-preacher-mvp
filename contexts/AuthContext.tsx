@@ -28,20 +28,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for redirect result on mount (for mobile/iOS)
-    getRedirectResult(auth)
-      .then((result) => {
-        if (result?.user) {
-          setUser(result.user);
-        }
-      })
-      .catch((error) => {
-        console.error('Error getting redirect result:', error);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-
     // Listen for auth state changes
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
@@ -55,17 +41,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const provider = new GoogleAuthProvider();
 
-      // Detect if we're on mobile/iOS - use redirect instead of popup
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      const isCapacitor = typeof window !== 'undefined' && (window as any).Capacitor !== undefined;
-
-      if (isMobile || isCapacitor) {
-        // Use redirect for mobile devices and Capacitor apps
-        await signInWithRedirect(auth, provider);
-      } else {
-        // Use popup for desktop browsers
-        await signInWithPopup(auth, provider);
-      }
+      // Always use popup - it works better across all platforms with proper persistence
+      await signInWithPopup(auth, provider);
     } catch (error) {
       console.error('Error signing in with Google:', error);
       throw error;

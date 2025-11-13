@@ -1,14 +1,15 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, Send, Loader2, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Send, MessageCircle, Download, Mail } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Playfair_Display } from 'next/font/google';
 import { card, button, input, typography, cn } from '@/lib/ui-constants';
-import { PastorNote } from '@/components/PastorNote';
 import PastoralContactModal from '@/components/PastoralContactModal';
+import MandatoryReportingModal from '@/components/MandatoryReportingModal';
 import PastoralInbox from '@/components/PastoralInbox';
 import { useAuth } from '@/contexts/AuthContext';
+import jsPDF from 'jspdf';
 
 const playfair = Playfair_Display({
   weight: ["600", "700"],
@@ -34,7 +35,142 @@ export default function PastoralGuidancePage() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
   const [isCrisisModal, setIsCrisisModal] = useState(false);
+  const [showMandatoryModal, setShowMandatoryModal] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isEmailing, setIsEmailing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const modalShownForMessages = useRef<Set<string>>(new Set());
+
+  // Export to PDF
+  const handleExportPDF = () => {
+    if (messages.length === 0) return;
+
+    setIsExporting(true);
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 15;
+      const maxWidth = pageWidth - margin * 2;
+      let yPosition = 20;
+
+      // Title
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Pastoral Guidance Conversation', margin, yPosition);
+      yPosition += 10;
+
+      // Date
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+      }), margin, yPosition);
+      yPosition += 15;
+
+      // Messages
+      messages.forEach((msg, index) => {
+        const isUser = msg.role === 'user';
+        const label = isUser ? (firstName || 'You') : 'Pastor Doug';
+        const timestamp = new Date(msg.timestamp).toLocaleString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+        });
+
+        // Check if we need a new page
+        if (yPosition > 270) {
+          doc.addPage();
+          yPosition = 20;
+        }
+
+        // Message header
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${label} - ${timestamp}`, margin, yPosition);
+        yPosition += 6;
+
+        // Message content
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        const lines = doc.splitTextToSize(msg.content, maxWidth);
+        lines.forEach((line: string) => {
+          if (yPosition > 275) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          doc.text(line, margin, yPosition);
+          yPosition += 5;
+        });
+
+        yPosition += 8; // Space between messages
+      });
+
+      // Footer
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'italic');
+        doc.text(
+          'The Busy Christian - Cornerstone Church, Mandeville, LA',
+          pageWidth / 2,
+          doc.internal.pageSize.getHeight() - 10,
+          { align: 'center' }
+        );
+      }
+
+      // Save PDF
+      const filename = `pastoral-guidance-${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(filename);
+    } catch (error) {
+      console.error('Failed to export PDF:', error);
+      alert('Failed to export PDF. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // Email transcript
+  const handleEmailTranscript = async () => {
+    if (messages.length === 0) return;
+
+    const userEmail = getUserEmail();
+    if (!userEmail) {
+      alert('Please provide your email address in the contact form first.');
+      return;
+    }
+
+    setIsEmailing(true);
+    try {
+      const response = await fetch('/api/pastoral-transcript', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: userEmail,
+          firstName,
+          messages: messages.map(msg => ({
+            role: msg.role,
+            content: msg.content,
+            timestamp: msg.timestamp.toISOString(),
+          })),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send email');
+      }
+
+      alert('Transcript sent! Check your email.');
+    } catch (error) {
+      console.error('Failed to email transcript:', error);
+      alert('Failed to send email. Please try again.');
+    } finally {
+      setIsEmailing(false);
+    }
+  };
 
   useEffect(() => {
     // Get user's first name from localStorage
@@ -61,6 +197,17 @@ export default function PastoralGuidancePage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ sessionId, firstName }),
         });
+
+        if (!response.ok) {
+          console.error('Failed to create conversation:', response.status);
+          return;
+        }
+
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          console.error('Expected JSON response but got:', contentType);
+          return;
+        }
 
         const data = await response.json();
         if (data.conversation) {
@@ -110,10 +257,18 @@ export default function PastoralGuidancePage() {
           conversationHistory: messages.slice(-4), // Send last 4 messages for context
           userName: firstName,
           userEmail: getUserEmail(),
+          sessionId: sessionId, // Send session ID for mandatory reporting
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to get response');
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error(`Expected JSON but got ${contentType}`);
+      }
 
       const data = await response.json();
 
@@ -126,12 +281,10 @@ export default function PastoralGuidancePage() {
 
       setMessages(prev => [...prev, assistantMessage]);
 
-      // Check for crisis/serious keywords
-      const crisisKeywords = /\b(suicid|kill myself|end my life|want to die|self harm|hurt myself)\b/i;
-      const seriousKeywords = /\b(abuse|being hurt|molest|assault|overdose|divorce|leaving god|walk away from faith|addiction|alcoholic|pornography|terminal|cancer|died|death of|lost my|job loss)\b/i;
-
-      const isCrisis = crisisKeywords.test(userMessage.content);
-      const isSerious = !isCrisis && seriousKeywords.test(userMessage.content);
+      // Use API's detection flags
+      const isCrisis = data.isCrisis || false;
+      const isSerious = data.isSerious || false;
+      const isMandatoryReport = data.isMandatoryReport || false;
 
       // Save messages to pastoral_messages table
       if (conversationId) {
@@ -166,10 +319,20 @@ export default function PastoralGuidancePage() {
         }
       }
 
-      // Show contact modal for crisis or serious situations
-      if (isCrisis || isSerious) {
+      // PRIORITY 1: Show MANDATORY reporting modal if minor reporting abuse (cannot skip)
+      if (isMandatoryReport && !modalShownForMessages.current.has(assistantMessage.id)) {
+        modalShownForMessages.current.add(assistantMessage.id);
+        setTimeout(() => {
+          setShowMandatoryModal(true);
+        }, 500);
+      }
+      // PRIORITY 2: Show contact modal for crisis or serious situations (can skip)
+      else if ((isCrisis || isSerious) && !modalShownForMessages.current.has(assistantMessage.id)) {
+        modalShownForMessages.current.add(assistantMessage.id);
         setIsCrisisModal(isCrisis);
-        setShowContactModal(true);
+        setTimeout(() => {
+          setShowContactModal(true);
+        }, 500); // Small delay to ensure messages are fully rendered
       }
 
       // Log the question for learning and improvement (privacy-safe)
@@ -205,46 +368,113 @@ export default function PastoralGuidancePage() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
       {/* Header */}
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <button
-          onClick={() => router.push('/')}
-          className="mb-6 flex items-center gap-2 text-sm transition-colors"
-          style={{ color: 'var(--text-secondary)' }}
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </button>
+      <div className="max-w-4xl mx-auto px-4 py-6">
+        <div className="flex items-center justify-between mb-4">
+          <button
+            onClick={() => router.push('/')}
+            className="flex items-center gap-2 text-sm transition-colors"
+            style={{ color: 'var(--text-secondary)' }}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </button>
 
-        <div className="text-center mb-8">
+          {/* Export buttons - only show when there are messages */}
+          {messages.length > 0 && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleExportPDF}
+                disabled={isExporting}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all hover:opacity-80 disabled:opacity-50"
+                style={{
+                  backgroundColor: 'var(--card-bg)',
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: 'var(--card-border)',
+                  color: 'var(--text-primary)',
+                }}
+                title="Export conversation to PDF"
+              >
+                <Download className="w-4 h-4" />
+                <span className="hidden sm:inline">{isExporting ? 'Exporting...' : 'PDF'}</span>
+              </button>
+              <button
+                onClick={handleEmailTranscript}
+                disabled={isEmailing}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all hover:opacity-80 disabled:opacity-50"
+                style={{
+                  backgroundColor: 'var(--card-bg)',
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: 'var(--card-border)',
+                  color: 'var(--text-primary)',
+                }}
+                title="Email transcript to yourself"
+              >
+                <Mail className="w-4 h-4" />
+                <span className="hidden sm:inline">{isEmailing ? 'Sending...' : 'Email'}</span>
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div className="text-center mb-6">
           <h1 className={cn(playfair.className, typography.h1, 'mb-3')} style={{ color: 'var(--text-primary)' }}>
             Ask the Pastor
           </h1>
-          <div className="h-[2px] w-24 bg-gradient-to-r from-yellow-400 to-amber-400 mx-auto mb-4"></div>
-          <p className={cn(typography.body, 'mb-4')} style={{ color: 'var(--text-secondary)' }}>
+          <div className="h-[2px] w-24 bg-gradient-to-r from-yellow-400 to-amber-400 mx-auto mb-3"></div>
+          <p className={cn(typography.body)} style={{ color: 'var(--text-secondary)' }}>
             Biblical wisdom and guidance for life's questions - ask anything on your heart
           </p>
-          <div className="max-w-3xl mx-auto">
-            <PastorNote variant="encouragement" />
-          </div>
         </div>
       </div>
 
+      {/* Input Form - Shows at top when no messages, hides when conversation starts */}
+      {messages.length === 0 && (
+        <div className="max-w-4xl mx-auto px-4 pb-4">
+          <form onSubmit={handleSubmit} className="flex gap-2">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Message Pastor..."
+              disabled={isLoading}
+              className="flex-1 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all duration-200 disabled:opacity-50"
+              style={{
+                backgroundColor: 'var(--input-bg)',
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                borderColor: 'var(--input-border)',
+                color: 'var(--text-primary)'
+              }}
+            />
+            <button
+              type="submit"
+              disabled={!input.trim() || isLoading}
+              className={cn(button.primary, 'flex items-center gap-2')}
+            >
+              <Send className="w-5 h-5" />
+            </button>
+          </form>
+        </div>
+      )}
+
       {/* Messages Container */}
-      <div className="max-w-4xl mx-auto px-4 py-4 pb-20">
+      <div className="max-w-4xl mx-auto px-4 py-3 pb-24">
         {messages.length === 0 ? (
-          <div className="text-center py-8">
+          <div className="text-center py-4">
             <div className="inline-flex p-3 bg-gradient-to-br from-amber-500/10 to-amber-600/10 rounded-full mb-3">
               <MessageCircle className="w-10 h-10 text-amber-500" />
             </div>
             <h2 className={cn(typography.h3, 'mb-2')} style={{ color: 'var(--text-primary)' }}>
               What's on your heart today?
             </h2>
-            <p className={cn(typography.small, 'mb-6 max-w-md mx-auto')} style={{ color: 'var(--text-secondary)' }}>
+            <p className={cn(typography.small, 'mb-4 max-w-md mx-auto')} style={{ color: 'var(--text-secondary)' }}>
               No question is too big or too small. Let's talk about what's going on in your life.
             </p>
 
             {/* Safety Disclaimer */}
-            <div className="max-w-2xl mx-auto mb-6 p-4 rounded-xl text-left" style={{
+            <div className="max-w-2xl mx-auto mb-4 p-4 rounded-xl text-left" style={{
               backgroundColor: 'var(--card-bg)',
               borderWidth: '1px',
               borderStyle: 'solid',
@@ -262,7 +492,7 @@ export default function PastoralGuidancePage() {
 
             {/* Example Questions */}
             <div className="max-w-2xl mx-auto">
-              <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center gap-2 mb-2">
                 <div className="h-px flex-1" style={{ backgroundColor: 'var(--card-border)' }}></div>
                 <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
                   Example Questions
@@ -328,13 +558,23 @@ export default function PastoralGuidancePage() {
             ))}
             {isLoading && (
               <div className="flex justify-start items-end gap-2">
-                <div className="rounded-t-2xl rounded-br-2xl rounded-bl-md px-4 py-3" style={{
-                  backgroundColor: 'var(--card-bg)',
-                  borderWidth: '1px',
-                  borderStyle: 'solid',
-                  borderColor: 'var(--card-border)'
-                }}>
-                  <Loader2 className="w-5 h-5 text-amber-500 animate-spin" />
+                <div className="flex flex-col" style={{ maxWidth: '70%' }}>
+                  <p className="text-xs font-medium mb-1 ml-2" style={{ color: 'var(--text-secondary)' }}>
+                    Pastor
+                  </p>
+                  <div className="rounded-t-2xl rounded-br-2xl rounded-bl-md px-5 py-3" style={{
+                    backgroundColor: 'var(--card-bg)',
+                    borderWidth: '1px',
+                    borderStyle: 'solid',
+                    borderColor: 'var(--card-border)'
+                  }}>
+                    {/* Animated typing dots like iMessage */}
+                    <div className="flex gap-1">
+                      <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms', animationDuration: '1.4s' }}></div>
+                      <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '200ms', animationDuration: '1.4s' }}></div>
+                      <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '400ms', animationDuration: '1.4s' }}></div>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -343,54 +583,67 @@ export default function PastoralGuidancePage() {
         )}
       </div>
 
-      {/* Input Form */}
-      <div className="fixed bottom-4 left-0 right-0 backdrop-blur-sm rounded-t-2xl shadow-xl" style={{
-        backgroundColor: 'var(--card-bg)',
-        borderWidth: '1px',
-        borderStyle: 'solid',
-        borderColor: 'var(--card-border)'
-      }}>
-        <div className="max-w-4xl mx-auto px-4 py-3">
-          <form onSubmit={handleSubmit} className="flex gap-2">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Message Pastor..."
-              disabled={isLoading}
-              className="flex-1 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all duration-200 disabled:opacity-50"
-              style={{
-                backgroundColor: 'var(--input-bg)',
-                borderWidth: '1px',
-                borderStyle: 'solid',
-                borderColor: 'var(--input-border)',
-                color: 'var(--text-primary)'
-              }}
-            />
-            <button
-              type="submit"
-              disabled={!input.trim() || isLoading}
-              className={cn(button.primary, 'flex items-center gap-2')}
-            >
-              {isLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
+      {/* Input Form - Shows at bottom during conversation */}
+      {messages.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 backdrop-blur-sm" style={{
+          backgroundColor: 'color-mix(in srgb, var(--card-bg) 95%, transparent)',
+          borderTopWidth: '1px',
+          borderTopStyle: 'solid',
+          borderTopColor: 'var(--card-border)'
+        }}>
+          <div className="max-w-4xl mx-auto px-4 py-3">
+            <form onSubmit={handleSubmit} className="flex gap-2">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Message Pastor..."
+                disabled={isLoading}
+                className="flex-1 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all duration-200 disabled:opacity-50"
+                style={{
+                  backgroundColor: 'var(--input-bg)',
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: 'var(--input-border)',
+                  color: 'var(--text-primary)'
+                }}
+              />
+              <button
+                type="submit"
+                disabled={!input.trim() || isLoading}
+                className={cn(button.primary, 'flex items-center gap-2')}
+              >
                 <Send className="w-5 h-5" />
-              )}
-            </button>
-          </form>
+              </button>
+            </form>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Pastoral Inbox - Shows messages from pastor */}
       {sessionId && (
         <PastoralInbox sessionId={sessionId} firstName={firstName} />
       )}
 
-      {/* Contact Modal - Shown for crisis/serious situations */}
+      {/* Mandatory Reporting Modal - PRIORITY: Shown when minor reports abuse (cannot skip) */}
+      <MandatoryReportingModal
+        isOpen={showMandatoryModal}
+        onSubmit={(info) => {
+          console.log('Mandatory report submitted:', info);
+          setShowMandatoryModal(false);
+        }}
+        sessionId={sessionId}
+        userEmail={user?.email}
+      />
+
+      {/* Contact Modal - Shown for crisis/serious situations (can skip) */}
       <PastoralContactModal
         isOpen={showContactModal}
-        onClose={() => setShowContactModal(false)}
+        onClose={() => {
+          setShowContactModal(false);
+          // Clear the tracking to allow modal to show again for future crises
+          // modalShownForMessages.current.clear(); // Keep tracking to prevent re-showing same modal
+        }}
         isCrisis={isCrisisModal}
         sessionId={sessionId}
         firstName={firstName}

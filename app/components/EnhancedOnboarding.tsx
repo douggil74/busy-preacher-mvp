@@ -173,39 +173,40 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
               </p>
 
               <div className="mt-8 space-y-4 max-w-md mx-auto">
-                {/* Sign In Button */}
-                <button
-                  onClick={() => setShowSignIn(true)}
-                  className="w-full px-6 py-4 bg-gradient-to-br from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-slate-900 rounded-lg font-semibold transition-all flex items-center justify-center gap-2"
-                >
-                  Sign In to Unlock All Features
-                </button>
-
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-white/20"></div>
-                  </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-4 bg-slate-900 text-white/60">or</span>
-                  </div>
-                </div>
-
-                {/* Continue as Guest */}
+                {/* Get Started - Primary */}
                 <div className="text-left">
-                  <label className="block text-sm text-white/80 mb-2">
-                    Continue as Guest (limited features)
+                  <label className="block text-lg font-semibold text-white mb-3">
+                    What's your first name?
                   </label>
                   <input
                     type="text"
                     value={data.name}
                     onChange={(e) => updateData({ name: e.target.value })}
                     placeholder="Enter your first name"
-                    className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
+                    className="w-full px-4 py-3 rounded-lg bg-white/5 border-2 border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50 transition-colors"
+                    autoFocus
                   />
-                  <p className="mt-2 text-xs text-white/50">
-                    As a guest, you can use devotionals and reading plans. Sign in for Ask the Pastor, Deep Study, and Prayer Community.
-                  </p>
                 </div>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-white/20"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-4 bg-slate-900 text-white/40 text-xs">or sign in for cloud sync</span>
+                  </div>
+                </div>
+
+                {/* Sign In Button - Secondary */}
+                <button
+                  onClick={() => setShowSignIn(true)}
+                  className="w-full px-6 py-3 bg-white/5 hover:bg-white/10 text-white border border-white/20 rounded-lg font-medium transition-all flex items-center justify-center gap-2"
+                >
+                  <span>Sign In with Google</span>
+                </button>
+                <p className="text-center text-xs text-white/40">
+                  Sign in to sync your progress and access all features
+                </p>
               </div>
 
               {/* Sign In Modal */}

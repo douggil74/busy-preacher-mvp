@@ -28,6 +28,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Check for redirect result when app opens (for Capacitor/iOS)
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result?.user) {
+          console.log('✅ Google sign-in successful via redirect');
+          setUser(result.user);
+        }
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        console.error('Redirect result error:', error);
+        setIsLoading(false);
+      });
+
     // Listen for auth state changes
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
@@ -41,8 +55,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const provider = new GoogleAuthProvider();
 
-      // Always use popup - it works better across all platforms with proper persistence
-      await signInWithPopup(auth, provider);
+      // On iOS/Capacitor, use redirect flow instead of popup
+      const isCapacitor = typeof window !== 'undefined' && (window as any).Capacitor !== undefined;
+
+      if (isCapacitor) {
+        // For native apps, use redirect which opens in system browser
+        await signInWithRedirect(auth, provider);
+      } else {
+        // For web, use popup
+        await signInWithPopup(auth, provider);
+      }
     } catch (error) {
       console.error('Error signing in with Google:', error);
       throw error;

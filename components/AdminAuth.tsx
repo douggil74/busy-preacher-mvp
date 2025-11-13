@@ -141,6 +141,8 @@ export default function AdminAuth({ children }: AdminAuthProps) {
                   placeholder="Enter password"
                   required
                   minLength={6}
+                  autoComplete="off"
+                  name="admin-password"
                 />
                 <button
                   type="button"
@@ -166,6 +168,8 @@ export default function AdminAuth({ children }: AdminAuthProps) {
                   placeholder="Confirm password"
                   required
                   minLength={6}
+                  autoComplete="off"
+                  name="admin-password-confirm"
                 />
               </div>
             )}

@@ -968,7 +968,6 @@ const hasSubscribed = safeStorage.getItem("bc-subscribed");
     setBpError(null);
     setEsvLoading(true);
     await progressTracker.checkAndNotifyProgress();
-    NotificationService.updateLastStudyDate();
 
     esvFetch(cleaned)
       .then((out) => setBpText(out.text))

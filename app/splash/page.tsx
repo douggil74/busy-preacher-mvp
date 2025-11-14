@@ -55,11 +55,27 @@ export default function SplashPage() {
     sessionStorage.setItem("splash-shown", "true");
     setChecked(true);
 
+    // Prevent keyboard from appearing on iOS during splash
+    const preventKeyboard = () => {
+      // Blur any focused input
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+      // Disable all inputs temporarily
+      document.querySelectorAll('input, textarea').forEach((el) => {
+        (el as HTMLInputElement).readOnly = true;
+      });
+    };
+
+    preventKeyboard();
+    const keyboardInterval = setInterval(preventKeyboard, 100);
+
     const textTimer = setTimeout(() => setShowText(true), 400);
     const fadeTimer = setTimeout(() => setVisible(false), 3000);
     const navTimer = setTimeout(() => router.push("/home"), 4500);
 
     return () => {
+      clearInterval(keyboardInterval);
       clearTimeout(textTimer);
       clearTimeout(fadeTimer);
       clearTimeout(navTimer);
@@ -80,6 +96,10 @@ export default function SplashPage() {
           margin: 0,
           padding: 0,
           animation: visible ? 'none' : 'fadeOutZoom 1.5s ease-in-out forwards',
+          pointerEvents: 'none',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          WebkitTouchCallout: 'none',
         }}
       >
       <div

@@ -22,10 +22,10 @@ const config: CapacitorConfig = {
   // Plugin configuration
   plugins: {
     SplashScreen: {
-      launchShowDuration: 500,  // Quick native splash
+      launchShowDuration: 0,  // No native splash - use web splash only
       backgroundColor: '#0f1729',
       showSpinner: false,
-      launchAutoHide: true,  // Auto-hide so web splash takes over
+      launchAutoHide: true,
       splashFullScreen: false,
       splashImmersive: false,
       androidSplashResourceName: 'splash'

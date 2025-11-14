@@ -46,13 +46,7 @@ export default function SplashPage() {
   const [showText, setShowText] = useState(false);
 
   useEffect(() => {
-    const seen = sessionStorage.getItem("splash-shown");
-    if (seen) {
-      router.replace("/home");
-      return;
-    }
-
-    sessionStorage.setItem("splash-shown", "true");
+    // Always show splash - no sessionStorage check to avoid double splash issue
     setChecked(true);
 
     // Prevent keyboard from appearing on iOS during splash

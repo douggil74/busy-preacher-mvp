@@ -45,7 +45,24 @@ export default function RootLayout({
             __html: `
             (function() {
               try {
-                const mode = localStorage.getItem('bc-theme-mode') || 'light';
+                // Sophisticated time-based theme detection
+                const getTimeBasedTheme = () => {
+                  const hour = new Date().getHours();
+                  // Dark mode: 8 PM (20:00) to 6 AM (06:00)
+                  // Light mode: 6 AM (06:00) to 8 PM (20:00)
+                  return (hour >= 20 || hour < 6) ? 'dark' : 'light';
+                };
+
+                // Check for user preference, otherwise use time-based
+                let mode = localStorage.getItem('bc-theme-mode');
+                const userHasPreference = localStorage.getItem('bc-theme-user-set') === 'true';
+
+                if (!userHasPreference) {
+                  // Auto-detect based on time of day
+                  mode = getTimeBasedTheme();
+                  localStorage.setItem('bc-theme-mode', mode);
+                }
+
                 const root = document.documentElement;
                 if (mode === 'dark') {
                   root.style.setProperty('--bg-color', '#0f1729');

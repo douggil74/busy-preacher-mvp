@@ -3,9 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Playfair_Display } from "next/font/google";
+import { Inter } from "next/font/google";
 
-const playfair = Playfair_Display({
+const inter = Inter({
   weight: ["400", "600", "700"],
   subsets: ["latin"],
 });
@@ -85,7 +85,7 @@ export default function SplashPage() {
     <>
       <style>{glowKeyframes}</style>
       <main
-        className={`flex flex-col items-center justify-center h-[100svh] w-full ${playfair.className}`}
+        className={`flex flex-col items-center justify-center h-[100svh] w-full ${inter.className}`}
         style={{
           backgroundColor: "#0f1729",
           color: "white",

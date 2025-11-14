@@ -59,9 +59,9 @@ function HeaderBarContent() {
   // Apply theme when toggled
   useEffect(() => {
     if (!mounted) return;
-    
+
     const root = document.documentElement;
-    
+
     if (isDark) {
       // Beautiful Blue Dark
       root.style.setProperty('--bg-color', '#0f1729');
@@ -81,6 +81,9 @@ function HeaderBarContent() {
       root.style.setProperty('--accent-color', '#b8860b');
       localStorage.setItem("bc-theme-mode", "light");
     }
+
+    // Mark that user has manually set their preference
+    localStorage.setItem("bc-theme-user-set", "true");
   }, [isDark, mounted]);
 
   // Update font scale

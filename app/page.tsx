@@ -11,5 +11,15 @@ export default function RootRedirect() {
     router.replace("/splash");
   }, [router]);
 
-  return null;
+  // Show dark background immediately while redirecting (no white flash)
+  return (
+    <div style={{
+      backgroundColor: '#0f1729',
+      width: '100vw',
+      height: '100vh',
+      position: 'fixed',
+      top: 0,
+      left: 0
+    }} />
+  );
 }

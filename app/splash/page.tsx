@@ -41,14 +41,10 @@ const glowKeyframes = `
 
 export default function SplashPage() {
   const router = useRouter();
-  const [checked, setChecked] = useState(false);
   const [visible, setVisible] = useState(true);
   const [showText, setShowText] = useState(false);
 
   useEffect(() => {
-    // Always show splash - no sessionStorage check to avoid double splash issue
-    setChecked(true);
-
     // Prevent keyboard from appearing on iOS during splash
     const preventKeyboard = () => {
       // Blur any focused input
@@ -64,9 +60,9 @@ export default function SplashPage() {
     preventKeyboard();
     const keyboardInterval = setInterval(preventKeyboard, 100);
 
-    const textTimer = setTimeout(() => setShowText(true), 400);
-    const fadeTimer = setTimeout(() => setVisible(false), 3000);
-    const navTimer = setTimeout(() => router.push("/home"), 4500);
+    const textTimer = setTimeout(() => setShowText(true), 200);  // Faster text appear
+    const fadeTimer = setTimeout(() => setVisible(false), 2800);
+    const navTimer = setTimeout(() => router.push("/home"), 4200);
 
     return () => {
       clearInterval(keyboardInterval);
@@ -75,8 +71,6 @@ export default function SplashPage() {
       clearTimeout(navTimer);
     };
   }, [router]);
-
-  if (!checked) return null;
 
   return (
     <>

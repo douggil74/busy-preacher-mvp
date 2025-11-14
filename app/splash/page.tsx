@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Playfair_Display, Dancing_Script } from "next/font/google";
+import { Playfair_Display, Pacifico } from "next/font/google";
 
 const playfair = Playfair_Display({
   weight: ["600", "700"],
@@ -11,8 +11,8 @@ const playfair = Playfair_Display({
   display: "swap",
 });
 
-const dancingScript = Dancing_Script({
-  weight: ["400", "600"],
+const pacifico = Pacifico({
+  weight: ["400"],
   subsets: ["latin"],
   display: "swap",
 });
@@ -120,7 +120,7 @@ export default function SplashPage() {
         }}
       >
         <h2
-          className={`${dancingScript.className} text-3xl font-normal mb-6 text-center transition-opacity duration-700 ${
+          className={`${pacifico.className} text-3xl font-normal mb-6 text-center transition-opacity duration-700 ${
             showText ? "opacity-100" : "opacity-0"
           }`}
           style={{

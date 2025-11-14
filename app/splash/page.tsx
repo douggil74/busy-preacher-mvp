@@ -3,9 +3,14 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Inter } from "next/font/google";
+import { Inter, Playfair_Display } from "next/font/google";
 
 const inter = Inter({
+  weight: ["400", "600", "700"],
+  subsets: ["latin"],
+});
+
+const playfair = Playfair_Display({
   weight: ["400", "600", "700"],
   subsets: ["latin"],
 });
@@ -85,7 +90,7 @@ export default function SplashPage() {
     <>
       <style>{glowKeyframes}</style>
       <main
-        className={`flex flex-col items-center justify-center ${inter.className}`}
+        className="flex flex-col items-center justify-center"
         style={{
           position: 'fixed',
           top: 0,
@@ -113,7 +118,7 @@ export default function SplashPage() {
         }}
       >
         <h2
-          className={`text-2xl font-semibold mb-6 text-center transition-opacity duration-700 ${
+          className={`${inter.className} text-2xl font-semibold mb-6 text-center transition-opacity duration-700 ${
             showText ? "opacity-100" : "opacity-0"
           }`}
           style={{
@@ -146,7 +151,7 @@ export default function SplashPage() {
         </div>
 
         <h1
-          className={`text-xl font-semibold mt-5 text-center transition-opacity duration-700 ${
+          className={`${playfair.className} text-xl font-semibold mt-5 text-center transition-opacity duration-700 ${
             showText ? "opacity-100" : "opacity-0"
           }`}
           style={{

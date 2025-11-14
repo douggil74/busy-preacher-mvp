@@ -10,8 +10,17 @@ const playfair = Playfair_Display({
   subsets: ["latin"],
 });
 
-// Add keyframes for glow animation - MORE INTENSE
+// Add keyframes for animations
 const glowKeyframes = `
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
   @keyframes glow {
     0%, 100% {
       filter: drop-shadow(0 0 30px rgba(255,215,0,0.8))
@@ -83,7 +92,9 @@ export default function SplashPage() {
           overflow: "hidden",
           margin: 0,
           padding: 0,
-          animation: visible ? 'none' : 'fadeOutZoom 1.5s ease-in-out forwards',
+          animation: visible
+            ? 'fadeIn 0.6s ease-out forwards'
+            : 'fadeOutZoom 1.5s ease-in-out forwards',
           pointerEvents: 'none',
           userSelect: 'none',
           WebkitUserSelect: 'none',

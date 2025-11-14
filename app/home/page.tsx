@@ -691,7 +691,6 @@ const hasSubscribed = safeStorage.getItem("bc-subscribed");
         refreshJourney();
         
         await progressTracker.checkAndNotifyProgress();
-        NotificationService.updateLastStudyDate();
         
         // ✅ Check if this is first study - show email modal
         if (studies.length === 0) {

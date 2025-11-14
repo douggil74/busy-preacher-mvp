@@ -3,16 +3,18 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Inter, Playfair_Display } from "next/font/google";
-
-const inter = Inter({
-  weight: ["400", "600", "700"],
-  subsets: ["latin"],
-});
+import { Playfair_Display, Dancing_Script } from "next/font/google";
 
 const playfair = Playfair_Display({
-  weight: ["400", "600", "700"],
+  weight: ["600", "700"],
   subsets: ["latin"],
+  display: "swap",
+});
+
+const dancingScript = Dancing_Script({
+  weight: ["400", "600"],
+  subsets: ["latin"],
+  display: "swap",
 });
 
 // Add keyframes for animations
@@ -118,12 +120,12 @@ export default function SplashPage() {
         }}
       >
         <h2
-          className={`${inter.className} text-2xl font-semibold mb-6 text-center transition-opacity duration-700 ${
+          className={`${dancingScript.className} text-3xl font-normal mb-6 text-center transition-opacity duration-700 ${
             showText ? "opacity-100" : "opacity-0"
           }`}
           style={{
             color: "#FFD700",
-            letterSpacing: "0.05em",
+            letterSpacing: "0.02em",
             textShadow: "0 0 10px rgba(255,215,0,0.25)",
           }}
         >
@@ -151,13 +153,14 @@ export default function SplashPage() {
         </div>
 
         <h1
-          className={`${playfair.className} text-xl font-semibold mt-5 text-center transition-opacity duration-700 ${
+          className={`${playfair.className} text-2xl font-bold mt-5 text-center transition-opacity duration-700 ${
             showText ? "opacity-100" : "opacity-0"
           }`}
           style={{
             color: "white",
             letterSpacing: "0.05em",
             textShadow: "0 0 10px rgba(255,255,255,0.25)",
+            fontWeight: 700,
           }}
         >
           The Busy Christian

@@ -1,14 +1,6 @@
 // app/components/PastoralInsightBanner.tsx
 "use client";
 
-import { Playfair_Display } from "next/font/google";
-
-const playfair = Playfair_Display({
-  weight: ["600"],
-  subsets: ["latin"],
-  display: "swap",
-});
-
 interface PastoralInsightBannerProps {
   message: string;
   emoji: string;
@@ -45,9 +37,9 @@ export function PastoralInsightBanner({ message, emoji, type, onDismiss }: Pasto
         <div className={`text-4xl flex-shrink-0 ${iconColors[type]}`}>
           {emoji}
         </div>
-        
+
         <div className="flex-1">
-          <p className={`${playfair.className} text-lg leading-relaxed text-white/90`}>
+          <p className="text-lg leading-relaxed text-white/90">
             {message}
           </p>
         </div>

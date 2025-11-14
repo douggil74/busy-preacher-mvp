@@ -19,7 +19,7 @@
   --text-muted: rgba(255, 255, 255, 0.4);
   --accent-color: #facc15;
   --accent-hover: #fde047;
-  --font-family: Inter, system-ui, sans-serif;
+  --font-family: 'Nunito Sans', Inter, system-ui, sans-serif;
   --font-size: 16px;
 
   /* Extended Design System Colors */

@@ -1,8 +1,6 @@
 // app/components/StudyReminderBanner.tsx
 "use client";
 
-import { useState } from "react";
-
 interface StudyReminderBannerProps {
   userName: string;
   daysSinceLastStudy: number;
@@ -16,11 +14,10 @@ export function StudyReminderBanner({
   onDismiss,
   onStartStudy,
 }: StudyReminderBannerProps) {
-  const [isClosing, setIsClosing] = useState(false);
-
-  const handleDismiss = () => {
-    setIsClosing(true);
-    setTimeout(onDismiss, 300);
+  const handleDismiss = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onDismiss();
   };
 
   const getMessage = () => {
@@ -52,9 +49,7 @@ export function StudyReminderBanner({
 
   return (
     <div
-      className={`mb-6 rounded-xl border bg-gradient-to-r ${color} p-6 transition-all duration-300 ${
-        isClosing ? "opacity-0 scale-95" : "opacity-100 scale-100"
-      }`}
+      className={`mb-6 rounded-xl border bg-gradient-to-r ${color} p-6 transition-opacity duration-200`}
     >
       <div className="flex items-start gap-4">
         <div className="text-4xl">📖</div>

@@ -649,7 +649,6 @@ useEffect(() => {
         refreshJourney();
         
         await progressTracker.checkAndNotifyProgress();
-        NotificationService.updateLastStudyDate();
         progressTracker.trackOutlineGeneration(passageRef.trim(), theme.trim());
         
         // ✅ Check if this is first study - show email modal

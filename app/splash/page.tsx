@@ -85,8 +85,13 @@ export default function SplashPage() {
     <>
       <style>{glowKeyframes}</style>
       <main
-        className={`flex flex-col items-center justify-center h-[100svh] w-full ${inter.className}`}
+        className={`flex flex-col items-center justify-center ${inter.className}`}
         style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
           backgroundColor: "#0f1729",
           color: "white",
           overflow: "hidden",
@@ -108,7 +113,7 @@ export default function SplashPage() {
         }}
       >
         <h2
-          className={`text-3xl font-semibold mb-8 text-center transition-opacity duration-700 ${
+          className={`text-2xl font-semibold mb-6 text-center transition-opacity duration-700 ${
             showText ? "opacity-100" : "opacity-0"
           }`}
           style={{
@@ -129,8 +134,8 @@ export default function SplashPage() {
           <Image
             src="/logo.webp"
             alt="The Busy Christian"
-            width={240}
-            height={240}
+            width={200}
+            height={200}
             priority
             className="select-none"
             style={{
@@ -141,7 +146,7 @@ export default function SplashPage() {
         </div>
 
         <h1
-          className={`text-2xl font-semibold mt-6 text-center transition-opacity duration-700 ${
+          className={`text-xl font-semibold mt-5 text-center transition-opacity duration-700 ${
             showText ? "opacity-100" : "opacity-0"
           }`}
           style={{

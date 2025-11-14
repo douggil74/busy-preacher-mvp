@@ -21,8 +21,7 @@ import { CrisisModal } from "@/components/CrisisModal";
 import { progressTracker } from "@/lib/progressTracker";
 import { DailyDevotional } from "@/devotional/DailyDevotional";
 import { DevotionalModal } from "@/components/DevotionalModal";
-import { NotificationService } from "@/lib/notificationService";
-import { StudyReminderBanner } from "@/components/StudyReminderBanner";
+import { DailyDevotionalPopup } from "@/components/DailyDevotionalPopup";
 import { RelatedCoursesPanel } from "@/components/RelatedCoursesPanel";
 import { safeStorage } from "@/utils/safeStorage";
 import { KeywordSearchResults } from "@/components/KeywordSearchResults";
@@ -353,7 +352,7 @@ const [searchedKeyword, setSearchedKeyword] = useState("");
   const [showSettings, setShowSettings] = useState(false);
   const [showCrisisModal, setShowCrisisModal] = useState(false);
   const [showDevotionalModal, setShowDevotionalModal] = useState(false);
-  const [showStudyReminder, setShowStudyReminder] = useState(false);
+  const [showDailyDevotional, setShowDailyDevotional] = useState(false);
   const [showReadingPlan, setShowReadingPlan] = useState(true);
   const [personalGreeting, setPersonalGreeting] = useState("");
   const [pastorNote, setPastorNote] = useState("");
@@ -501,10 +500,16 @@ useEffect(() => {
   }, [isOnboarded]);
 
   useEffect(() => {
-    if (isOnboarded && NotificationService.shouldShowReminder()) {
-      setShowStudyReminder(true);
+    if (!isOnboarded) return;
+
+    // Check if we should show the daily devotional popup
+    const lastShown = localStorage.getItem('bc-daily-devotional-shown');
+    const today = new Date().toDateString();
+
+    if (lastShown !== today && pastorNote) {
+      setShowDailyDevotional(true);
     }
-  }, [isOnboarded]);
+  }, [isOnboarded, pastorNote]);
 
   const currentRefNotes = useMemo(() => {
     const ref = passageRef.trim() || theme.trim();
@@ -1087,23 +1092,6 @@ const handleKeywordResultSelect = (reference: string) => {
         />
       )}
 
-      {showStudyReminder && isOnboarded && (
-        <div className="max-w-3xl mx-auto">
-          <StudyReminderBanner
-            userName={userName}
-            daysSinceLastStudy={NotificationService.getDaysSinceLastStudy()}
-            onDismiss={() => {
-              setShowStudyReminder(false);
-              NotificationService.markReminderShown();
-            }}
-            onStartStudy={() => {
-              setShowStudyReminder(false);
-              NotificationService.markReminderShown();
-              document.getElementById('mainPassage')?.focus();
-            }}
-          />
-        </div>
-      )}
 
       {isOnboarded && !passageRef && !theme && !passageOutline && !themeOutline && !combinedOutline && (
         <section className="card card-highlight mb-8 max-w-2xl mx-auto">
@@ -1114,11 +1102,6 @@ const handleKeywordResultSelect = (reference: string) => {
             <p className="text-white/80 text-lg leading-relaxed mb-4">
               Hey {userName}! {studyPrompt}
             </p>
-            {pastorNote && (
-              <div className="mt-4 p-4 bg-yellow-400/10 border border-yellow-400/30 rounded-xl">
-                <p className="text-white/90 text-sm italic">{pastorNote}</p>
-              </div>
-            )}
           </div>
 
           {!showReadingPlan && (
@@ -1817,7 +1800,17 @@ const handleKeywordResultSelect = (reference: string) => {
 <EnhancedOnboarding
   isOpen={showOnboarding}
   onComplete={handleEnhancedOnboardingComplete}
-/>      
+/>
+
+      {showDailyDevotional && pastorNote && (
+        <DailyDevotionalPopup
+          message={pastorNote}
+          onClose={() => {
+            setShowDailyDevotional(false);
+            localStorage.setItem('bc-daily-devotional-shown', new Date().toDateString());
+          }}
+        />
+      )}
 
       <StyleSelectorModal
         isOpen={showStyleModal}

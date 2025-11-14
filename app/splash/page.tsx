@@ -10,18 +10,20 @@ const playfair = Playfair_Display({
   subsets: ["latin"],
 });
 
-// Add keyframes for glow animation
+// Add keyframes for glow animation - MORE INTENSE
 const glowKeyframes = `
   @keyframes glow {
     0%, 100% {
-      filter: drop-shadow(0 0 20px rgba(255,215,0,0.4))
-              drop-shadow(0 0 40px rgba(255,215,0,0.3))
-              drop-shadow(0 0 60px rgba(255,215,0,0.2));
+      filter: drop-shadow(0 0 30px rgba(255,215,0,0.8))
+              drop-shadow(0 0 60px rgba(255,215,0,0.6))
+              drop-shadow(0 0 90px rgba(255,215,0,0.4))
+              drop-shadow(0 0 120px rgba(255,215,0,0.2));
     }
     50% {
-      filter: drop-shadow(0 0 30px rgba(255,215,0,0.6))
-              drop-shadow(0 0 50px rgba(255,215,0,0.5))
-              drop-shadow(0 0 80px rgba(255,215,0,0.4));
+      filter: drop-shadow(0 0 50px rgba(255,215,0,1))
+              drop-shadow(0 0 80px rgba(255,215,0,0.8))
+              drop-shadow(0 0 120px rgba(255,215,0,0.6))
+              drop-shadow(0 0 160px rgba(255,215,0,0.4));
     }
   }
 
@@ -32,7 +34,7 @@ const glowKeyframes = `
     }
     100% {
       opacity: 0;
-      transform: scale(1.15);
+      transform: scale(1.3);
     }
   }
 `;
@@ -53,9 +55,9 @@ export default function SplashPage() {
     sessionStorage.setItem("splash-shown", "true");
     setChecked(true);
 
-    const textTimer = setTimeout(() => setShowText(true), 600);
-    const fadeTimer = setTimeout(() => setVisible(false), 2500);
-    const navTimer = setTimeout(() => router.push("/home"), 4000);
+    const textTimer = setTimeout(() => setShowText(true), 400);
+    const fadeTimer = setTimeout(() => setVisible(false), 3000);
+    const navTimer = setTimeout(() => router.push("/home"), 4500);
 
     return () => {
       clearTimeout(textTimer);
@@ -101,20 +103,20 @@ export default function SplashPage() {
 
         <div
           style={{
-            animation: visible ? 'glow 2s ease-in-out infinite' : 'none',
+            animation: visible ? 'glow 1.5s ease-in-out infinite' : 'none',
             transition: 'all 1.5s ease-in-out',
           }}
         >
           <Image
             src="/logo.webp"
             alt="The Busy Christian"
-            width={220}
-            height={220}
+            width={240}
+            height={240}
             priority
             className="select-none"
             style={{
               transition: "transform 1.5s ease-in-out",
-              transform: visible ? "scale(1) rotate(0deg)" : "scale(1.2) rotate(5deg)",
+              transform: visible ? "scale(1) rotate(0deg)" : "scale(1.3) rotate(8deg)",
             }}
           />
         </div>

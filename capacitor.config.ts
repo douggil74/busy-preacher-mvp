@@ -5,9 +5,9 @@ const config: CapacitorConfig = {
   appName: 'The Busy Christian',
   webDir: 'www',
 
-  // Point to production website
+  // PRODUCTION MODE: App loads from deployed website
   server: {
-    url: 'https://thebusychristianapp.com',
+    url: 'https://www.thebusychristianapp.com',
     cleartext: false
   },
 
@@ -22,10 +22,10 @@ const config: CapacitorConfig = {
   // Plugin configuration
   plugins: {
     SplashScreen: {
-      launchShowDuration: 10000,  // Show for 10 seconds
+      launchShowDuration: 500,  // Quick native splash
       backgroundColor: '#0f1729',
-      showSpinner: false,  // No spinner, just the beautiful splash image
-      launchAutoHide: false,  // Manual control - we'll hide it ourselves after exactly 10 seconds
+      showSpinner: false,
+      launchAutoHide: true,  // Auto-hide so web splash takes over
       splashFullScreen: false,
       splashImmersive: false,
       androidSplashResourceName: 'splash'

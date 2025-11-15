@@ -5,6 +5,7 @@ import { ArrowLeft, Send, MessageCircle, Download, Mail } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Playfair_Display } from 'next/font/google';
 import { card, button, input, typography, cn } from '@/lib/ui-constants';
+import { EncouragingBanner } from '@/components/EncouragingBanner';
 import PastoralContactModal from '@/components/PastoralContactModal';
 import MandatoryReportingModal from '@/components/MandatoryReportingModal';
 import PastoralInbox from '@/components/PastoralInbox';
@@ -368,6 +369,8 @@ export default function PastoralGuidancePage() {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
+      <EncouragingBanner message="Seeking guidance shows wisdom and humility. God promises to lead those who ask. Trust Him to light your path!" />
+
       {/* Header */}
       <div className="max-w-4xl mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-4">

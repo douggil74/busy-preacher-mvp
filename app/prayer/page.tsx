@@ -23,6 +23,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { PrayerNotification } from '@/components/PrayerNotification';
 import { PastorNote } from '@/components/PastorNote';
+import { EncouragingBanner } from '@/components/EncouragingBanner';
 import { card, button, input, typography, cn } from '@/lib/ui-constants';
 
 const playfair = Playfair_Display({
@@ -313,6 +314,7 @@ export default function PrayerPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white">
       <div className="max-w-3xl mx-auto px-4 py-12">
+        <EncouragingBanner message="Prayer is your lifeline to God. Every prayer, whether joy or struggle, brings you closer to His presence. Keep talking to Him!" />
 
         <Header
           userName={null}

@@ -11,6 +11,7 @@ import { SmartLoader } from "@/components/SmartLoader";
 import { card, button, input, typography, cn } from '@/lib/ui-constants';
 import WordStudyModal from "@/components/WordStudyModal";
 import { PastorNote } from '@/components/PastorNote';
+import { EncouragingBanner } from '@/components/EncouragingBanner';
 
 const playfair = Playfair_Display({
   weight: ["600", "700"],
@@ -959,6 +960,8 @@ export default function DeepStudyPage() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
+      <EncouragingBanner message="Deep study reveals God's heart. Every verse you explore brings new understanding. Keep digging into His treasures!" />
+
       <button
         onClick={() => window.history.back()}
         className="mb-6 flex items-center gap-2 text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}

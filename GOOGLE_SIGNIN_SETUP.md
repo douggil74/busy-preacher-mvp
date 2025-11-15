@@ -1,27 +1,27 @@
-# Google Sign-In Setup Guide
+# Email/Password Authentication Setup Guide
 
-This document outlines the steps needed to complete the Google Sign-In implementation for The Busy Christian app.
+This document outlines the authentication implementation for The Busy Christian app.
 
 ## What's Been Implemented
 
 ### ✅ Completed Features
 
-1. **Google Authentication Context** (`contexts/AuthContext.tsx`)
-   - Firebase Google Sign-In integration
-   - Automatic user profile creation with first name extraction
+1. **Email/Password Authentication Context** (`contexts/AuthContext.tsx`)
+   - Firebase Email/Password authentication
+   - User profile creation with first name and full name
    - Location detection using geolocation + reverse geocoding
    - User profile stored in Firestore with:
      - `uid`: User ID
-     - `firstName`: Extracted from Google display name
-     - `fullName`: Full Google display name
+     - `firstName`: User-provided first name
+     - `fullName`: User-provided full name
      - `email`: User email
-     - `photoURL`: Google profile photo
      - `location`: { city, state, country }
      - `createdAt`, `lastSignIn`: Timestamps
 
-2. **Sign-In UI** (`components/SignInModal.tsx`)
-   - Beautiful modal with Google Sign-In button
-   - Error handling
+2. **Sign-In/Sign-Up UI** (`components/SignInModal.tsx`)
+   - Beautiful modal with email/password form
+   - Toggle between sign-in and sign-up modes
+   - Error handling with helpful messages
    - Privacy note about first name display
    - "Maybe Later" option for optional sign-in
 
@@ -48,15 +48,14 @@ This document outlines the steps needed to complete the Google Sign-In implement
 
 ## Required Setup Steps
 
-### 1. Enable Google Sign-In in Firebase Console
+### 1. Enable Email/Password Sign-In in Firebase Console
 
 1. Go to [Firebase Console](https://console.firebase.google.com/)
 2. Select your project: `thebusychristian-app`
 3. Navigate to **Authentication** → **Sign-in method**
-4. Click on **Google** provider
+4. Click on **Email/Password** provider
 5. Click **Enable**
-6. Add your support email (required)
-7. Click **Save**
+6. Click **Save**
 
 ### 2. Add Pastor Email to Environment Variables
 

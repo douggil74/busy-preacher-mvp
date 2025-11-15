@@ -22,6 +22,7 @@ import { progressTracker } from "@/lib/progressTracker";
 import { DailyDevotional } from "@/devotional/DailyDevotional";
 import { DevotionalModal } from "@/components/DevotionalModal";
 import { RelatedCoursesPanel } from "@/components/RelatedCoursesPanel";
+import { EncouragingBanner } from "@/components/EncouragingBanner";
 import { safeStorage } from "@/utils/safeStorage";
 import { KeywordSearchResults } from "@/components/KeywordSearchResults";
 import WordStudyModal from "@/components/WordStudyModal";
@@ -1068,19 +1069,7 @@ const handleKeywordResultSelect = (reference: string) => {
   return (
     <main className="container">
       {pastorNote && isOnboarded && (
-        <div className="mb-6 max-w-3xl mx-auto">
-          <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 dark:from-yellow-500/5 dark:to-orange-500/5 border-l-4 border-yellow-500/50 dark:border-yellow-500/30 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <div className="text-2xl flex-shrink-0">📖</div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-yellow-700 dark:text-yellow-400 mb-1">A Word from Your Pastor</p>
-                <p className="text-sm text-slate-700 dark:text-slate-300 italic leading-relaxed">
-                  {pastorNote}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <EncouragingBanner message={pastorNote} />
       )}
 
       {insight && insight.priority < 100 && !passageOutline && !themeOutline && !combinedOutline && (
@@ -1160,10 +1149,10 @@ const handleKeywordResultSelect = (reference: string) => {
         </section>
       )}
 
-      {/* SECTION 1: Create Your Devotion */}
+      {/* SECTION 1: Create Your Own Devotion */}
       <div className="mb-4 max-w-2xl mx-auto">
         <h2 className={`${nunitoSans.className} text-xl font-semibold text-yellow-400 mb-1`}>
-          Create Your Devotion
+          Create Your Own Devotion
         </h2>
         <p className="text-white/60 text-sm">
           Generate AI-powered Bible studies with pastoral insights, practical applications, and cross-references

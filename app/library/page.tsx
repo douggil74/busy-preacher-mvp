@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { PastorNote } from '@/components/PastorNote';
 import { getEmptyStateMessage } from '@/lib/personalMessages';
 import { card, button, input, typography, cn } from '@/lib/ui-constants';
+import { EncouragingBanner } from '@/components/EncouragingBanner';
 
 const playfair = Playfair_Display({
   weight: ["600", "700"],
@@ -174,6 +175,8 @@ export default function LibraryPage() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
+      <EncouragingBanner message="Your library is a testament to your dedication to God's Word. Each study, each note, is a step closer to Him. Keep building this treasure of wisdom!" />
+
       <div className="mb-6">
         <button
           onClick={() => window.history.back()}

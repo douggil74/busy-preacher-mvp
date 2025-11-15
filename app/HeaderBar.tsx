@@ -6,6 +6,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { Playfair_Display } from "next/font/google";
 import { useSearchParams } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import { SignInModal } from "@/components/SignInModal";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -19,7 +21,9 @@ function HeaderBarContent() {
   const [scale, setScale] = useState(1);
   const [isDark, setIsDark] = useState<boolean>(false);
   const [mounted, setMounted] = useState(false);
+  const [showSignInModal, setShowSignInModal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const { user, isAuthenticated, signOut } = useAuth();
 
   const searchParams = useSearchParams();
   const reference = searchParams.get("reference") || "";
@@ -221,6 +225,52 @@ function HeaderBarContent() {
             </svg>
           </button>
 
+          {/* User Profile / Sign In */}
+          {isAuthenticated && user ? (
+            <button
+              onClick={() => {
+                if (confirm(`Sign out as ${user.firstName}?`)) {
+                  signOut();
+                }
+              }}
+              className="rounded-xl px-3 h-9 hover:bg-white/10 transition-colors flex items-center gap-2 text-sm font-medium"
+              style={{
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                borderColor: 'var(--card-border)',
+                color: 'var(--text-primary)'
+              }}
+              title={`Signed in as ${user.firstName}`}
+            >
+              {user.photoURL && (
+                <img
+                  src={user.photoURL}
+                  alt={user.firstName}
+                  className="w-5 h-5 rounded-full"
+                />
+              )}
+              <span className="hidden sm:inline">{user.firstName}</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => setShowSignInModal(true)}
+              className="rounded-xl px-3 h-9 hover:bg-white/10 transition-colors flex items-center gap-1 text-sm font-medium"
+              style={{
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                borderColor: 'var(--accent-color)',
+                backgroundColor: 'color-mix(in srgb, var(--accent-color) 10%, transparent)',
+                color: 'var(--accent-color)'
+              }}
+              title="Sign in with Google"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
+              </svg>
+              <span className="hidden sm:inline">Sign In</span>
+            </button>
+          )}
+
           {/* Navigation Menu (Hamburger) */}
           <div className="relative" ref={menuRef}>
             <button
@@ -336,6 +386,11 @@ function HeaderBarContent() {
           </div>
         </div>
       </div>
+
+      <SignInModal
+        isOpen={showSignInModal}
+        onClose={() => setShowSignInModal(false)}
+      />
     </header>
   );
 }

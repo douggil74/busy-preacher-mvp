@@ -4,7 +4,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
   GoogleAuthProvider,
-  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
@@ -50,6 +51,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Listen to Firebase auth state
   useEffect(() => {
+    // Check for redirect result first
+    const checkRedirectResult = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result && result.user) {
+          // User signed in via redirect
+          await setDoc(
+            doc(db, 'users', result.user.uid),
+            { lastSignIn: serverTimestamp() },
+            { merge: true }
+          );
+
+          // Request location permission after sign in
+          requestLocationPermission();
+        }
+      } catch (error) {
+        console.error('Redirect result error:', error);
+      }
+    };
+
+    checkRedirectResult();
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setFirebaseUser(firebaseUser);
 
@@ -98,17 +121,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         prompt: 'select_account'
       });
 
-      const result = await signInWithPopup(auth, provider);
-
-      // Update last sign in
-      await setDoc(
-        doc(db, 'users', result.user.uid),
-        { lastSignIn: serverTimestamp() },
-        { merge: true }
-      );
-
-      // Request location permission after sign in
-      requestLocationPermission();
+      // Use redirect instead of popup - no popup blocking issues!
+      await signInWithRedirect(auth, provider);
     } catch (error: any) {
       console.error('Sign in error:', error);
       throw error;

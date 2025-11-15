@@ -1,7 +1,7 @@
 // components/SignInModal.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface SignInModalProps {
@@ -15,7 +15,6 @@ export function SignInModal({ isOpen, onClose, message }: SignInModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
-  const [hideModal, setHideModal] = useState(false);
 
   // Form fields
   const [email, setEmail] = useState('');
@@ -23,31 +22,20 @@ export function SignInModal({ isOpen, onClose, message }: SignInModalProps) {
   const [firstName, setFirstName] = useState('');
   const [fullName, setFullName] = useState('');
 
-  // Reset hideModal when modal opens/closes
-  useEffect(() => {
-    if (!isOpen) {
-      setHideModal(false);
-    }
-  }, [isOpen]);
-
   if (!isOpen) return null;
 
   const handleGoogleSignIn = async () => {
-    // Hide modal immediately with display:none
-    setHideModal(true);
+    try {
+      setLoading(true);
+      setError(null);
 
-    // Wait a moment then trigger Google sign-in
-    setTimeout(async () => {
-      try {
-        await signInWithGoogle();
-      } catch (err: any) {
-        console.error('Sign in error:', err);
-      } finally {
-        // Close the modal properly
-        setHideModal(false);
-        onClose();
-      }
-    }, 50);
+      // This will redirect to Google's sign-in page, then back
+      await signInWithGoogle();
+    } catch (err: any) {
+      console.error('Sign in error:', err);
+      setError(err.message || 'Failed to sign in. Please try again.');
+      setLoading(false);
+    }
   };
 
   const handleEmailAuth = async (e: React.FormEvent) => {
@@ -87,10 +75,7 @@ export function SignInModal({ isOpen, onClose, message }: SignInModalProps) {
   };
 
   return (
-    <div
-      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto"
-      style={{ display: hideModal ? 'none' : 'flex' }}
-    >
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
       <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl max-w-md w-full shadow-2xl border border-white/10 p-8 my-auto">
         {/* Header */}
         <div className="text-center mb-6">

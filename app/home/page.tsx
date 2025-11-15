@@ -1072,6 +1072,8 @@ const handleKeywordResultSelect = (reference: string) => {
         <EncouragingBanner message={pastorNote} />
       )}
 
+      <DailyDevotional />
+
       {insight && insight.priority < 100 && !passageOutline && !themeOutline && !combinedOutline && (
         <PastoralInsightBanner
           message={insight.message}
@@ -1699,8 +1701,6 @@ const handleKeywordResultSelect = (reference: string) => {
           )}
         </div>
       </section>
-
-      <DailyDevotional />
 
 {activeWord && popoverPos && !isMobile && (
         <div

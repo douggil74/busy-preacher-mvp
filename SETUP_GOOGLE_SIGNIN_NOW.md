@@ -1,4 +1,4 @@
-# 🔥 QUICK SETUP - Google Sign-In (2 Steps)
+# 🔥 QUICK SETUP - Google & Email Sign-In (3 Steps)
 
 ## Step 1: Update Vercel Environment Variable (1 minute)
 
@@ -27,6 +27,15 @@ Go to: https://console.firebase.google.com/project/thebusychristian-app/authenti
 3. Toggle **Enable** to ON
 4. Add project support email: `doug.cag@gmail.com`
 5. Click **Save**
+
+## Step 3: Enable Email/Password Sign-In in Firebase (1 minute)
+
+Go to: https://console.firebase.google.com/project/thebusychristian-app/authentication/providers
+
+1. Find **Email/Password** in the list of Sign-in providers
+2. Click on it
+3. Toggle **Enable** to ON
+4. Click **Save**
 
 ## That's It!
 

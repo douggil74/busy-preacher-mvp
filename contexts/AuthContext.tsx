@@ -5,6 +5,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
   onAuthStateChanged,
   User as FirebaseUser
@@ -33,6 +35,8 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   signInWithGoogle: () => Promise<void>;
+  signInWithEmail: (email: string, password: string) => Promise<void>;
+  signUpWithEmail: (email: string, password: string, firstName: string, fullName: string) => Promise<void>;
   signOut: () => Promise<void>;
   updateUserLocation: (city: string, state: string, country?: string) => Promise<void>;
 }
@@ -111,6 +115,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const signInWithEmail = async (email: string, password: string) => {
+    try {
+      const result = await signInWithEmailAndPassword(auth, email, password);
+
+      // Update last sign in
+      await setDoc(
+        doc(db, 'users', result.user.uid),
+        { lastSignIn: serverTimestamp() },
+        { merge: true }
+      );
+    } catch (error: any) {
+      console.error('Sign in error:', error);
+      throw error;
+    }
+  };
+
+  const signUpWithEmail = async (email: string, password: string, firstName: string, fullName: string) => {
+    try {
+      const result = await createUserWithEmailAndPassword(auth, email, password);
+
+      // Create user profile
+      const profile: UserProfile = {
+        uid: result.user.uid,
+        firstName,
+        fullName,
+        email: result.user.email || email,
+        createdAt: serverTimestamp(),
+        lastSignIn: serverTimestamp()
+      };
+
+      await setDoc(doc(db, 'users', result.user.uid), profile);
+
+      // Request location permission after sign up
+      requestLocationPermission();
+    } catch (error: any) {
+      console.error('Sign up error:', error);
+      throw error;
+    }
+  };
+
   const signOut = async () => {
     try {
       await firebaseSignOut(auth);
@@ -181,6 +225,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isAuthenticated: !!user,
     isLoading,
     signInWithGoogle,
+    signInWithEmail,
+    signUpWithEmail,
     signOut,
     updateUserLocation
   };

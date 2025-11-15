@@ -25,19 +25,18 @@ export function SignInModal({ isOpen, onClose, message }: SignInModalProps) {
   if (!isOpen) return null;
 
   const handleGoogleSignIn = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+    // Close modal immediately so Google popup isn't blocked
+    onClose();
 
-      // Close modal immediately so Google popup isn't blocked
-      onClose();
-
-      await signInWithGoogle();
-    } catch (err: any) {
-      console.error('Sign in error:', err);
-      setError(err.message || 'Failed to sign in. Please try again.');
-      setLoading(false);
-    }
+    // Wait a moment for modal to fully unmount
+    setTimeout(async () => {
+      try {
+        await signInWithGoogle();
+      } catch (err: any) {
+        console.error('Sign in error:', err);
+        // Modal is already closed, just log the error
+      }
+    }, 100);
   };
 
   const handleEmailAuth = async (e: React.FormEvent) => {

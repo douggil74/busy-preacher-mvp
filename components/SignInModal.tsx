@@ -21,12 +21,14 @@ export function SignInModal({ isOpen, onClose, message }: SignInModalProps) {
     try {
       setLoading(true);
       setError(null);
-      await signInWithGoogle();
+
+      // Close modal immediately so Google popup isn't blocked
       onClose();
+
+      await signInWithGoogle();
     } catch (err: any) {
       console.error('Sign in error:', err);
       setError(err.message || 'Failed to sign in. Please try again.');
-    } finally {
       setLoading(false);
     }
   };

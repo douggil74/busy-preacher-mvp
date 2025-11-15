@@ -11,13 +11,18 @@ interface DevotionalModalProps {
 }
 
 export function DevotionalModal({ isOpen, userName, onClose }: DevotionalModalProps) {
-  const [dontShowAgain, setDontShowAgain] = useState(false);
+  const [disableDailyPopup, setDisableDailyPopup] = useState(false);
 
   if (!isOpen) return null;
 
   const handleClose = () => {
-    if (dontShowAgain) {
-      localStorage.setItem('bc-devotional-disabled', 'true');
+    // Mark as shown today
+    const today = new Date().toISOString().split('T')[0];
+    localStorage.setItem('bc-devotional-last-shown', today);
+
+    // Optionally disable daily pop-ups permanently
+    if (disableDailyPopup) {
+      localStorage.setItem('bc-devotional-popup-disabled', 'true');
     }
     onClose();
   };
@@ -57,15 +62,15 @@ export function DevotionalModal({ isOpen, userName, onClose }: DevotionalModalPr
             <input
               type="checkbox"
               id="dont-show-devotional"
-              checked={dontShowAgain}
-              onChange={(e) => setDontShowAgain(e.target.checked)}
+              checked={disableDailyPopup}
+              onChange={(e) => setDisableDailyPopup(e.target.checked)}
               className="w-4 h-4 rounded border-white/30 bg-white/10 text-yellow-400 focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 focus:ring-offset-slate-900 cursor-pointer"
             />
             <label
               htmlFor="dont-show-devotional"
               className="text-sm text-white/70 cursor-pointer select-none hover:text-white/90 transition-colors"
             >
-              Don't show this again
+              Don't show daily devotional pop-ups
             </label>
           </div>
           <button

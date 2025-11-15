@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { DailyDevotional } from "@/devotional/DailyDevotional";
 
 /* ---------------------------------
    TYPES
@@ -286,6 +287,10 @@ function ReadingPlanContent() {
 
         <h1 className="text-4xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>{planProgress.title}</h1>
         <p style={{ color: 'var(--text-secondary)' }}>Day {planProgress.currentDay} of {planProgress.duration}</p>
+
+        <div className="my-6">
+          <DailyDevotional />
+        </div>
 
         <div 
           className="rounded-lg p-6 my-6" 

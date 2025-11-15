@@ -19,7 +19,6 @@ import { JourneyDashboard } from "@/components/JourneyDashboard";
 import { SettingsModal } from "@/components/SettingsModal";
 import { CrisisModal } from "@/components/CrisisModal";
 import { progressTracker } from "@/lib/progressTracker";
-import { DailyDevotional } from "@/devotional/DailyDevotional";
 import { DevotionalModal } from "@/components/DevotionalModal";
 import { RelatedCoursesPanel } from "@/components/RelatedCoursesPanel";
 import { EncouragingBanner } from "@/components/EncouragingBanner";
@@ -481,17 +480,16 @@ useEffect(() => {
 
   useEffect(() => {
     const wantsDevotional = localStorage.getItem("bc-show-devotional") === "true";
-    const isDisabled = localStorage.getItem("bc-devotional-disabled") === "true";
+    const isDisabled = localStorage.getItem("bc-devotional-popup-disabled") === "true";
 
     if (!wantsDevotional || isDisabled) return;
 
     const lastShown = localStorage.getItem("bc-devotional-last-shown");
-    const today = new Date().toDateString();
+    const today = new Date().toISOString().split('T')[0];
 
     if (lastShown !== today) {
       const timer = setTimeout(() => {
         setShowDevotionalModal(true);
-        localStorage.setItem("bc-devotional-last-shown", today);
       }, 1500);
 
       return () => clearTimeout(timer);
@@ -1071,8 +1069,6 @@ const handleKeywordResultSelect = (reference: string) => {
       {pastorNote && isOnboarded && (
         <EncouragingBanner message={pastorNote} />
       )}
-
-      <DailyDevotional />
 
       {insight && insight.priority < 100 && !passageOutline && !themeOutline && !combinedOutline && (
         <PastoralInsightBanner

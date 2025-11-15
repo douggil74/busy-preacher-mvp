@@ -21,7 +21,6 @@ import { CrisisModal } from "@/components/CrisisModal";
 import { progressTracker } from "@/lib/progressTracker";
 import { DailyDevotional } from "@/devotional/DailyDevotional";
 import { DevotionalModal } from "@/components/DevotionalModal";
-import { DailyDevotionalPopup } from "@/components/DailyDevotionalPopup";
 import { RelatedCoursesPanel } from "@/components/RelatedCoursesPanel";
 import { safeStorage } from "@/utils/safeStorage";
 import { KeywordSearchResults } from "@/components/KeywordSearchResults";
@@ -352,7 +351,6 @@ const [searchedKeyword, setSearchedKeyword] = useState("");
   const [showSettings, setShowSettings] = useState(false);
   const [showCrisisModal, setShowCrisisModal] = useState(false);
   const [showDevotionalModal, setShowDevotionalModal] = useState(false);
-  const [showDailyDevotional, setShowDailyDevotional] = useState(false);
   const [showReadingPlan, setShowReadingPlan] = useState(true);
   const [personalGreeting, setPersonalGreeting] = useState("");
   const [pastorNote, setPastorNote] = useState("");
@@ -499,17 +497,6 @@ useEffect(() => {
     }
   }, [isOnboarded]);
 
-  useEffect(() => {
-    if (!isOnboarded) return;
-
-    // Check if we should show the daily devotional popup
-    const lastShown = localStorage.getItem('bc-daily-devotional-shown');
-    const today = new Date().toDateString();
-
-    if (lastShown !== today && pastorNote) {
-      setShowDailyDevotional(true);
-    }
-  }, [isOnboarded, pastorNote]);
 
   const currentRefNotes = useMemo(() => {
     const ref = passageRef.trim() || theme.trim();
@@ -1080,6 +1067,22 @@ const handleKeywordResultSelect = (reference: string) => {
 
   return (
     <main className="container">
+      {pastorNote && isOnboarded && (
+        <div className="mb-6 max-w-3xl mx-auto">
+          <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 dark:from-yellow-500/5 dark:to-orange-500/5 border-l-4 border-yellow-500/50 dark:border-yellow-500/30 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <div className="text-2xl flex-shrink-0">📖</div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-yellow-700 dark:text-yellow-400 mb-1">A Word from Your Pastor</p>
+                <p className="text-sm text-slate-700 dark:text-slate-300 italic leading-relaxed">
+                  {pastorNote}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {insight && insight.priority < 100 && !passageOutline && !themeOutline && !combinedOutline && (
         <PastoralInsightBanner
           message={insight.message}
@@ -1798,16 +1801,6 @@ const handleKeywordResultSelect = (reference: string) => {
   isOpen={showOnboarding}
   onComplete={handleEnhancedOnboardingComplete}
 />
-
-      {showDailyDevotional && pastorNote && (
-        <DailyDevotionalPopup
-          message={pastorNote}
-          onClose={() => {
-            setShowDailyDevotional(false);
-            localStorage.setItem('bc-daily-devotional-shown', new Date().toDateString());
-          }}
-        />
-      )}
 
       <StyleSelectorModal
         isOpen={showStyleModal}

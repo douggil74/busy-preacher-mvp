@@ -1089,7 +1089,7 @@ const handleKeywordResultSelect = (reference: string) => {
               {personalGreeting}
             </h2>
             <p className="text-white/80 text-lg leading-relaxed mb-4">
-              Hey {userName}! {studyPrompt}
+              {userName}, {studyPrompt}
             </p>
           </div>
 

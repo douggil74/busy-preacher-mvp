@@ -3,9 +3,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
-  GoogleAuthProvider,
-  signInWithRedirect,
-  getRedirectResult,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
@@ -35,7 +32,6 @@ interface AuthContextType {
   firebaseUser: FirebaseUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  signInWithGoogle: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (email: string, password: string, firstName: string, fullName: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -51,28 +47,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Listen to Firebase auth state
   useEffect(() => {
-    // Check for redirect result first
-    const checkRedirectResult = async () => {
-      try {
-        const result = await getRedirectResult(auth);
-        if (result && result.user) {
-          // User signed in via redirect
-          await setDoc(
-            doc(db, 'users', result.user.uid),
-            { lastSignIn: serverTimestamp() },
-            { merge: true }
-          );
-
-          // Request location permission after sign in
-          requestLocationPermission();
-        }
-      } catch (error) {
-        console.error('Redirect result error:', error);
-      }
-    };
-
-    checkRedirectResult();
-
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setFirebaseUser(firebaseUser);
 
@@ -112,21 +86,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     await setDoc(doc(db, 'users', firebaseUser.uid), profile);
     return profile;
-  };
-
-  const signInWithGoogle = async () => {
-    try {
-      const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({
-        prompt: 'select_account'
-      });
-
-      // Use redirect instead of popup - no popup blocking issues!
-      await signInWithRedirect(auth, provider);
-    } catch (error: any) {
-      console.error('Sign in error:', error);
-      throw error;
-    }
   };
 
   const signInWithEmail = async (email: string, password: string) => {
@@ -238,7 +197,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     firebaseUser,
     isAuthenticated: !!user,
     isLoading,
-    signInWithGoogle,
     signInWithEmail,
     signUpWithEmail,
     signOut,

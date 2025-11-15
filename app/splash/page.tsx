@@ -134,7 +134,6 @@ export default function SplashPage() {
 
         <div
           style={{
-            animation: visible ? 'glow 1.5s ease-in-out infinite' : 'none',
             transition: 'all 1.5s ease-in-out',
           }}
         >

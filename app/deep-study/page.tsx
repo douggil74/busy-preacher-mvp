@@ -12,6 +12,7 @@ import { card, button, input, typography, cn } from '@/lib/ui-constants';
 import WordStudyModal from "@/components/WordStudyModal";
 import { PastorNote } from '@/components/PastorNote';
 import { EncouragingBanner } from '@/components/EncouragingBanner';
+import { getPastorNote } from '@/lib/personalMessages';
 
 const playfair = Playfair_Display({
   weight: ["600", "700"],
@@ -418,9 +419,15 @@ export default function DeepStudyPage() {
   const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const popoverRef = useRef<HTMLDivElement>(null);
   const [showWordStudyModal, setShowWordStudyModal] = useState(false);
+  const [pastorNote, setPastorNote] = useState<string>("");
   const [isMobile, setIsMobile] = useState(false);
   const [hoverLoading, setHoverLoading] = useState(false);
   const hoverTimer = useRef<NodeJS.Timeout | null>(null);
+
+  // Generate dynamic pastor message
+  useEffect(() => {
+    setPastorNote(getPastorNote());
+  }, []);
 
   // Detect mobile device
   useEffect(() => {
@@ -960,7 +967,7 @@ export default function DeepStudyPage() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
-      <EncouragingBanner message="Deep study reveals God's heart. Every verse you explore brings new understanding. Keep digging into His treasures!" />
+      {pastorNote && <EncouragingBanner message={pastorNote} />}
 
       <button
         onClick={() => window.history.back()}

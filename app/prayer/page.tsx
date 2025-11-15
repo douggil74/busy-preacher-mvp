@@ -25,6 +25,7 @@ import { PrayerNotification } from '@/components/PrayerNotification';
 import { PastorNote } from '@/components/PastorNote';
 import { EncouragingBanner } from '@/components/EncouragingBanner';
 import { card, button, input, typography, cn } from '@/lib/ui-constants';
+import { getPastorNote } from '@/lib/personalMessages';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -128,10 +129,16 @@ export default function PrayerPage() {
   const [category, setCategory] = useState<Category>('other');
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pastorNote, setPastorNote] = useState<string>("");
 
   // ========================================
   // EFFECTS
   // ========================================
+
+  // Generate dynamic pastor message
+  useEffect(() => {
+    setPastorNote(getPastorNote());
+  }, []);
 
   // Load private prayers from localStorage
   useEffect(() => {
@@ -314,7 +321,7 @@ export default function PrayerPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white">
       <div className="max-w-3xl mx-auto px-4 py-12">
-        <EncouragingBanner message="Prayer is your lifeline to God. Every prayer, whether joy or struggle, brings you closer to His presence. Keep talking to Him!" />
+        {pastorNote && <EncouragingBanner message={pastorNote} />}
 
         <Header
           userName={null}

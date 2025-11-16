@@ -120,6 +120,7 @@ export default function PrayerPage() {
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pastorNote, setPastorNote] = useState<string>("");
+  const [soundUnlocked, setSoundUnlocked] = useState(false);
 
   // ========================================
   // EFFECTS
@@ -128,6 +129,14 @@ export default function PrayerPage() {
   // Generate dynamic pastor message
   useEffect(() => {
     setPastorNote(getPastorNote());
+  }, []);
+
+  // Check if sound was already unlocked
+  useEffect(() => {
+    const unlocked = localStorage.getItem('soundUnlocked');
+    if (unlocked === 'true') {
+      setSoundUnlocked(true);
+    }
   }, []);
 
   // Load private prayers from localStorage
@@ -312,6 +321,20 @@ export default function PrayerPage() {
     }
   };
 
+  const handleUnlockSound = () => {
+    // Play a short silent audio to unlock audio context on mobile
+    const audio = new Audio('/notification.mp3');
+    audio.volume = 0.3;
+    audio.play()
+      .then(() => {
+        console.log('🔊 Sound unlocked for mobile!');
+        setSoundUnlocked(true);
+        // Store in localStorage
+        localStorage.setItem('soundUnlocked', 'true');
+      })
+      .catch(err => console.warn('Could not unlock sound:', err));
+  };
+
   // ========================================
   // FILTERS
   // ========================================
@@ -328,6 +351,29 @@ export default function PrayerPage() {
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white">
       <div className="max-w-3xl mx-auto px-4 py-12">
         {pastorNote && <EncouragingBanner message={pastorNote} />}
+
+        {/* Sound unlock banner for mobile */}
+        {!soundUnlocked && typeof localStorage !== 'undefined' && !localStorage.getItem('soundUnlocked') && (
+          <div className="mb-6 p-4 bg-yellow-400/20 border border-yellow-400/30 rounded-xl">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">🔔</span>
+              <div className="flex-1">
+                <h3 className="text-yellow-400 font-semibold text-sm mb-1">
+                  Enable Prayer Notifications
+                </h3>
+                <p className="text-white/70 text-xs mb-3">
+                  Tap below to enable sound notifications when people pray for your requests
+                </p>
+                <button
+                  onClick={handleUnlockSound}
+                  className="px-4 py-2 bg-yellow-400/30 hover:bg-yellow-400/40 border border-yellow-400/50 rounded-lg text-yellow-400 text-sm font-medium transition-colors"
+                >
+                  🔊 Enable Sound
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <Header
           userName={null}

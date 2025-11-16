@@ -29,9 +29,17 @@ export function PrayerNotification({ notification, onClose }: PrayerNotification
   useEffect(() => {
     if (notification && soundEnabled) {
       playNotificationSound(notification.type);
+      // Vibrate on mobile as fallback (works even when sound blocked)
+      if (navigator.vibrate) {
+        navigator.vibrate([200, 100, 200]); // vibrate pattern
+      }
       const timer = setTimeout(onClose, 5000);
       return () => clearTimeout(timer);
     } else if (notification) {
+      // Still vibrate even if sound is disabled (important for mobile)
+      if (navigator.vibrate) {
+        navigator.vibrate([200, 100, 200]);
+      }
       // Still set timer to close even if sound is disabled
       const timer = setTimeout(onClose, 5000);
       return () => clearTimeout(timer);

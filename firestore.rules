@@ -14,11 +14,11 @@ service cloud.firestore {
       allow update: if request.auth != null;
     }
 
-    // Prayer requests - authenticated users can create and read
+    // Prayer requests - anyone can read and create (community feature)
     match /prayer_requests/{requestId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow read: if true;
+      allow create: if true;
+      allow update: if true; // Allow anyone to add hearts
       allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 

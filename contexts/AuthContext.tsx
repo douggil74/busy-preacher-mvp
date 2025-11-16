@@ -5,6 +5,11 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  signInWithRedirect,
+  signInWithPopup,
+  getRedirectResult,
+  GoogleAuthProvider,
+  signInAnonymously,
   signOut as firebaseSignOut,
   onAuthStateChanged,
   User as FirebaseUser
@@ -32,6 +37,8 @@ interface AuthContextType {
   firebaseUser: FirebaseUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  signInWithGoogle: () => Promise<void>;
+  signInAsGuest: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (email: string, password: string, firstName: string, fullName: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -47,20 +54,80 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Listen to Firebase auth state
   useEffect(() => {
+    console.log('🔧 Auth state listener initialized');
+
+    // Check for redirect result first
+    getRedirectResult(auth)
+      .then(async (result) => {
+        if (result) {
+          // User just signed in via redirect
+          await setDoc(
+            doc(db, 'users', result.user.uid),
+            { lastSignIn: serverTimestamp() },
+            { merge: true }
+          );
+          requestLocationPermission();
+        }
+      })
+      .catch((error) => {
+        console.error('Redirect result error:', error);
+      });
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      console.log('🔧 Auth state changed:', firebaseUser ? `User: ${firebaseUser.email}` : 'No user');
       setFirebaseUser(firebaseUser);
 
       if (firebaseUser) {
         // Load user profile from Firestore
         const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
         if (userDoc.exists()) {
-          setUser(userDoc.data() as UserProfile);
+          const profileData = userDoc.data();
+
+          // Check if profile is missing auth fields (firstName, fullName)
+          if (!profileData.firstName || !profileData.fullName) {
+            const displayName = firebaseUser.displayName || 'User';
+            const firstName = displayName.split(' ')[0];
+
+            // Update profile with missing fields
+            await setDoc(
+              doc(db, 'users', firebaseUser.uid),
+              {
+                firstName,
+                fullName: displayName,
+                email: firebaseUser.email || '',
+                photoURL: firebaseUser.photoURL || undefined,
+                lastSignIn: serverTimestamp()
+              },
+              { merge: true }
+            );
+
+            // Set user with updated data
+            const updatedUser = {
+              uid: firebaseUser.uid,  // Add uid from Firebase auth
+              ...profileData,
+              firstName,
+              fullName: displayName,
+              email: firebaseUser.email || '',
+              photoURL: firebaseUser.photoURL
+            } as UserProfile;
+            console.log('✅ Setting user state:', updatedUser.firstName, updatedUser.uid);
+            setUser(updatedUser);
+          } else {
+            const userWithId = {
+              uid: firebaseUser.uid,  // Add uid from Firebase auth
+              ...profileData
+            } as UserProfile;
+            console.log('✅ Setting user state:', userWithId.firstName, userWithId.uid);
+            setUser(userWithId);
+          }
         } else {
           // Create initial profile
           const profile = await createUserProfile(firebaseUser);
+          console.log('✅ Setting user state (new profile):', profile.firstName, profile.uid);
           setUser(profile);
         }
       } else {
+        console.log('❌ Clearing user state');
         setUser(null);
       }
 
@@ -86,6 +153,64 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     await setDoc(doc(db, 'users', firebaseUser.uid), profile);
     return profile;
+  };
+
+  const signInWithGoogle = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({
+        prompt: 'select_account'
+      });
+
+      // Use popup for localhost, redirect for production
+      const isLocalhost = typeof window !== 'undefined' &&
+        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+      if (isLocalhost) {
+        console.log('🔐 Attempting Google sign-in with popup...');
+        const result = await signInWithPopup(auth, provider);
+        console.log('✅ Sign-in successful:', result.user.email, 'UID:', result.user.uid);
+
+        // Update last sign in
+        await setDoc(
+          doc(db, 'users', result.user.uid),
+          { lastSignIn: serverTimestamp() },
+          { merge: true }
+        );
+        requestLocationPermission();
+      } else {
+        await signInWithRedirect(auth, provider);
+      }
+    } catch (error: any) {
+      console.error('❌ Google sign in error:', error);
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
+      // Don't throw for popup-closed-by-user - user just cancelled
+      if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+        throw error;
+      }
+    }
+  };
+
+  const signInAsGuest = async () => {
+    try {
+      const result = await signInAnonymously(auth);
+
+      // Create guest profile
+      const profile: UserProfile = {
+        uid: result.user.uid,
+        firstName: 'Guest',
+        fullName: 'Guest User',
+        email: '',
+        createdAt: serverTimestamp(),
+        lastSignIn: serverTimestamp()
+      };
+
+      await setDoc(doc(db, 'users', result.user.uid), profile);
+    } catch (error: any) {
+      console.error('Guest sign in error:', error);
+      throw error;
+    }
   };
 
   const signInWithEmail = async (email: string, password: string) => {
@@ -197,6 +322,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     firebaseUser,
     isAuthenticated: !!user,
     isLoading,
+    signInWithGoogle,
+    signInAsGuest,
     signInWithEmail,
     signUpWithEmail,
     signOut,

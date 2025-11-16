@@ -487,13 +487,14 @@ useEffect(() => {
     const lastShown = localStorage.getItem("bc-devotional-last-shown");
     const today = new Date().toISOString().split('T')[0];
 
-    if (lastShown !== today) {
-      const timer = setTimeout(() => {
-        setShowDevotionalModal(true);
-      }, 1500);
+    // Disabled auto-popup to prevent modal blocking
+    // if (lastShown !== today) {
+    //   const timer = setTimeout(() => {
+    //     setShowDevotionalModal(true);
+    //   }, 1500);
 
-      return () => clearTimeout(timer);
-    }
+    //   return () => clearTimeout(timer);
+    // }
   }, [isOnboarded]);
 
 

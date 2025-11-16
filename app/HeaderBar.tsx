@@ -109,9 +109,10 @@ function HeaderBarContent() {
   };
 
   return (
-    <header 
-      className="sticky top-0 z-40 backdrop-blur border-b" 
-      style={{ 
+    <>
+    <header
+      className="sticky top-0 z-40 backdrop-blur border-b"
+      style={{
         backgroundColor: 'color-mix(in srgb, var(--bg-color) 90%, transparent)',
         borderColor: 'var(--card-border)'
       }}
@@ -386,12 +387,13 @@ function HeaderBarContent() {
           </div>
         </div>
       </div>
-
-      <SignInModal
-        isOpen={showSignInModal}
-        onClose={() => setShowSignInModal(false)}
-      />
     </header>
+    {/* Modal rendered outside header to avoid z-index stacking context issues */}
+    <SignInModal
+      isOpen={showSignInModal}
+      onClose={() => setShowSignInModal(false)}
+    />
+    </>
   );
 }
 

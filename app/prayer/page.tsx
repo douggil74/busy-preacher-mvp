@@ -98,16 +98,6 @@ const categoryEmojis: Record<Category, string> = {
   other: '📌'
 };
 
-function playNotificationSound() {
-  try {
-    const audio = new Audio('/notifications.mp3');
-    audio.volume = 0.5;
-    audio.play().catch(err => console.warn('🔊 Sound play failed:', err));
-  } catch (error) {
-    console.warn('⚠️ Audio not available:', error);
-  }
-}
-
 // ========================================
 // MAIN COMPONENT
 // ========================================
@@ -166,53 +156,68 @@ export default function PrayerPage() {
     return () => unsubscribe();
   }, []);
 
-  // Push notifications disabled (no auth)
-  // useEffect(() => {
-  //   // Push notifications require authentication
-  // }, []);
+  // Listen for prayers on MY requests (when signed in)
+  useEffect(() => {
+    console.log('📱 Prayer page: user state changed:', user ? `${user.firstName} (${user.uid})` : 'null');
 
-  // Listen for prayers on MY requests
-  // DISABLED: user is now typed as null, cannot access user.uid or user.displayName
-  // useEffect(() => {
-  //   if (!user) return;
-  //
-  //   const myPrayersQuery = query(
-  //     collection(db, 'prayer_requests'),
-  //     where('userId', '==', user.uid),
-  //     where('status', '==', 'active')
-  //   );
-  //
-  //   let previousHeartCounts: { [key: string]: number } = {};
-  //   let isInitialLoad = true;
-  //
-  //   const unsubscribe = onSnapshot(myPrayersQuery, (snapshot) => {
-  //     snapshot.docs.forEach((doc) => {
-  //       const prayer = doc.data() as CommunityPrayer;
-  //       const prayerId = doc.id;
-  //       const currentHeartCount = prayer.heartCount || 0;
-  //       const previousCount = previousHeartCounts[prayerId] || 0;
-  //
-  //       if (currentHeartCount > previousCount && !isInitialLoad) {
-  //         const lastHeart = prayer.hearts[prayer.hearts.length - 1];
-  //
-  //         if (lastHeart && lastHeart.userId !== user.uid) {
-  //           setNotification({
-  //             id: prayerId,
-  //             message: `${currentHeartCount} ${currentHeartCount === 1 ? 'person is' : 'people are'} praying`,
-  //             prayerTitle: prayer.request.split('\n')[0].substring(0, 60)
-  //           });
-  //           playNotificationSound();
-  //         }
-  //       }
-  //
-  //       previousHeartCounts[prayerId] = currentHeartCount;
-  //     });
-  //
-  //     isInitialLoad = false;
-  //   });
-  //
-  //   return () => unsubscribe();
-  // }, [user]);
+    // Only run if user is signed in and uid exists
+    if (!user || !user.uid) {
+      console.log('🔕 Notification listener not started - user not signed in');
+      return;
+    }
+
+    console.log('🔔 Starting notification listener for user:', user.uid);
+
+    const myPrayersQuery = query(
+      collection(db, 'prayer_requests'),
+      where('userId', '==', user.uid),
+      where('status', '==', 'active')
+    );
+
+    let previousHeartCounts: { [key: string]: number } = {};
+    let isInitialLoad = true;
+
+    const unsubscribe = onSnapshot(myPrayersQuery, (snapshot) => {
+      console.log('🔔 Checking for prayer updates...', snapshot.docs.length, 'prayers found');
+
+      snapshot.docs.forEach((doc) => {
+        const prayer = doc.data() as CommunityPrayer;
+        const prayerId = doc.id;
+        const currentHeartCount = prayer.heartCount || 0;
+        const previousCount = previousHeartCounts[prayerId] || 0;
+
+        console.log(`Prayer "${prayer.request.substring(0, 30)}..." - Hearts: ${currentHeartCount} (was: ${previousCount})`);
+
+        if (currentHeartCount > previousCount && !isInitialLoad) {
+          // Ensure hearts array exists and has items
+          if (prayer.hearts && prayer.hearts.length > 0) {
+            const lastHeart = prayer.hearts[prayer.hearts.length - 1];
+            console.log('💓 New heart detected!', { lastHeart, myUserId: user.uid });
+
+            if (lastHeart && lastHeart.userId !== user.uid) {
+              console.log('✅ Showing notification!');
+              setNotification({
+                id: prayerId,
+                message: `${currentHeartCount} ${currentHeartCount === 1 ? 'person is' : 'people are'} praying`,
+                prayerTitle: prayer.request.split('\n')[0].substring(0, 60)
+              });
+              // Sound is played by PrayerNotification component
+            } else {
+              console.log('⚠️ Not showing notification - it was your own heart');
+            }
+          } else {
+            console.log('⚠️ Heart count increased but hearts array is empty');
+          }
+        }
+
+        previousHeartCounts[prayerId] = currentHeartCount;
+      });
+
+      isInitialLoad = false;
+    });
+
+    return () => unsubscribe();
+  }, [user]);
 
   // ========================================
   // HANDLERS
@@ -239,9 +244,10 @@ export default function PrayerPage() {
         setPrivatePrayers(prayers.filter(p => !p.isAnswered));
         alert('✅ Private prayer saved!');
       } else {
-        // user is now typed as null, so we use default values
-        const userId = 'anonymous';
-        const displayName = isAnonymous ? 'Anonymous' : 'Prayer Warrior';
+        // Use authenticated user info if available, otherwise allow anonymous posting
+        const userId = user?.uid || 'anonymous';
+        const displayName = isAnonymous ? 'Anonymous' : (user?.firstName || 'Prayer Warrior');
+        const userLocation = user?.location ? `${user.location.city}, ${user.location.state}` : undefined;
         const request = prayerDescription
           ? `${prayerTitle}\n\n${prayerDescription}`
           : prayerTitle;
@@ -252,7 +258,7 @@ export default function PrayerPage() {
           request,
           category,
           isAnonymous,
-          undefined
+          userLocation
         );
 
         alert('✅ Prayer shared with community!');
@@ -273,8 +279,8 @@ export default function PrayerPage() {
 
   const handlePrayForRequest = async (prayerId: string) => {
     const prayer = communityPrayers.find(p => p.id === prayerId);
-    // user is now typed as null, so we always use guest ID
-    const currentUserId = `guest_${Date.now()}`;
+    // Use authenticated user ID if available, otherwise generate guest ID
+    const currentUserId = user?.uid || `guest_${Date.now()}`;
     if (!prayer || prayer.hearts.some(h => h.userId === currentUserId)) return;
 
     try {
@@ -628,10 +634,10 @@ function CommunityPrayerList({
   return (
     <div className="space-y-3">
       {prayers.map(prayer => {
-        // currentUser is now typed as null, so we always use guest ID
-        const currentUserId = `guest_${Date.now()}`;
-        const isMyPrayer = currentUserId === prayer.userId;
-        const hasUserPrayed = prayer.hearts.some(h => h.userId === currentUserId);
+        // Use authenticated user ID if available
+        const currentUserId = currentUser?.uid;
+        const isMyPrayer = currentUserId && currentUserId === prayer.userId;
+        const hasUserPrayed = currentUserId && prayer.hearts.some(h => h.userId === currentUserId);
 
         return (
           <div

@@ -124,34 +124,47 @@ export async function POST(request: NextRequest) {
 
     if (!isBriefFollowUp) {
       try {
-        const searchResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/sermons/search`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            query: question,
-            limit: 3, // Get top 3 most relevant sermons
-            threshold: 0.75, // High relevance threshold
-          }),
-        });
+        // Use production URL or skip sermon search in development to avoid hanging
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL
+          ? `https://${process.env.VERCEL_URL}`
+          : null;
 
-        if (searchResponse.ok) {
-          const searchData = await searchResponse.json();
-          relevantSermons = searchData.sermons || [];
+        // Skip sermon search if no base URL configured (development mode)
+        if (!baseUrl) {
+          console.log('[DEV MODE] Skipping sermon search - no NEXT_PUBLIC_BASE_URL configured');
+          relevantSermons = [];
+          sermonContext = '';
+        } else {
+          const searchResponse = await fetch(`${baseUrl}/api/sermons/search`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              query: question,
+              limit: 3, // Get top 3 most relevant sermons
+              threshold: 0.75, // High relevance threshold
+            }),
+            signal: AbortSignal.timeout(10000), // 10 second timeout for sermon search
+          });
 
-          if (relevantSermons.length > 0) {
-            sermonContext = '\n\nRELEVANT TEACHINGS FROM CORNERSTONE CHURCH SERMONS:\n\n';
-            relevantSermons.forEach((sermon, index) => {
-              sermonContext += `--- Sermon ${index + 1}: "${sermon.title}" ---\n`;
-              if (sermon.scripture_reference) {
-                sermonContext += `Scripture: ${sermon.scripture_reference}\n`;
-              }
-              if (sermon.date) {
-                sermonContext += `Date: ${new Date(sermon.date).toLocaleDateString()}\n`;
-              }
-              sermonContext += `\nKey Excerpt:\n${sermon.content.substring(0, 800)}...\n\n`;
-            });
+          if (searchResponse.ok) {
+            const searchData = await searchResponse.json();
+            relevantSermons = searchData.sermons || [];
+
+            if (relevantSermons.length > 0) {
+              sermonContext = '\n\nRELEVANT TEACHINGS FROM CORNERSTONE CHURCH SERMONS:\n\n';
+              relevantSermons.forEach((sermon, index) => {
+                sermonContext += `--- Sermon ${index + 1}: "${sermon.title}" ---\n`;
+                if (sermon.scripture_reference) {
+                  sermonContext += `Scripture: ${sermon.scripture_reference}\n`;
+                }
+                if (sermon.date) {
+                  sermonContext += `Date: ${new Date(sermon.date).toLocaleDateString()}\n`;
+                }
+                sermonContext += `\nKey Excerpt:\n${sermon.content.substring(0, 800)}...\n\n`;
+              });
+            }
           }
-        }
+        } // End of else block for baseUrl check
       } catch (searchError) {
         console.error('Sermon search failed (continuing without):', searchError);
         // Continue without sermon context if search fails

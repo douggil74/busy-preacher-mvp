@@ -12,8 +12,8 @@ export default function AdminBanner() {
     // Fetch banner on mount
     fetchBanner();
 
-    // Poll for updates every 10 seconds
-    const interval = setInterval(fetchBanner, 10000);
+    // Poll for updates every 30 seconds (reduced from 10s to minimize server load)
+    const interval = setInterval(fetchBanner, 30000);
     return () => clearInterval(interval);
   }, []);
 

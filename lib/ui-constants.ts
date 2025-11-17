@@ -156,22 +156,22 @@ export const button = {
 // INPUT FIELD VARIANTS
 // ========================================
 export const input = {
-  // Base input styles
-  base: 'w-full px-4 py-3 rounded-lg bg-white/5 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed',
+  // Base input styles - supports light/dark mode
+  base: 'w-full px-4 py-3 rounded-lg bg-white/5 dark:bg-white/5 border border-slate-300 dark:border-white/20 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed',
 
   // With icon (add pl-10 for left icon, pr-10 for right icon)
-  withLeftIcon: 'w-full pl-10 pr-4 py-3 rounded-lg bg-white/5 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all duration-200',
+  withLeftIcon: 'w-full pl-10 pr-4 py-3 rounded-lg bg-white/5 dark:bg-white/5 border border-slate-300 dark:border-white/20 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all duration-200',
 
-  withRightIcon: 'w-full pl-4 pr-10 py-3 rounded-lg bg-white/5 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all duration-200',
+  withRightIcon: 'w-full pl-4 pr-10 py-3 rounded-lg bg-white/5 dark:bg-white/5 border border-slate-300 dark:border-white/20 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all duration-200',
 
   // Error state
-  error: 'w-full px-4 py-3 rounded-lg bg-red-500/5 border border-red-500/50 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-red-400/50 focus:border-red-400 transition-all duration-200',
+  error: 'w-full px-4 py-3 rounded-lg bg-red-500/5 border border-red-500/50 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-red-400/50 focus:border-red-400 transition-all duration-200',
 
   // Success state
-  success: 'w-full px-4 py-3 rounded-lg bg-green-500/5 border border-green-500/50 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-green-400/50 focus:border-green-400 transition-all duration-200',
+  success: 'w-full px-4 py-3 rounded-lg bg-green-500/5 border border-green-500/50 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-green-400/50 focus:border-green-400 transition-all duration-200',
 
-  // Textarea
-  textarea: 'w-full px-4 py-3 rounded-lg bg-white/5 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all duration-200 min-h-[120px] resize-y',
+  // Textarea - supports light/dark mode
+  textarea: 'w-full px-4 py-3 rounded-lg bg-white/5 dark:bg-white/5 border border-slate-300 dark:border-white/20 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all duration-200 min-h-[120px] resize-y',
 } as const;
 
 // ========================================

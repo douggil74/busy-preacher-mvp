@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, Send, MessageCircle, Download, Mail } from 'lucide-react';
+import { ArrowLeft, Send, MessageCircle, Download, Mail, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Playfair_Display } from 'next/font/google';
 import { card, button, input, typography, cn } from '@/lib/ui-constants';
@@ -193,6 +193,22 @@ export default function PastoralGuidancePage() {
       localStorage.setItem('bc-pastoral-session-id', session);
     }
     setSessionId(session);
+
+    // Load saved messages from localStorage
+    const savedMessages = localStorage.getItem('bc-pastoral-messages');
+    if (savedMessages) {
+      try {
+        const parsed = JSON.parse(savedMessages);
+        // Convert timestamp strings back to Date objects
+        const messagesWithDates = parsed.map((msg: any) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        }));
+        setMessages(messagesWithDates);
+      } catch (error) {
+        console.error('Failed to load saved messages:', error);
+      }
+    }
   }, []);
 
   // Create or get conversation when session ID is available
@@ -235,6 +251,20 @@ export default function PastoralGuidancePage() {
     return localStorage.getItem('bc-user-email') || undefined;
   };
 
+  const handleNewChat = () => {
+    if (messages.length > 0) {
+      if (confirm('Start a new conversation? Your current chat will be cleared.')) {
+        setMessages([]);
+        localStorage.removeItem('bc-pastoral-messages');
+        // Generate new session ID for new conversation
+        const newSession = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        localStorage.setItem('bc-pastoral-session-id', newSession);
+        setSessionId(newSession);
+        setConversationId(null);
+      }
+    }
+  };
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -249,6 +279,13 @@ export default function PastoralGuidancePage() {
       inputRef.current.focus();
     }
   }, [messages, isLoading]);
+
+  // Save messages to localStorage whenever they change
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem('bc-pastoral-messages', JSON.stringify(messages));
+    }
+  }, [messages]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -457,6 +494,21 @@ export default function PastoralGuidancePage() {
               >
                 <Mail className="w-4 h-4" />
                 <span className="hidden sm:inline">{isEmailing ? 'Sending...' : 'Email'}</span>
+              </button>
+              <button
+                onClick={handleNewChat}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all hover:opacity-80"
+                style={{
+                  backgroundColor: 'var(--card-bg)',
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: 'var(--card-border)',
+                  color: 'var(--text-primary)',
+                }}
+                title="Start a new conversation"
+              >
+                <RefreshCw className="w-4 h-4" />
+                <span className="hidden sm:inline">New</span>
               </button>
             </div>
           )}

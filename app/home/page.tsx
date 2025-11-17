@@ -1096,47 +1096,26 @@ const handleKeywordResultSelect = (reference: string) => {
 
           {/* Quick Navigation */}
           <div
-            className="flex gap-2 overflow-x-auto py-3 mb-6 -mx-2 px-2 justify-center"
+            className="flex gap-3 overflow-x-auto py-3 mb-6 -mx-2 px-2 justify-center"
             style={{
               scrollbarWidth: 'none'
             }}
           >
             <button
               onClick={() => document.getElementById('devotion-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-              className="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all"
-              style={{
-                backgroundColor: 'rgba(250, 204, 21, 0.1)',
-                borderWidth: '1px',
-                borderStyle: 'solid',
-                borderColor: 'rgba(250, 204, 21, 0.3)',
-                color: 'rgb(250, 204, 21)'
-              }}
+              className="rounded-2xl border-2 border-yellow-400 bg-yellow-400/10 px-5 py-2 text-sm font-semibold text-yellow-400 hover:bg-yellow-400/20 transition-all whitespace-nowrap"
             >
               📖 Create Devotion
             </button>
             <button
               onClick={() => document.getElementById('keyword-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-              className="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all"
-              style={{
-                backgroundColor: 'rgba(250, 204, 21, 0.1)',
-                borderWidth: '1px',
-                borderStyle: 'solid',
-                borderColor: 'rgba(250, 204, 21, 0.3)',
-                color: 'rgb(250, 204, 21)'
-              }}
+              className="rounded-2xl border-2 border-yellow-400 bg-yellow-400/10 px-5 py-2 text-sm font-semibold text-yellow-400 hover:bg-yellow-400/20 transition-all whitespace-nowrap"
             >
               🔍 Keyword Search
             </button>
             <button
               onClick={() => document.getElementById('ol-study')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-              className="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all"
-              style={{
-                backgroundColor: 'rgba(250, 204, 21, 0.1)',
-                borderWidth: '1px',
-                borderStyle: 'solid',
-                borderColor: 'rgba(250, 204, 21, 0.3)',
-                color: 'rgb(250, 204, 21)'
-              }}
+              className="rounded-2xl border-2 border-yellow-400 bg-yellow-400/10 px-5 py-2 text-sm font-semibold text-yellow-400 hover:bg-yellow-400/20 transition-all whitespace-nowrap"
             >
               📚 Word Lookup
             </button>

@@ -8,6 +8,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import jsPDF from "jspdf";
 import { Playfair_Display, Nunito_Sans } from "next/font/google";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import TodaysReadingWidget from "@/components/TodaysReadingWidget";
 import { useStudyStyle } from "@/hooks/useStudyStyle";
 import { useStudyJourney } from "@/hooks/useStudyJourney";
@@ -305,6 +306,7 @@ function exportOutlinePDF(args: { outlines: any[] }) {
 }
 
 export default function Page(): JSX.Element {
+  const router = useRouter();
   const [savedStudies, setSavedStudies] = useState<SavedStudy[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [notes, setNotes] = useState<StudyNote[]>([]);

@@ -494,25 +494,8 @@ export default function PastoralGuidancePage() {
               No question is too big or too small. Let's talk about what's going on in your life.
             </p>
 
-            {/* Safety Disclaimer */}
-            <div className="max-w-2xl mx-auto mb-4 p-4 rounded-xl text-left" style={{
-              backgroundColor: 'var(--card-bg)',
-              borderWidth: '1px',
-              borderStyle: 'solid',
-              borderColor: 'var(--card-border)'
-            }}>
-              <p className={cn(typography.small, 'mb-2')} style={{ color: 'var(--text-primary)' }}>
-                <strong>Important:</strong> This is AI-assisted spiritual guidance based on pastoral teachings.
-              </p>
-              <p className={cn(typography.xs)} style={{ color: 'var(--text-secondary)' }}>
-                • Not a substitute for professional counseling or medical care<br/>
-                • For crisis situations, please call 988 (Suicide & Crisis Lifeline) or 911<br/>
-                • Seek licensed professional help for serious mental health concerns
-              </p>
-            </div>
-
             {/* Example Questions */}
-            <div className="max-w-2xl mx-auto">
+            <div className="max-w-2xl mx-auto mb-4">
               <div className="flex items-center gap-2 mb-2">
                 <div className="h-px flex-1" style={{ backgroundColor: 'var(--card-border)' }}></div>
                 <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
@@ -530,12 +513,29 @@ export default function PastoralGuidancePage() {
                   <button
                     key={i}
                     onClick={() => setInput(suggestion)}
-                    className={cn(button.secondary, 'text-left')}
+                    className={cn(button.secondary, 'text-left italic')}
                   >
                     {suggestion}
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* Safety Disclaimer */}
+            <div className="max-w-2xl mx-auto p-4 rounded-xl text-left" style={{
+              backgroundColor: 'var(--card-bg)',
+              borderWidth: '1px',
+              borderStyle: 'solid',
+              borderColor: 'var(--card-border)'
+            }}>
+              <p className={cn(typography.small, 'mb-2')} style={{ color: 'var(--text-primary)' }}>
+                <strong>Important:</strong> This is AI-assisted spiritual guidance based on pastoral teachings.
+              </p>
+              <p className={cn(typography.xs)} style={{ color: 'var(--text-secondary)' }}>
+                • Not a substitute for professional counseling or medical care<br/>
+                • For crisis situations, please call 988 (Suicide & Crisis Lifeline) or 911<br/>
+                • Seek licensed professional help for serious mental health concerns
+              </p>
             </div>
           </div>
         ) : (

@@ -466,6 +466,33 @@ export default function PastoralGuidancePage() {
           background: var(--card-bg);
           border-radius: 50%;
         }
+
+        @keyframes typingDot {
+          0%, 60%, 100% {
+            transform: translateY(0);
+            opacity: 0.7;
+          }
+          30% {
+            transform: translateY(-10px);
+            opacity: 1;
+          }
+        }
+
+        .typing-dot {
+          animation: typingDot 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) {
+          animation-delay: 0s;
+        }
+
+        .typing-dot:nth-child(2) {
+          animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+          animation-delay: 0.4s;
+        }
       `}</style>
       {pastorNote && <EncouragingBanner message={pastorNote} />}
 
@@ -684,21 +711,21 @@ export default function PastoralGuidancePage() {
             ))}
             {isLoading && (
               <div className="flex justify-start items-end gap-2">
-                <div className="flex flex-col" style={{ maxWidth: '70%' }}>
+                <div className="flex flex-col" style={{ maxWidth: '70%', position: 'relative' }}>
                   <p className="text-xs font-medium mb-1 ml-2" style={{ color: 'var(--text-secondary)' }}>
                     Pastor
                   </p>
-                  <div className="rounded-t-2xl rounded-br-2xl rounded-bl-md px-5 py-3" style={{
+                  <div className="rounded-2xl shadow-sm message-bubble-pastor px-5 py-4" style={{
                     backgroundColor: 'var(--card-bg)',
                     borderWidth: '1px',
                     borderStyle: 'solid',
                     borderColor: 'var(--card-border)'
                   }}>
-                    {/* Animated typing dots like iMessage */}
-                    <div className="flex gap-1">
-                      <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms', animationDuration: '1.4s' }}></div>
-                      <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '200ms', animationDuration: '1.4s' }}></div>
-                      <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '400ms', animationDuration: '1.4s' }}></div>
+                    {/* Animated typing dots like real text messaging */}
+                    <div className="flex gap-1.5 items-center">
+                      <div className="w-2.5 h-2.5 rounded-full typing-dot" style={{ backgroundColor: 'var(--text-secondary)' }}></div>
+                      <div className="w-2.5 h-2.5 rounded-full typing-dot" style={{ backgroundColor: 'var(--text-secondary)' }}></div>
+                      <div className="w-2.5 h-2.5 rounded-full typing-dot" style={{ backgroundColor: 'var(--text-secondary)' }}></div>
                     </div>
                   </div>
                 </div>

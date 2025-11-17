@@ -422,51 +422,6 @@ export default function PastoralGuidancePage() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
       <style jsx>{`
-        .message-bubble-user::after {
-          content: '';
-          position: absolute;
-          bottom: 8px;
-          right: -10px;
-          width: 20px;
-          height: 20px;
-          background: #007AFF;
-          border-radius: 0 0 100% 0;
-          transform: scaleX(-1);
-        }
-
-        .message-bubble-user::before {
-          content: '';
-          position: absolute;
-          bottom: 0;
-          right: -3px;
-          width: 10px;
-          height: 10px;
-          background: #007AFF;
-          border-radius: 50%;
-        }
-
-        .message-bubble-pastor::after {
-          content: '';
-          position: absolute;
-          bottom: 8px;
-          left: -10px;
-          width: 20px;
-          height: 20px;
-          background: var(--card-bg);
-          border-radius: 0 0 0 100%;
-        }
-
-        .message-bubble-pastor::before {
-          content: '';
-          position: absolute;
-          bottom: 0;
-          left: -3px;
-          width: 10px;
-          height: 10px;
-          background: var(--card-bg);
-          border-radius: 50%;
-        }
-
         @keyframes typingDot {
           0%, 60%, 100% {
             transform: translateY(0);
@@ -670,18 +625,18 @@ export default function PastoralGuidancePage() {
                 key={message.id}
                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} items-end gap-2`}
               >
-                <div className="flex flex-col" style={{ maxWidth: '70%', position: 'relative' }}>
+                <div className="flex flex-col" style={{ maxWidth: '75%' }}>
                   {message.role === 'assistant' && (
-                    <p className="text-xs font-medium mb-1 ml-2" style={{ color: 'var(--text-secondary)' }}>
+                    <p className="text-xs font-medium mb-1 ml-3" style={{ color: 'var(--text-secondary)' }}>
                       Pastor
                     </p>
                   )}
                   <div
                     className={cn(
-                      'px-4 py-3 relative',
+                      'px-4 py-2.5',
                       message.role === 'user'
-                        ? 'rounded-2xl !text-white message-bubble-user'
-                        : 'rounded-2xl shadow-sm message-bubble-pastor'
+                        ? 'rounded-[20px] !text-white'
+                        : 'rounded-[20px] shadow-sm'
                     )}
                     style={message.role === 'user' ? {
                       backgroundColor: '#007AFF',
@@ -711,11 +666,11 @@ export default function PastoralGuidancePage() {
             ))}
             {isLoading && (
               <div className="flex justify-start items-end gap-2">
-                <div className="flex flex-col" style={{ maxWidth: '70%', position: 'relative' }}>
-                  <p className="text-xs font-medium mb-1 ml-2" style={{ color: 'var(--text-secondary)' }}>
+                <div className="flex flex-col" style={{ maxWidth: '75%' }}>
+                  <p className="text-xs font-medium mb-1 ml-3" style={{ color: 'var(--text-secondary)' }}>
                     Pastor
                   </p>
-                  <div className="rounded-2xl shadow-sm message-bubble-pastor px-5 py-4" style={{
+                  <div className="rounded-[20px] shadow-sm px-5 py-3" style={{
                     backgroundColor: 'var(--card-bg)',
                     borderWidth: '1px',
                     borderStyle: 'solid',

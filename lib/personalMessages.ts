@@ -141,7 +141,8 @@ export function getPastorNote(): string {
     "Healthy homes grow from sacrificial love and mutual honor.",
     "Giving fuels mission; integrity guards witness.",
     "Submit to God, resist the devil, and he will flee.",
-    "The One in you is greater than the one in the world."
+    "The One in you is greater than the one in the world.",
+    "If you gonna be stupid...don't stay that way for long."
   ];
   return notes[Math.floor(Math.random() * notes.length)];
 }

@@ -238,8 +238,13 @@ export async function POST(request: NextRequest) {
     const biblicalPhrases = /(woman with an? issue of blood|blood of (the lamb|christ|jesus)|washed in the blood|shed (his|her|their) blood|drink (my|his) blood|crucif|passover|covenant|sacrifice|altar|testament)/i;
     const isBiblicalContext = biblicalPhrases.test(question);
 
-    const crisisKeywords = /(suicid|kill myself|end my life|want to die|going to die|gonna die|self.?harm|hurt myself|gun|bullet|hang myself|hanging|overdos|pills|jump off|slit|cut myself|razor|bleed|die tonight|die today|not worth living|better off dead|no reason to live|can't go on|goodbye world|final message|trigger|pointing gun|loading gun|abus|being hurt|molest|assault)/i;
-    const isCrisis = !isBiblicalContext && crisisKeywords.test(question);
+    // Check for historical/book context to avoid false positives (e.g., book about healing from past abuse)
+    const historicalContext = /(book|story|testimony|past|history|heal from|overcome|recovered from|was abused|used to|grew up)/i;
+    const isHistoricalContext = historicalContext.test(question);
+
+    // Only detect current/active abuse situations, not past experiences or books about healing
+    const crisisKeywords = /(suicid|kill myself|end my life|want to die|going to die|gonna die|self.?harm|hurt myself|gun|bullet|hang myself|hanging|overdos|pills|jump off|slit|cut myself|razor|bleed|die tonight|die today|not worth living|better off dead|no reason to live|can't go on|goodbye world|final message|trigger|pointing gun|loading gun|being abused|abusing me|is abusing|someone is hurting me|being hurt|being molested|being assaulted|molesting me|assaulting me)/i;
+    const isCrisis = !isBiblicalContext && !isHistoricalContext && crisisKeywords.test(question);
     console.log(`🔍 Crisis check: question="${question}", biblical=${isBiblicalContext}, isCrisis=${isCrisis}`);
 
     // MANDATORY REPORTING: Detect if minor (under 18) reporting abuse

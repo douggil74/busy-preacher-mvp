@@ -425,25 +425,46 @@ export default function PastoralGuidancePage() {
         .message-bubble-user::after {
           content: '';
           position: absolute;
+          bottom: 8px;
+          right: -10px;
+          width: 20px;
+          height: 20px;
+          background: #007AFF;
+          border-radius: 0 0 100% 0;
+          transform: scaleX(-1);
+        }
+
+        .message-bubble-user::before {
+          content: '';
+          position: absolute;
           bottom: 0;
-          right: -6px;
-          width: 0;
-          height: 0;
-          border-left: 8px solid #007AFF;
-          border-bottom: 8px solid transparent;
-          border-top: 8px solid transparent;
+          right: -3px;
+          width: 10px;
+          height: 10px;
+          background: #007AFF;
+          border-radius: 50%;
         }
 
         .message-bubble-pastor::after {
           content: '';
           position: absolute;
+          bottom: 8px;
+          left: -10px;
+          width: 20px;
+          height: 20px;
+          background: var(--card-bg);
+          border-radius: 0 0 0 100%;
+        }
+
+        .message-bubble-pastor::before {
+          content: '';
+          position: absolute;
           bottom: 0;
-          left: -6px;
-          width: 0;
-          height: 0;
-          border-right: 8px solid var(--card-bg);
-          border-bottom: 8px solid transparent;
-          border-top: 8px solid transparent;
+          left: -3px;
+          width: 10px;
+          height: 10px;
+          background: var(--card-bg);
+          border-radius: 50%;
         }
       `}</style>
       {pastorNote && <EncouragingBanner message={pastorNote} />}

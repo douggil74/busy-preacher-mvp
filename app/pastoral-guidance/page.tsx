@@ -42,6 +42,7 @@ export default function PastoralGuidancePage() {
   const [isEmailing, setIsEmailing] = useState(false);
   const [pastorNote, setPastorNote] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const modalShownForMessages = useRef<Set<string>>(new Set());
 
   // Generate dynamic pastor message
@@ -241,6 +242,13 @@ export default function PastoralGuidancePage() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Auto-focus input after messages update and loading completes
+  useEffect(() => {
+    if (!isLoading && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [messages, isLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -445,11 +453,13 @@ export default function PastoralGuidancePage() {
         <div className="max-w-4xl mx-auto px-4 pb-4">
           <form onSubmit={handleSubmit} className="flex gap-2">
             <input
+              ref={inputRef}
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Message Pastor..."
               disabled={isLoading}
+              autoFocus
               className="flex-1 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all duration-200 disabled:opacity-50"
               style={{
                 backgroundColor: 'var(--input-bg)',
@@ -612,6 +622,7 @@ export default function PastoralGuidancePage() {
           <div className="max-w-4xl mx-auto px-4 py-3">
             <form onSubmit={handleSubmit} className="flex gap-2">
               <input
+                ref={inputRef}
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}

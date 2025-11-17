@@ -543,18 +543,20 @@ export default function PastoralGuidancePage() {
                   )}
                   <div
                     className={cn(
-                      'px-4 py-2.5 shadow-sm',
+                      'px-4 py-2.5',
                       message.role === 'user'
                         ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-t-2xl rounded-bl-2xl rounded-br-md'
-                        : 'rounded-t-2xl rounded-br-2xl rounded-bl-md'
+                        : 'rounded-t-2xl rounded-br-2xl rounded-bl-md shadow-sm'
                     )}
-                    style={message.role === 'assistant' ? {
+                    style={message.role === 'user' ? {
+                      boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4), 0 2px 6px rgba(59, 130, 246, 0.2)',
+                    } : {
                       backgroundColor: 'var(--card-bg)',
                       borderWidth: '1px',
                       borderStyle: 'solid',
                       borderColor: 'var(--card-border)',
                       color: 'var(--text-primary)'
-                    } : undefined}
+                    }}
                   >
                     <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
                   </div>

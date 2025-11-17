@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, Send, MessageCircle, Download, Mail, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Send, MessageCircle, Download, Mail, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Playfair_Display } from 'next/font/google';
 import { card, button, input, typography, cn } from '@/lib/ui-constants';
@@ -508,10 +508,10 @@ export default function PastoralGuidancePage() {
                   borderColor: 'var(--card-border)',
                   color: 'var(--text-primary)',
                 }}
-                title="Start a new conversation"
+                title="Clear conversation and start new chat"
               >
-                <RefreshCw className="w-4 h-4" />
-                <span className="hidden sm:inline">New</span>
+                <Trash2 className="w-4 h-4" />
+                <span>Clear</span>
               </button>
             </div>
           )}

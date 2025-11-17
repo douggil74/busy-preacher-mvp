@@ -14,7 +14,7 @@ export function EncouragingBanner({ message }: EncouragingBannerProps) {
           <div className="flex-1">
             <p className="text-sm font-medium text-yellow-700 dark:text-yellow-400 mb-1">Fuel for Living</p>
             <p className="text-sm text-slate-700 dark:text-slate-300 italic leading-relaxed">
-              {message}
+              "{message}"
             </p>
           </div>
         </div>

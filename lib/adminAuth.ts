@@ -1,6 +1,6 @@
 import storage, { STORAGE_KEYS } from '@/lib/storage';
 
-const DEFAULT_ADMIN_PASSWORD = '2627f68597G!';
+const DEFAULT_ADMIN_PASSWORD = 'password';
 
 export async function hasAdminPassword(): Promise<boolean> {
   const password = await storage.getItem(STORAGE_KEYS.ADMIN_PASSWORD);

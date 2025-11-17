@@ -1092,6 +1092,54 @@ const handleKeywordResultSelect = (reference: string) => {
             </p>
           </div>
 
+          {/* Quick Navigation */}
+          <div
+            className="flex gap-2 overflow-x-auto py-3 mb-6 -mx-2 px-2 justify-center"
+            style={{
+              scrollbarWidth: 'none'
+            }}
+          >
+            <button
+              onClick={() => document.getElementById('devotion-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              className="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all"
+              style={{
+                backgroundColor: 'rgba(250, 204, 21, 0.1)',
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                borderColor: 'rgba(250, 204, 21, 0.3)',
+                color: 'rgb(250, 204, 21)'
+              }}
+            >
+              📖 Create Devotion
+            </button>
+            <button
+              onClick={() => document.getElementById('keyword-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              className="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all"
+              style={{
+                backgroundColor: 'rgba(250, 204, 21, 0.1)',
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                borderColor: 'rgba(250, 204, 21, 0.3)',
+                color: 'rgb(250, 204, 21)'
+              }}
+            >
+              🔍 Keyword Search
+            </button>
+            <button
+              onClick={() => document.getElementById('ol-study')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              className="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all"
+              style={{
+                backgroundColor: 'rgba(250, 204, 21, 0.1)',
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                borderColor: 'rgba(250, 204, 21, 0.3)',
+                color: 'rgb(250, 204, 21)'
+              }}
+            >
+              📚 Word Lookup
+            </button>
+          </div>
+
           {!showReadingPlan && (
             <div className="mb-6 text-center">
               <button
@@ -1149,7 +1197,7 @@ const handleKeywordResultSelect = (reference: string) => {
       )}
 
       {/* SECTION 1: Create Your Own Devotion */}
-      <div className="mb-4 max-w-2xl mx-auto">
+      <div id="devotion-section" className="mb-4 max-w-2xl mx-auto scroll-mt-20">
         <h2 className={`${nunitoSans.className} text-xl font-semibold text-yellow-400 mb-1`}>
           Create Your Own Devotion
         </h2>
@@ -1524,7 +1572,7 @@ const handleKeywordResultSelect = (reference: string) => {
       </section>
 
       {/* SECTION 2: Keyword Search */}
-      <div className="mb-4 max-w-2xl mx-auto">
+      <div id="keyword-section" className="mb-4 max-w-2xl mx-auto scroll-mt-20">
         <h2 className={`${nunitoSans.className} text-xl font-semibold text-yellow-400 mb-1`}>
           Keyword Search
         </h2>

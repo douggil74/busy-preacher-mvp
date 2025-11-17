@@ -543,13 +543,15 @@ export default function PastoralGuidancePage() {
                   )}
                   <div
                     className={cn(
-                      'px-4 py-2.5',
+                      'px-4 py-3',
                       message.role === 'user'
-                        ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-t-2xl rounded-bl-2xl rounded-br-md'
-                        : 'rounded-t-2xl rounded-br-2xl rounded-bl-md shadow-sm'
+                        ? 'rounded-2xl'
+                        : 'rounded-2xl shadow-sm'
                     )}
                     style={message.role === 'user' ? {
-                      boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4), 0 2px 6px rgba(59, 130, 246, 0.2)',
+                      backgroundColor: '#007AFF',
+                      color: 'white',
+                      fontWeight: '400',
                     } : {
                       backgroundColor: 'var(--card-bg)',
                       borderWidth: '1px',

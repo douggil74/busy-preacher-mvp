@@ -277,8 +277,8 @@ function ReadingPlanContent() {
   return (
     <main className="min-h-screen p-6" style={{ backgroundColor: 'var(--bg-color)' }}>
       <div className="max-w-4xl mx-auto">
-        <Link 
-          href="/reading-plans" 
+        <Link
+          href="/reading-plans"
           className="text-sm mb-4 inline-flex items-center gap-1"
           style={{ color: 'var(--accent-color)' }}
         >
@@ -288,17 +288,98 @@ function ReadingPlanContent() {
         <h1 className="text-4xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>{planProgress.title}</h1>
         <p style={{ color: 'var(--text-secondary)' }}>Day {planProgress.currentDay} of {planProgress.duration}</p>
 
-        <div className="my-6">
+        {/* Quick Navigation */}
+        <div
+          className="sticky top-0 z-10 flex gap-2 overflow-x-auto py-3 my-4 -mx-2 px-2"
+          style={{
+            backgroundColor: 'var(--bg-color)',
+            scrollbarWidth: 'none'
+          }}
+        >
+          <a
+            href="#devotional"
+            className="px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all hover:opacity-80"
+            style={{
+              backgroundColor: 'var(--card-bg)',
+              borderWidth: '1px',
+              borderStyle: 'solid',
+              borderColor: 'var(--card-border)',
+              color: 'var(--text-primary)'
+            }}
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById('devotional')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }}
+          >
+            📖 Devotional
+          </a>
+          <a
+            href="#progress"
+            className="px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all hover:opacity-80"
+            style={{
+              backgroundColor: 'var(--card-bg)',
+              borderWidth: '1px',
+              borderStyle: 'solid',
+              borderColor: 'var(--card-border)',
+              color: 'var(--text-primary)'
+            }}
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById('progress')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }}
+          >
+            📊 Progress
+          </a>
+          <a
+            href="#readings"
+            className="px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all hover:opacity-80"
+            style={{
+              backgroundColor: 'var(--card-bg)',
+              borderWidth: '1px',
+              borderStyle: 'solid',
+              borderColor: 'var(--card-border)',
+              color: 'var(--text-primary)'
+            }}
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById('readings')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }}
+          >
+            📜 Today's Reading
+          </a>
+          {!planProgress.completed && (
+            <a
+              href="#complete"
+              className="px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all hover:opacity-80"
+              style={{
+                backgroundColor: 'rgba(74, 222, 128, 0.1)',
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                borderColor: 'rgba(74, 222, 128, 0.3)',
+                color: 'rgb(74, 222, 128)'
+              }}
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('complete')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+            >
+              ✓ Mark Complete
+            </a>
+          )}
+        </div>
+
+        <div id="devotional" className="my-6 scroll-mt-20">
           <DailyDevotional />
         </div>
 
-        <div 
-          className="rounded-lg p-6 my-6" 
-          style={{ 
-            backgroundColor: 'var(--card-bg)', 
+        <div
+          id="progress"
+          className="rounded-lg p-6 my-6 scroll-mt-20"
+          style={{
+            backgroundColor: 'var(--card-bg)',
             borderWidth: '1px',
             borderStyle: 'solid',
-            borderColor: 'var(--card-border)' 
+            borderColor: 'var(--card-border)'
           }}
         >
           <div className="flex items-center justify-between mb-2">
@@ -319,22 +400,23 @@ function ReadingPlanContent() {
           </p>
         </div>
 
-        {loadingPassages ? (
-          <div className="flex justify-center py-8">
-            <div className="animate-spin h-8 w-8 border-4 border-t-transparent rounded-full" style={{ borderColor: 'var(--accent-color)', borderTopColor: 'transparent' }} />
-          </div>
-        ) : (
-          passages.map((p, idx) => (
-            <div 
-              key={idx} 
-              className="rounded-lg p-6 mb-6" 
-              style={{ 
-                backgroundColor: 'var(--card-bg)', 
-                borderWidth: '1px',
-                borderStyle: 'solid',
-                borderColor: 'var(--card-border)' 
-              }}
-            >
+        <div id="readings" className="scroll-mt-20">
+          {loadingPassages ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin h-8 w-8 border-4 border-t-transparent rounded-full" style={{ borderColor: 'var(--accent-color)', borderTopColor: 'transparent' }} />
+            </div>
+          ) : (
+            passages.map((p, idx) => (
+              <div
+                key={idx}
+                className="rounded-lg p-6 mb-6"
+                style={{
+                  backgroundColor: 'var(--card-bg)',
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: 'var(--card-border)'
+                }}
+              >
               <h2 className="text-2xl font-bold mb-4" style={{ color: 'var(--accent-color)' }}>{p.ref}</h2>
               <AudioPlayer passage={p.ref} />
               <div className="leading-relaxed whitespace-pre-wrap font-serif text-lg mt-4" style={{ color: 'var(--text-primary)', opacity: 0.9 }}>
@@ -347,14 +429,16 @@ function ReadingPlanContent() {
               >
                 Study in depth →
               </Link>
-            </div>
-          ))
-        )}
+              </div>
+            ))
+          )}
+        </div>
 
         {!planProgress.completed && (
           <button
+            id="complete"
             onClick={markDayComplete}
-            className="w-full rounded-xl px-4 py-4 font-semibold transition-colors text-lg"
+            className="w-full rounded-xl px-4 py-4 font-semibold transition-colors text-lg scroll-mt-20"
             style={{
               borderWidth: '1px',
               borderStyle: 'solid',

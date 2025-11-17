@@ -112,6 +112,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             } as UserProfile;
             console.log('✅ Setting user state:', updatedUser.firstName, updatedUser.uid);
             setUser(updatedUser);
+            // Save to localStorage for email transcripts
+            if (typeof window !== 'undefined' && updatedUser.email) {
+              localStorage.setItem('bc-user-email', updatedUser.email);
+              localStorage.setItem('bc-user-name', updatedUser.firstName || updatedUser.fullName);
+            }
           } else {
             const userWithId = {
               uid: firebaseUser.uid,  // Add uid from Firebase auth
@@ -119,16 +124,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             } as UserProfile;
             console.log('✅ Setting user state:', userWithId.firstName, userWithId.uid);
             setUser(userWithId);
+            // Save to localStorage for email transcripts
+            if (typeof window !== 'undefined' && userWithId.email) {
+              localStorage.setItem('bc-user-email', userWithId.email);
+              localStorage.setItem('bc-user-name', userWithId.firstName || userWithId.fullName);
+            }
           }
         } else {
           // Create initial profile
           const profile = await createUserProfile(firebaseUser);
           console.log('✅ Setting user state (new profile):', profile.firstName, profile.uid);
           setUser(profile);
+          // Save to localStorage for email transcripts
+          if (typeof window !== 'undefined' && profile.email) {
+            localStorage.setItem('bc-user-email', profile.email);
+            localStorage.setItem('bc-user-name', profile.firstName || profile.fullName);
+          }
         }
       } else {
         console.log('❌ Clearing user state');
         setUser(null);
+        // Clear localStorage on sign out
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('bc-user-email');
+          localStorage.removeItem('bc-user-name');
+        }
       }
 
       setIsLoading(false);

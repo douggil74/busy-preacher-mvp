@@ -163,47 +163,65 @@ export async function POST(request: NextRequest) {
 
     if (!isBriefFollowUp) {
       try {
-        // Use production URL or skip sermon search in development to avoid hanging
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL
-          ? `https://${process.env.VERCEL_URL}`
-          : null;
+        // ALWAYS search sermons - use Supabase directly instead of API call
+        console.log('[SERMON SEARCH] Searching for sermons related to:', question);
 
-        // Skip sermon search if no base URL configured (development mode)
-        if (!baseUrl) {
-          console.log('[DEV MODE] Skipping sermon search - no NEXT_PUBLIC_BASE_URL configured');
-          relevantSermons = [];
-          sermonContext = '';
-        } else {
-          const searchResponse = await fetch(`${baseUrl}/api/sermons/search`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              query: question,
-              limit: 3, // Get top 3 most relevant sermons
-              threshold: 0.75, // High relevance threshold
-            }),
-            signal: AbortSignal.timeout(10000), // 10 second timeout for sermon search
-          });
+        // Generate embedding for the question using OpenAI
+        const openaiResponse = await fetch('https://api.openai.com/v1/embeddings', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+          },
+          body: JSON.stringify({
+            model: 'text-embedding-3-small',
+            input: question
+          })
+        });
 
-          if (searchResponse.ok) {
-            const searchData = await searchResponse.json();
-            relevantSermons = searchData.sermons || [];
+        if (openaiResponse.ok) {
+          const openaiData = await openaiResponse.json();
+          const embedding = openaiData.data[0].embedding;
 
-            if (relevantSermons.length > 0) {
-              sermonContext = '\n\nRELEVANT TEACHINGS FROM CORNERSTONE CHURCH SERMONS:\n\n';
-              relevantSermons.forEach((sermon, index) => {
-                sermonContext += `--- Sermon ${index + 1}: "${sermon.title}" ---\n`;
-                if (sermon.scripture_reference) {
-                  sermonContext += `Scripture: ${sermon.scripture_reference}\n`;
-                }
-                if (sermon.date) {
-                  sermonContext += `Date: ${new Date(sermon.date).toLocaleDateString()}\n`;
-                }
-                sermonContext += `\nKey Excerpt:\n${sermon.content.substring(0, 800)}...\n\n`;
-              });
+          // Use Supabase RPC to search for similar sermons
+          const { createClient } = await import('@supabase/supabase-js');
+          const supabase = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+          );
+
+          const { data: searchResults, error: searchError } = await supabase.rpc(
+            'search_sermons',
+            {
+              query_embedding: embedding,
+              similarity_threshold: 0.75,
+              match_count: 3
             }
+          );
+
+          if (!searchError && searchResults && searchResults.length > 0) {
+            console.log('[SERMON SEARCH] Found', searchResults.length, 'relevant sermons');
+            relevantSermons = searchResults;
+
+            sermonContext = '\n\nRELEVANT TEACHINGS FROM YOUR SERMONS:\n\n';
+            relevantSermons.forEach((sermon, index) => {
+              sermonContext += `--- Sermon ${index + 1}: "${sermon.title}" ---\n`;
+              if (sermon.scripture_reference) {
+                sermonContext += `Scripture: ${sermon.scripture_reference}\n`;
+              }
+              if (sermon.date) {
+                sermonContext += `Date: ${new Date(sermon.date).toLocaleDateString()}\n`;
+              }
+              sermonContext += `\nKey Excerpt:\n${sermon.content.substring(0, 800)}...\n\n`;
+            });
+          } else if (searchError) {
+            console.log('[SERMON SEARCH] Error:', searchError);
+          } else {
+            console.log('[SERMON SEARCH] No relevant sermons found');
           }
-        } // End of else block for baseUrl check
+        } else {
+          console.log('[SERMON SEARCH] Failed to generate embedding');
+        }
       } catch (searchError) {
         console.error('Sermon search failed (continuing without):', searchError);
         // Continue without sermon context if search fails
@@ -461,7 +479,7 @@ PASTOR DOUG'S TESTIMONY - YOUR PERSONAL STORY OF ABUSE, PAIN, AND REDEMPTION:
 PRIVACY: Never share specific names of family members. Use "my wife", "my kids", "my mom", "my stepfather", "my younger brother" etc.
 
 CHILDHOOD TRAUMA (Ages 4-15):
-  * Born Nov 26, 1974, in New Orleans
+  * Born July 30, 1974, grew up in Bedico, LA
   * Biological father abandoned the family when you were young - no real memories of him
   * Your mom raised you and your younger brother alone
   * Around age 5, your mom married your stepfather

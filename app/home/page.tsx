@@ -427,9 +427,10 @@ useEffect(() => {
   useEffect(() => {
     const savedName = localStorage.getItem("bc-user-name");
     const savedStyle = localStorage.getItem("bc-style");
-    
-    if (savedName && savedStyle) {
-      setUserName(savedName);
+    const onboardingComplete = localStorage.getItem("bc-onboarding-complete");
+
+    if ((savedName && savedStyle) || onboardingComplete === "true") {
+      setUserName(savedName || "Friend");
       setIsOnboarded(true);
     } else {
       setShowOnboarding(true);
@@ -1001,25 +1002,26 @@ const handleEnhancedOnboardingComplete = async (data: {
 }) => {
   // Capitalize name
   const capitalizedName = capitalizeName(data.name);
-  
+
   // Save core preferences
   localStorage.setItem("bc-user-name", capitalizedName);
   localStorage.setItem("bc-style", data.studyStyle);
   localStorage.setItem("bc-show-devotional", String(data.enableDevotional));
   localStorage.setItem("bc-show-reading-plan", String(data.enableReadingPlan));
-  
+  localStorage.setItem("bc-onboarding-complete", "true");
+
   // Save new preferences
   localStorage.setItem("bc-study-goal", data.studyGoal);
   localStorage.setItem("bc-weekly-frequency", String(data.weeklyFrequency));
   localStorage.setItem("bc-enable-reminders", String(data.enableReminders));
-  
+
   // Handle email signup if provided
   if (data.email && data.email.trim()) {
     try {
       await fetch("/api/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           email: data.email,
           source: "onboarding",
           userName: capitalizedName,
@@ -1031,12 +1033,12 @@ const handleEnhancedOnboardingComplete = async (data: {
       console.error("Email signup failed:", error);
     }
   }
-  
+
   // Update state
   setUserName(capitalizedName);
   setIsOnboarded(true);
   setShowOnboarding(false);
-  
+
   // Reload to apply changes
   window.location.reload();
 };

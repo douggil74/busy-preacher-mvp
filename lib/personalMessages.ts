@@ -211,7 +211,6 @@ export function getButtonText(action: 'save' | 'submit' | 'continue' | 'start' |
 
 export function getStudyPrompt(): string {
   const prompts = [
-    "What's God showing you today?",
     "What's on your heart?",
     "What passage is speaking to you?",
     "Where do you want to dig in?",

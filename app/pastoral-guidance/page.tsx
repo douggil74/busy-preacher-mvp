@@ -550,7 +550,7 @@ export default function PastoralGuidancePage() {
                     )}
                     style={message.role === 'user' ? {
                       backgroundColor: '#007AFF',
-                      color: 'white',
+                      color: '#ffffff',
                       fontWeight: '400',
                     } : {
                       backgroundColor: 'var(--card-bg)',
@@ -560,7 +560,12 @@ export default function PastoralGuidancePage() {
                       color: 'var(--text-primary)'
                     }}
                   >
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                    <p
+                      className="text-sm leading-relaxed whitespace-pre-wrap"
+                      style={message.role === 'user' ? { color: '#ffffff' } : undefined}
+                    >
+                      {message.content}
+                    </p>
                   </div>
                   <p
                     className="text-xs mt-1 px-2"

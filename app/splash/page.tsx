@@ -28,38 +28,25 @@ const glowKeyframes = `
     }
   }
 
-  @keyframes fadeInGlow {
+  @keyframes logoFadeIn {
     0% {
       opacity: 0;
-      filter: drop-shadow(0 0 10px rgba(255,215,0,0.3));
-    }
-    50% {
-      opacity: 1;
-      filter: drop-shadow(0 0 50px rgba(255,215,0,1))
-              drop-shadow(0 0 80px rgba(255,215,0,0.8))
-              drop-shadow(0 0 120px rgba(255,215,0,0.6));
+      transform: scale(0.95);
     }
     100% {
       opacity: 1;
-      filter: drop-shadow(0 0 30px rgba(255,215,0,0.8))
-              drop-shadow(0 0 60px rgba(255,215,0,0.6));
+      transform: scale(1);
     }
   }
 
-  @keyframes fadeOutGlow {
+  @keyframes logoFadeOut {
     0% {
       opacity: 1;
-      filter: drop-shadow(0 0 30px rgba(255,215,0,0.8))
-              drop-shadow(0 0 60px rgba(255,215,0,0.6));
-    }
-    50% {
-      opacity: 0.5;
-      filter: drop-shadow(0 0 50px rgba(255,215,0,1))
-              drop-shadow(0 0 80px rgba(255,215,0,0.8));
+      transform: scale(1);
     }
     100% {
       opacity: 0;
-      filter: drop-shadow(0 0 10px rgba(255,215,0,0.3));
+      transform: scale(1.05);
     }
   }
 
@@ -142,9 +129,14 @@ export default function SplashPage() {
         <div
           style={{
             animation: visible
-              ? 'fadeInGlow 1.2s ease-out forwards'
-              : 'fadeOutGlow 1.5s ease-in-out forwards',
+              ? 'logoFadeIn 1.2s ease-out forwards'
+              : 'logoFadeOut 1.5s ease-in-out forwards',
             marginBottom: '1.5rem',
+            borderRadius: '50%',
+            boxShadow: visible
+              ? '0 0 40px rgba(255, 215, 0, 0.4), 0 0 80px rgba(255, 215, 0, 0.2)'
+              : '0 0 20px rgba(255, 215, 0, 0.2)',
+            transition: 'box-shadow 1.5s ease-in-out',
           }}
         >
           <Image
@@ -154,6 +146,7 @@ export default function SplashPage() {
             height={200}
             priority
             className="select-none"
+            style={{ display: 'block', borderRadius: '50%' }}
           />
         </div>
 

@@ -28,18 +28,38 @@ const glowKeyframes = `
     }
   }
 
-  @keyframes glow {
-    0%, 100% {
-      filter: drop-shadow(0 0 30px rgba(255,215,0,0.8))
-              drop-shadow(0 0 60px rgba(255,215,0,0.6))
-              drop-shadow(0 0 90px rgba(255,215,0,0.4))
-              drop-shadow(0 0 120px rgba(255,215,0,0.2));
+  @keyframes fadeInGlow {
+    0% {
+      opacity: 0;
+      filter: drop-shadow(0 0 10px rgba(255,215,0,0.3));
     }
     50% {
+      opacity: 1;
       filter: drop-shadow(0 0 50px rgba(255,215,0,1))
               drop-shadow(0 0 80px rgba(255,215,0,0.8))
-              drop-shadow(0 0 120px rgba(255,215,0,0.6))
-              drop-shadow(0 0 160px rgba(255,215,0,0.4));
+              drop-shadow(0 0 120px rgba(255,215,0,0.6));
+    }
+    100% {
+      opacity: 1;
+      filter: drop-shadow(0 0 30px rgba(255,215,0,0.8))
+              drop-shadow(0 0 60px rgba(255,215,0,0.6));
+    }
+  }
+
+  @keyframes fadeOutGlow {
+    0% {
+      opacity: 1;
+      filter: drop-shadow(0 0 30px rgba(255,215,0,0.8))
+              drop-shadow(0 0 60px rgba(255,215,0,0.6));
+    }
+    50% {
+      opacity: 0.5;
+      filter: drop-shadow(0 0 50px rgba(255,215,0,1))
+              drop-shadow(0 0 80px rgba(255,215,0,0.8));
+    }
+    100% {
+      opacity: 0;
+      filter: drop-shadow(0 0 10px rgba(255,215,0,0.3));
     }
   }
 
@@ -119,22 +139,12 @@ export default function SplashPage() {
           textAlign: "center",
         }}
       >
-        <h2
-          className={`${pacifico.className} text-3xl font-normal mb-6 text-center transition-opacity duration-700 ${
-            showText ? "opacity-100" : "opacity-0"
-          }`}
-          style={{
-            color: "#FFD700",
-            letterSpacing: "0.02em",
-            textShadow: "0 0 10px rgba(255,215,0,0.25)",
-          }}
-        >
-          Welcome to the
-        </h2>
-
         <div
           style={{
-            transition: 'all 1.5s ease-in-out',
+            animation: visible
+              ? 'fadeInGlow 1.2s ease-out forwards'
+              : 'fadeOutGlow 1.5s ease-in-out forwards',
+            marginBottom: '1.5rem',
           }}
         >
           <Image
@@ -144,15 +154,11 @@ export default function SplashPage() {
             height={200}
             priority
             className="select-none"
-            style={{
-              transition: "transform 1.5s ease-in-out",
-              transform: visible ? "scale(1) rotate(0deg)" : "scale(1.3) rotate(8deg)",
-            }}
           />
         </div>
 
         <h1
-          className={`${playfair.className} text-2xl font-bold mt-5 text-center transition-opacity duration-700 ${
+          className={`${playfair.className} text-2xl font-bold text-center transition-opacity duration-700 ${
             showText ? "opacity-100" : "opacity-0"
           }`}
           style={{
@@ -162,7 +168,7 @@ export default function SplashPage() {
             fontWeight: 700,
           }}
         >
-          The Busy Christian
+          <span style={{ fontSize: '0.7em', fontWeight: 400 }}>the</span> Busy Christian
         </h1>
       </div>
     </main>

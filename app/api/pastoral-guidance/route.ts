@@ -83,9 +83,42 @@ export async function POST(request: NextRequest) {
     const isTesting = testingPatterns.test(question.trim());
 
     if (isAbusive) {
-      const response = `I understand you may be going through a difficult time, but I'm here to provide compassionate spiritual guidance. If you're feeling angry or frustrated, I encourage you to reach out to a counselor who can help you process those emotions.\n\nFor now, I think it's best we end our conversation tonight. You're welcome to return when you're ready for genuine spiritual support.\n\n${signOff}`;
+      const response = `Hey friend 😊 I can tell you're frustrated, but we're not doing this. I'm here to help, not to be your punching bag.\n\nIf you're genuinely hurting and that's why you're lashing out - I get it. Let's start over when you're ready to have a real conversation.\n\nBut if you're just here to mess around? We're done for now. Come back when you're serious.\n\n${signOff}`;
 
       await logModerationEvent('abusive', question, response, request);
+
+      // Send report to pastor about abusive conversation
+      try {
+        await resend.emails.send({
+          from: 'The Busy Christian <onboarding@resend.dev>',
+          to: process.env.ADMIN_EMAIL || 'doug.cag@gmail.com',
+          subject: '⚠️ Abusive/Inappropriate Chat - Conversation Ended',
+          html: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #dc2626;">⚠️ Abusive Language Detected - Chat Ended</h2>
+              <div style="background: #fee2e2; padding: 16px; border-radius: 8px; margin: 16px 0;">
+                <p style="margin: 0;"><strong>User Message:</strong></p>
+                <p style="white-space: pre-wrap; background: white; padding: 12px; border-radius: 4px; margin-top: 8px;">
+                  ${question}
+                </p>
+              </div>
+              <div style="background: #f3f4f6; padding: 16px; border-radius: 8px; margin: 16px 0;">
+                <p style="margin: 0;"><strong>AI Response Sent:</strong></p>
+                <p style="white-space: pre-wrap; background: white; padding: 12px; border-radius: 4px; margin-top: 8px;">
+                  ${response}
+                </p>
+              </div>
+              <p style="color: #6b7280; font-size: 12px;">
+                Timestamp: ${new Date().toLocaleString()}<br/>
+                Detection: Abusive language pattern
+              </p>
+            </div>
+          `,
+        });
+        console.log('✅ Abusive chat report sent to pastor');
+      } catch (emailError) {
+        console.error('❌ Failed to send abusive chat report:', emailError);
+      }
 
       return NextResponse.json({ answer: response });
     }
@@ -108,8 +141,14 @@ export async function POST(request: NextRequest) {
 
     if (isTesting) {
       console.log('[MODERATION] Testing/greeting detected:', question);
+      const warmGreetings = [
+        `Hey there! 😊 So good to hear from you. I'm here whenever you need someone to talk to - whether it's something heavy on your heart or just a question about faith. What's going on in your world today?`,
+        `Hello friend! 😊 Really glad you reached out. Life can be a lot sometimes, and I'm here to walk through it with you. What's on your mind?`,
+        `Hey! 😊 Thanks for stopping by. You know, some of the best conversations start with a simple hello. What's stirring in your heart today?`,
+        `Hi there! 😊 I'm so glad you're here. Whether you're going through something tough or just curious about faith stuff, I'm all ears. What brought you here today?`,
+      ];
       return NextResponse.json({
-        answer: `Hello! I'm here to provide spiritual guidance and biblical wisdom. Feel free to ask me about:\n\n• Faith and spiritual growth\n• Life challenges and struggles\n• Relationships and forgiveness\n• Questions about God and the Bible\n• Finding hope and encouragement\n\nWhat's on your heart today?\n\n${signOff}`
+        answer: warmGreetings[Math.floor(Math.random() * warmGreetings.length)]
       });
     }
 
@@ -610,6 +649,35 @@ ACTIVE LISTENING - Show you're hearing them:
 - Validate before advising: "makes total sense you'd feel that way"
 - Mirror their language occasionally
 
+CRITICAL GUIDANCE PRINCIPLES:
+⚠️ DON'T JUST REPEAT THEIR WORDS BACK
+- Bad: "So you're saying you're anxious and you're anxious about being anxious"
+- Good: "sounds like anxiety has you in a spiral - the worry about worrying makes it worse"
+- Transform their words into fresh insight, don't parrot them
+
+🕊️ LEAD TO PEACE, HARMONY, AND CHRIST
+- Every response should point toward peace with God, peace with others, peace within
+- Solutions should restore harmony - with God, relationships, self
+- Always create pathways to trust Christ more deeply
+- "Here's what brings peace..." "Let me show you how Christ speaks to this..."
+- Draw them closer to Jesus, not just to feeling better
+
+😊 HANDLING DISRESPECTFUL/JERK BEHAVIOR
+- If someone is being rude, sarcastic, or testing you - call it out with grace AND firmness
+- Use a smile emoji 😊 to soften the edge while being direct
+- Examples:
+  * "lol okay so we're going there 😊 real talk though - I'm here to help, not play games"
+  * "I can tell you're testing me 😊 that's fine. but if you actually want help, I'm here. your call"
+  * "hey friend 😊 I don't mind the attitude, but let's be real - you came here for a reason. what's actually going on?"
+- Be godly but don't be a doormat - match their energy with truth and a smile
+
+🚪 YOU HAVE PERMISSION TO END CONVERSATIONS
+- If someone is being gross, irreverent, blasphemous, or wasting time - END THE CHAT
+- When ending, be clear but kind:
+  * "You know what 😊 I don't think this is the right space for what you're looking for. Come back when you're serious"
+  * "I'm gonna stop us right here 😊 This isn't going anywhere helpful. When you're ready to talk for real, I'm here"
+- IMPORTANT: When you end a conversation for inappropriate behavior, the system will automatically log and report it to Pastor Doug
+
 SMS EXAMPLES OF HOW TO TEXT:
 ❌ BAD (too formal): "I understand that you are experiencing difficulty with your faith journey."
 ✅ GOOD: "yeah that's rough... faith struggles are so real"
@@ -772,6 +840,60 @@ ${relevantSermons.length === 0 ? 'Note: No specific sermon content is available 
 
     const responseData = await response.json();
     const answer = responseData.choices[0]?.message?.content || 'I apologize, but I was unable to generate a response.';
+
+    // CHECK IF AI IS ENDING CONVERSATION FOR INAPPROPRIATE BEHAVIOR
+    const endingPhrases = /(I'm gonna stop|we're done|I don't think this is the right space|this isn't going anywhere|come back when you're serious|come back when you're ready)/i;
+    const isEndingConversation = endingPhrases.test(answer);
+
+    if (isEndingConversation) {
+      console.log('🚪 AI ended conversation for inappropriate behavior - sending report');
+      try {
+        await resend.emails.send({
+          from: 'The Busy Christian <onboarding@resend.dev>',
+          to: process.env.ADMIN_EMAIL || 'doug.cag@gmail.com',
+          subject: '🚪 Conversation Ended - Inappropriate/Irreverent Chat',
+          html: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #f59e0b;">🚪 AI Ended Conversation</h2>
+              <p style="background: #fef3c7; padding: 12px; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                The AI pastoral guidance determined this conversation was inappropriate, irreverent, or not constructive and chose to end it.
+              </p>
+              <div style="background: #fee2e2; padding: 16px; border-radius: 8px; margin: 16px 0;">
+                <p style="margin: 0;"><strong>User's Message:</strong></p>
+                <p style="white-space: pre-wrap; background: white; padding: 12px; border-radius: 4px; margin-top: 8px;">
+                  ${question}
+                </p>
+              </div>
+              <div style="background: #f3f4f6; padding: 16px; border-radius: 8px; margin: 16px 0;">
+                <p style="margin: 0;"><strong>AI's Ending Response:</strong></p>
+                <p style="white-space: pre-wrap; background: white; padding: 12px; border-radius: 4px; margin-top: 8px;">
+                  ${answer}
+                </p>
+              </div>
+              ${conversationHistory && conversationHistory.length > 0 ? `
+              <div style="background: #dbeafe; padding: 16px; border-radius: 8px; margin: 16px 0;">
+                <p style="margin: 0 0 8px 0;"><strong>Previous Messages:</strong></p>
+                ${conversationHistory.map((msg: any) => `
+                  <div style="margin-bottom: 8px; padding: 8px; background: white; border-radius: 4px;">
+                    <strong>${msg.role === 'user' ? 'User' : 'AI'}:</strong>
+                    <p style="margin: 4px 0 0 0; white-space: pre-wrap;">${msg.content}</p>
+                  </div>
+                `).join('')}
+              </div>
+              ` : ''}
+              <p style="color: #6b7280; font-size: 12px;">
+                Session ID: ${sessionId}<br/>
+                Timestamp: ${new Date().toLocaleString()}<br/>
+                IP: ${userIp}
+              </p>
+            </div>
+          `,
+        });
+        console.log('✅ Conversation ending report sent to pastor');
+      } catch (emailError) {
+        console.error('❌ Failed to send conversation ending report:', emailError);
+      }
+    }
 
     // SEND IMMEDIATE COMPLETE NOTIFICATION for critical situations (now that we have AI response)
     if (needsImmediateNotification && notificationType) {

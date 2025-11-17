@@ -545,13 +545,12 @@ export default function PastoralGuidancePage() {
                     className={cn(
                       'px-4 py-3',
                       message.role === 'user'
-                        ? 'rounded-2xl'
+                        ? 'rounded-2xl !text-white'
                         : 'rounded-2xl shadow-sm'
                     )}
                     style={message.role === 'user' ? {
                       backgroundColor: '#007AFF',
-                      color: '#ffffff',
-                      fontWeight: '400',
+                      color: 'white',
                     } : {
                       backgroundColor: 'var(--card-bg)',
                       borderWidth: '1px',
@@ -561,8 +560,7 @@ export default function PastoralGuidancePage() {
                     }}
                   >
                     <p
-                      className="text-sm leading-relaxed whitespace-pre-wrap"
-                      style={message.role === 'user' ? { color: '#ffffff' } : undefined}
+                      className={message.role === 'user' ? 'text-sm leading-relaxed whitespace-pre-wrap !text-white' : 'text-sm leading-relaxed whitespace-pre-wrap'}
                     >
                       {message.content}
                     </p>

@@ -1096,11 +1096,23 @@ const handleKeywordResultSelect = (reference: string) => {
 
           {/* Quick Navigation */}
           <div
-            className="flex gap-3 overflow-x-auto py-3 mb-6 -mx-2 px-2 justify-center"
+            className="flex gap-3 overflow-x-auto py-3 mb-6 -mx-2 px-2 justify-center flex-wrap"
             style={{
               scrollbarWidth: 'none'
             }}
           >
+            <button
+              onClick={() => router.push('/pastoral-guidance')}
+              className="rounded-2xl border-2 border-yellow-400 bg-yellow-400/10 px-5 py-2 text-sm font-semibold text-yellow-400 hover:bg-yellow-400/20 transition-all whitespace-nowrap"
+            >
+              💬 Ask the Pastor
+            </button>
+            <button
+              onClick={() => router.push('/prayer')}
+              className="rounded-2xl border-2 border-yellow-400 bg-yellow-400/10 px-5 py-2 text-sm font-semibold text-yellow-400 hover:bg-yellow-400/20 transition-all whitespace-nowrap"
+            >
+              🙏 Prayer Community
+            </button>
             <button
               onClick={() => document.getElementById('devotion-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
               className="rounded-2xl border-2 border-yellow-400 bg-yellow-400/10 px-5 py-2 text-sm font-semibold text-yellow-400 hover:bg-yellow-400/20 transition-all whitespace-nowrap"

@@ -384,6 +384,31 @@ export default function PastoralGuidancePage() {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
+      <style jsx>{`
+        .message-bubble-user::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          right: -6px;
+          width: 0;
+          height: 0;
+          border-left: 8px solid #007AFF;
+          border-bottom: 8px solid transparent;
+          border-top: 8px solid transparent;
+        }
+
+        .message-bubble-pastor::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: -6px;
+          width: 0;
+          height: 0;
+          border-right: 8px solid var(--card-bg);
+          border-bottom: 8px solid transparent;
+          border-top: 8px solid transparent;
+        }
+      `}</style>
       {pastorNote && <EncouragingBanner message={pastorNote} />}
 
       {/* Header */}
@@ -545,7 +570,7 @@ export default function PastoralGuidancePage() {
                 key={message.id}
                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} items-end gap-2`}
               >
-                <div className="flex flex-col" style={{ maxWidth: '70%' }}>
+                <div className="flex flex-col" style={{ maxWidth: '70%', position: 'relative' }}>
                   {message.role === 'assistant' && (
                     <p className="text-xs font-medium mb-1 ml-2" style={{ color: 'var(--text-secondary)' }}>
                       Pastor
@@ -553,10 +578,10 @@ export default function PastoralGuidancePage() {
                   )}
                   <div
                     className={cn(
-                      'px-4 py-3',
+                      'px-4 py-3 relative',
                       message.role === 'user'
-                        ? 'rounded-2xl !text-white'
-                        : 'rounded-2xl shadow-sm'
+                        ? 'rounded-2xl !text-white message-bubble-user'
+                        : 'rounded-2xl shadow-sm message-bubble-pastor'
                     )}
                     style={message.role === 'user' ? {
                       backgroundColor: '#007AFF',

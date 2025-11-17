@@ -516,7 +516,7 @@ export default function PastoralGuidancePage() {
               <div className="flex items-center gap-2 mb-2">
                 <div className="h-px flex-1" style={{ backgroundColor: 'var(--card-border)' }}></div>
                 <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
-                  Example Questions
+                  Be Yourself • Ask Anything
                 </p>
                 <div className="h-px flex-1" style={{ backgroundColor: 'var(--card-border)' }}></div>
               </div>

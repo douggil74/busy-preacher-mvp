@@ -2,7 +2,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.busychristian.app',
-  appName: 'The Busy Christian',
+  appName: 'The Busy Christian App',
   webDir: 'www',
 
   // PRODUCTION MODE: App loads from deployed website

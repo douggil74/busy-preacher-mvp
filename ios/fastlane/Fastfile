@@ -1,0 +1,61 @@
+# Fastfile for The Busy Christian App
+
+default_platform(:ios)
+
+platform :ios do
+  desc "Generate screenshots"
+  lane :screenshots do
+    capture_screenshots(
+      workspace: "App/App.xcworkspace",
+      scheme: "App",
+      output_directory: "./fastlane/screenshots",
+      clear_previous_screenshots: true,
+      override_status_bar: true,
+      devices: [
+        "iPhone 15 Pro Max",
+        "iPhone 15 Pro"
+      ]
+    )
+  end
+
+  desc "Upload metadata and screenshots to App Store Connect"
+  lane :upload_metadata do
+    deliver(
+      submit_for_review: false,
+      automatic_release: false,
+      force: true, # Skip HTML verification
+      skip_screenshots: false,
+      skip_metadata: false,
+      skip_app_version_update: true,
+      precheck_include_in_app_purchases: false
+    )
+  end
+
+  desc "Upload to App Store Connect"
+  lane :beta do
+    # Build the app
+    build_app(
+      workspace: "App/App.xcworkspace",
+      scheme: "App",
+      export_method: "app-store",
+      output_directory: "./build"
+    )
+
+    # Upload to TestFlight
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true
+    )
+  end
+
+  desc "Complete App Store submission workflow"
+  lane :submit do
+    # Create screenshots
+    screenshots
+
+    # Upload metadata and screenshots
+    upload_metadata
+
+    UI.success("✅ Metadata and screenshots uploaded!")
+    UI.message("📱 Next: Go to App Store Connect to select your build and submit for review")
+  end
+end

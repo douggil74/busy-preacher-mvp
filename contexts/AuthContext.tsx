@@ -5,9 +5,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  signInWithRedirect,
   signInWithPopup,
-  getRedirectResult,
   GoogleAuthProvider,
   signOut as firebaseSignOut,
   onAuthStateChanged,
@@ -53,23 +51,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Listen to Firebase auth state
   useEffect(() => {
     console.log('🔧 Auth state listener initialized');
-
-    // Check for redirect result first
-    getRedirectResult(auth)
-      .then(async (result) => {
-        if (result) {
-          // User just signed in via redirect
-          await setDoc(
-            doc(db, 'users', result.user.uid),
-            { lastSignIn: serverTimestamp() },
-            { merge: true }
-          );
-          requestLocationPermission();
-        }
-      })
-      .catch((error) => {
-        console.error('Redirect result error:', error);
-      });
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       console.log('🔧 Auth state changed:', firebaseUser ? `User: ${firebaseUser.email}` : 'No user');
@@ -180,25 +161,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         prompt: 'select_account'
       });
 
-      // Use popup for localhost, redirect for production
-      const isLocalhost = typeof window !== 'undefined' &&
-        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+      // Use popup for all environments - more reliable than redirect
+      console.log('🔐 Attempting Google sign-in with popup...');
+      const result = await signInWithPopup(auth, provider);
+      console.log('✅ Sign-in successful:', result.user.email, 'UID:', result.user.uid);
 
-      if (isLocalhost) {
-        console.log('🔐 Attempting Google sign-in with popup...');
-        const result = await signInWithPopup(auth, provider);
-        console.log('✅ Sign-in successful:', result.user.email, 'UID:', result.user.uid);
-
-        // Update last sign in
-        await setDoc(
-          doc(db, 'users', result.user.uid),
-          { lastSignIn: serverTimestamp() },
-          { merge: true }
-        );
-        requestLocationPermission();
-      } else {
-        await signInWithRedirect(auth, provider);
-      }
+      // Update last sign in
+      await setDoc(
+        doc(db, 'users', result.user.uid),
+        { lastSignIn: serverTimestamp() },
+        { merge: true }
+      );
+      requestLocationPermission();
     } catch (error: any) {
       console.error('❌ Google sign in error:', error);
       console.error('Error code:', error.code);

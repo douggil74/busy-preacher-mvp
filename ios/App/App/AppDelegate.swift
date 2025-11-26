@@ -11,9 +11,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
 
-        // Initialize Firebase (temporarily disabled for testing)
-        // TODO: Add GoogleService-Info.plist to Xcode project, then uncomment this
-        // FirebaseApp.configure()
+        // Initialize Firebase if GoogleService-Info.plist exists
+        if let _ = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") {
+            FirebaseApp.configure()
+            print("✅ Firebase initialized successfully")
+        } else {
+            print("⚠️ GoogleService-Info.plist not found - push notifications disabled")
+            print("   Add GoogleService-Info.plist to Xcode project to enable push notifications")
+        }
 
         return true
     }
@@ -59,8 +64,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Pass device token to Capacitor
         NotificationCenter.default.post(name: .capacitorDidRegisterForRemoteNotifications, object: deviceToken)
 
-        // Pass token to Firebase Messaging
-        Messaging.messaging().apnsToken = deviceToken
+        // Pass token to Firebase Messaging (if Firebase is configured)
+        if FirebaseApp.app() != nil {
+            Messaging.messaging().apnsToken = deviceToken
+        }
     }
 
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {

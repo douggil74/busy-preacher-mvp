@@ -43,7 +43,7 @@ export function Paywall({ children, showPreview = false }: PaywallProps) {
 
     setIsCheckingOut(true);
     try {
-      const response = await fetch('/api/create-checkout-session', {
+      const response = await fetch('/api/checkout/square', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

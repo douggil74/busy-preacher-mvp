@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>689195108551-4o5sv6197a4a2j94mj4vfltnaoek0704.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.689195108551-4o5sv6197a4a2j94mj4vfltnaoek0704</string>
+	<key>API_KEY</key>
+	<string>AIzaSyBT5Y9eQtFoYzKBfWGqyEmX3LYG3-aQMiE</string>
+	<key>GCM_SENDER_ID</key>
+	<string>689195108551</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.busychristian.app</string>
+	<key>PROJECT_ID</key>
+	<string>thebusychristian-app</string>
+	<key>STORAGE_BUCKET</key>
+	<string>thebusychristian-app.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:689195108551:ios:fc528bbb9104298f5456e2</string>
+</dict>
+</plist>

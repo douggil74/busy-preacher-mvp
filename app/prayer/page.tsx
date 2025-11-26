@@ -10,7 +10,8 @@ import {
   onSnapshot,
   doc,
   updateDoc,
-  increment
+  increment,
+  arrayUnion
 } from 'firebase/firestore';
 import { db, submitPrayerRequest, requestPushPermission, onForegroundMessage } from '@/lib/firebase';
 import {
@@ -26,6 +27,7 @@ import { PastorNote } from '@/components/PastorNote';
 import { EncouragingBanner } from '@/components/EncouragingBanner';
 import { card, button, input, typography, cn } from '@/lib/ui-constants';
 import { getPastorNote } from '@/lib/personalMessages';
+import RequireAuth from '@/components/RequireAuth';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -63,6 +65,7 @@ interface Notification {
   id: string;
   message: string;
   prayerTitle: string;
+  type?: 'milestone' | 'prayer_support' | 'reminder';
 }
 
 // ========================================
@@ -195,33 +198,38 @@ export default function PrayerPage() {
         const currentHeartCount = prayer.heartCount || 0;
         const previousCount = previousHeartCounts[prayerId] || 0;
 
-        console.log(`Prayer "${prayer.request.substring(0, 30)}..." - Hearts: ${currentHeartCount} (was: ${previousCount})`);
+        console.log(`Prayer "${prayer.request.substring(0, 30)}..." - Hearts: ${currentHeartCount} (was: ${previousCount}), isInitialLoad: ${isInitialLoad}`);
 
         if (currentHeartCount > previousCount && !isInitialLoad) {
           // Ensure hearts array exists and has items
-          if (prayer.hearts && prayer.hearts.length > 0) {
+          if (prayer.hearts && Array.isArray(prayer.hearts) && prayer.hearts.length > 0) {
             const lastHeart = prayer.hearts[prayer.hearts.length - 1];
-            console.log('💓 New heart detected!', { lastHeart, myUserId: user.uid });
+            console.log('💓 New heart detected!', { lastHeart, myUserId: user.uid, heartsLength: prayer.hearts.length });
 
             if (lastHeart && lastHeart.userId !== user.uid) {
-              console.log('✅ Showing notification!');
+              console.log('✅ Showing notification for prayer:', prayerId);
               setNotification({
                 id: prayerId,
                 message: `${currentHeartCount} ${currentHeartCount === 1 ? 'person is' : 'people are'} praying`,
-                prayerTitle: prayer.request.split('\n')[0].substring(0, 60)
+                prayerTitle: prayer.request.split('\n')[0].substring(0, 60),
+                type: 'prayer_support'
               });
               // Sound is played by PrayerNotification component
             } else {
               console.log('⚠️ Not showing notification - it was your own heart');
             }
           } else {
-            console.log('⚠️ Heart count increased but hearts array is empty');
+            console.log('⚠️ Heart count increased but hearts array is empty or invalid:', {
+              hearts: prayer.hearts,
+              isArray: Array.isArray(prayer.hearts)
+            });
           }
         }
 
         previousHeartCounts[prayerId] = currentHeartCount;
       });
 
+      console.log('🔔 Finished checking prayers. Setting isInitialLoad = false');
       isInitialLoad = false;
     });
 
@@ -287,19 +295,34 @@ export default function PrayerPage() {
   };
 
   const handlePrayForRequest = async (prayerId: string) => {
+    // Must be signed in (RequireAuth ensures this, but check anyway)
+    if (!user?.uid) {
+      console.error('Cannot add heart: user not signed in');
+      return;
+    }
+
     const prayer = communityPrayers.find(p => p.id === prayerId);
-    // Use authenticated user ID if available, otherwise generate guest ID
-    const currentUserId = user?.uid || `guest_${Date.now()}`;
-    if (!prayer || prayer.hearts.some(h => h.userId === currentUserId)) return;
+    const currentUserId = user.uid;
+
+    // Check if user already prayed
+    if (!prayer || prayer.hearts.some(h => h.userId === currentUserId)) {
+      console.log('Cannot add heart: prayer not found or user already prayed');
+      return;
+    }
 
     try {
+      console.log('💓 Adding heart to prayer:', prayerId);
       const prayerRef = doc(db, 'prayer_requests', prayerId);
+
+      // Use arrayUnion to atomically add to hearts array
       await updateDoc(prayerRef, {
-        hearts: [...prayer.hearts, { userId: currentUserId, timestamp: Date.now() }],
+        hearts: arrayUnion({ userId: currentUserId, timestamp: Date.now() }),
         heartCount: increment(1)
       });
+
+      console.log('✅ Heart added successfully');
     } catch (error) {
-      console.error('Error adding heart:', error);
+      console.error('❌ Error adding heart:', error);
     }
   };
 
@@ -348,6 +371,7 @@ export default function PrayerPage() {
   // ========================================
 
   return (
+    <RequireAuth>
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white">
       <div className="max-w-3xl mx-auto px-4 py-12">
         {pastorNote && <EncouragingBanner message={pastorNote} />}
@@ -428,6 +452,7 @@ export default function PrayerPage() {
         />
       </div>
     </div>
+  </RequireAuth>
   );
 }
 

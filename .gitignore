@@ -32,3 +32,5 @@ data/banner.json
 
 # === IOS SENSITIVE FILES ===
 ios/App/App/GoogleService-Info.plist
+/ios/vendor/
+/ios/fastlane/report.xml

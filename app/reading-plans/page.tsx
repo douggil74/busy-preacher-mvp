@@ -4,6 +4,7 @@
 import { Playfair_Display } from "next/font/google";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import RequireAuth from '@/components/RequireAuth';
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -105,6 +106,7 @@ export default function ReadingPlansPage() {
   };
 
   return (
+    <RequireAuth>
     <main className="min-h-screen px-4 pb-16 pt-8" style={{ backgroundColor: 'var(--bg-color)' }}>
       <div className="mx-auto max-w-5xl">
         {/* Header */}
@@ -277,5 +279,6 @@ export default function ReadingPlansPage() {
         </div>
       </div>
     </main>
+    </RequireAuth>
   );
 }

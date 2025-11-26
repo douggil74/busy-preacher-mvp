@@ -7,6 +7,7 @@ import { CourseTracker } from "@/lib/courseTracker";
 import { useEffect, useState, useMemo } from "react";
 import { typography, cn } from '@/lib/ui-constants';
 import { PastorNote } from '@/components/PastorNote';
+import RequireAuth from '@/components/RequireAuth';
 
 const playfair = Playfair_Display({
   weight: ["600", "700"],
@@ -52,6 +53,7 @@ export default function CoursesPage() {
   }, {} as Record<string, typeof courses>);
 
   return (
+    <RequireAuth>
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-slate-100 to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 text-slate-900 dark:text-white">
       <div className="max-w-5xl mx-auto px-4 py-16">
         {/* PAGE HEADER */}
@@ -191,5 +193,6 @@ export default function CoursesPage() {
         </div>
       </div>
     </div>
+    </RequireAuth>
   );
 }

@@ -9,6 +9,7 @@ import { PastorNote } from '@/components/PastorNote';
 import { getEmptyStateMessage, getPastorNote } from '@/lib/personalMessages';
 import { card, button, input, typography, cn } from '@/lib/ui-constants';
 import { EncouragingBanner } from '@/components/EncouragingBanner';
+import RequireAuth from '@/components/RequireAuth';
 
 const playfair = Playfair_Display({
   weight: ["600", "700"],
@@ -180,6 +181,7 @@ export default function LibraryPage() {
   );
 
   return (
+    <RequireAuth>
     <main className="mx-auto max-w-5xl px-4 py-8">
       {pastorNote && <EncouragingBanner message={pastorNote} />}
 
@@ -413,5 +415,6 @@ export default function LibraryPage() {
         </div>
       )}
     </main>
+    </RequireAuth>
   );
 }

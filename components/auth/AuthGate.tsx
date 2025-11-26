@@ -23,7 +23,7 @@ interface AuthGateProps {
  * </AuthGate>
  */
 export function AuthGate({ children, requireAuth = true }: AuthGateProps) {
-  const { user, loading } = useAuth();
+  const { user, isLoading } = useAuth();
   const { isApp, isPaid } = usePlatform();
   const router = useRouter();
 
@@ -32,7 +32,7 @@ export function AuthGate({ children, requireAuth = true }: AuthGateProps) {
     if (!requireAuth) return;
 
     // If still loading, wait
-    if (loading) return;
+    if (isLoading) return;
 
     // iOS app users who paid get automatic access
     if (isPaid && isApp) return;
@@ -41,10 +41,10 @@ export function AuthGate({ children, requireAuth = true }: AuthGateProps) {
     if (!user) {
       router.push('/login');
     }
-  }, [user, loading, requireAuth, isPaid, isApp, router]);
+  }, [user, isLoading, requireAuth, isPaid, isApp, router]);
 
   // Show loading state
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">

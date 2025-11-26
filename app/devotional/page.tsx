@@ -1,5 +1,10 @@
 import { DailyDevotional } from './DailyDevotional';
+import RequireAuth from '@/components/RequireAuth';
 
 export default function DevotionalPage() {
-  return <DailyDevotional />;
+  return (
+    <RequireAuth>
+      <DailyDevotional />
+    </RequireAuth>
+  );
 }

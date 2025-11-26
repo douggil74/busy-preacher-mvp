@@ -11,6 +11,7 @@ import { getPastorNote } from '@/lib/personalMessages';
 import MandatoryReportingModal from '@/components/MandatoryReportingModal';
 import PastoralInbox from '@/components/PastoralInbox';
 import { useAuth } from '@/contexts/AuthContext';
+import RequireAuth from '@/components/RequireAuth';
 import jsPDF from 'jspdf';
 
 const playfair = Playfair_Display({
@@ -420,6 +421,7 @@ export default function PastoralGuidancePage() {
   };
 
   return (
+    <RequireAuth>
     <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
       <style jsx>{`
         @keyframes typingDot {
@@ -758,5 +760,6 @@ export default function PastoralGuidancePage() {
         firstName={firstName}
       />
     </div>
+  </RequireAuth>
   );
 }

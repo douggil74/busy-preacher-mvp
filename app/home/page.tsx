@@ -27,6 +27,7 @@ import { safeStorage } from "@/utils/safeStorage";
 import { KeywordSearchResults } from "@/components/KeywordSearchResults";
 import WordStudyModal from "@/components/WordStudyModal";
 import { getTimeBasedGreeting, getLoadingMessage, getPastorNote, getStudyPrompt } from "@/lib/personalMessages";
+import RequireAuth from '@/components/RequireAuth';
 
 function copyToClipboard(text: string) {
   if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
@@ -1070,6 +1071,7 @@ const handleKeywordResultSelect = (reference: string) => {
   };
 
   return (
+    <RequireAuth>
     <main className="container">
       {pastorNote && isOnboarded && (
         <EncouragingBanner message={pastorNote} />
@@ -1958,5 +1960,6 @@ const handleKeywordResultSelect = (reference: string) => {
         />
       )}
 </main>
+</RequireAuth>
   );
 }

@@ -13,6 +13,7 @@ import WordStudyModal from "@/components/WordStudyModal";
 import { PastorNote } from '@/components/PastorNote';
 import { EncouragingBanner } from '@/components/EncouragingBanner';
 import { getPastorNote } from '@/lib/personalMessages';
+import RequireAuth from '@/components/RequireAuth';
 
 const playfair = Playfair_Display({
   weight: ["600", "700"],
@@ -966,6 +967,7 @@ export default function DeepStudyPage() {
   };
 
   return (
+    <RequireAuth>
     <main className="mx-auto max-w-5xl px-4 py-8">
       {pastorNote && <EncouragingBanner message={pastorNote} />}
 
@@ -1874,5 +1876,6 @@ export default function DeepStudyPage() {
         initialData={hoverData}
         bookName={currentBookName}
       />    </main>
+    </RequireAuth>
   );
 }

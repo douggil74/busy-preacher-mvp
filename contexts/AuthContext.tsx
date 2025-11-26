@@ -6,6 +6,8 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider,
   OAuthProvider,
   signOut as firebaseSignOut,
@@ -49,6 +51,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Handle Apple Sign-In redirect result
+  useEffect(() => {
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result && result.user) {
+          console.log('✅ Apple Sign-In redirect successful:', result.user.email);
+
+          // Update last sign in
+          setDoc(
+            doc(db, 'users', result.user.uid),
+            { lastSignIn: serverTimestamp() },
+            { merge: true }
+          );
+          requestLocationPermission();
+        }
+      })
+      .catch((error) => {
+        console.error('❌ Apple redirect error:', error);
+      });
+  }, []);
 
   // Listen to Firebase auth state
   useEffect(() => {
@@ -192,25 +215,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       provider.addScope('email');
       provider.addScope('name');
 
-      console.log('🍎 Attempting Apple sign-in...');
-      const result = await signInWithPopup(auth, provider);
-      console.log('✅ Apple sign-in successful:', result.user.email, 'UID:', result.user.uid);
+      console.log('🍎 Attempting Apple sign-in with redirect...');
 
-      // Update last sign in
-      await setDoc(
-        doc(db, 'users', result.user.uid),
-        { lastSignIn: serverTimestamp() },
-        { merge: true }
-      );
-      requestLocationPermission();
+      // Use redirect instead of popup for better iOS WebView compatibility
+      await signInWithRedirect(auth, provider);
+
     } catch (error: any) {
       console.error('❌ Apple sign in error:', error);
       console.error('Error code:', error.code);
       console.error('Error message:', error.message);
-      // Don't throw for popup-closed-by-user - user just cancelled
-      if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
-        throw error;
-      }
+      throw error;
     }
   };
 

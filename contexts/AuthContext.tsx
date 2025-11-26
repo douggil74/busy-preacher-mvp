@@ -7,6 +7,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
+  OAuthProvider,
   signOut as firebaseSignOut,
   onAuthStateChanged,
   User as FirebaseUser
@@ -35,6 +36,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   signInWithGoogle: () => Promise<void>;
+  signInWithApple: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (email: string, password: string, firstName: string, fullName: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -184,6 +186,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const signInWithApple = async () => {
+    try {
+      const provider = new OAuthProvider('apple.com');
+      provider.addScope('email');
+      provider.addScope('name');
+
+      console.log('🍎 Attempting Apple sign-in...');
+      const result = await signInWithPopup(auth, provider);
+      console.log('✅ Apple sign-in successful:', result.user.email, 'UID:', result.user.uid);
+
+      // Update last sign in
+      await setDoc(
+        doc(db, 'users', result.user.uid),
+        { lastSignIn: serverTimestamp() },
+        { merge: true }
+      );
+      requestLocationPermission();
+    } catch (error: any) {
+      console.error('❌ Apple sign in error:', error);
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
+      // Don't throw for popup-closed-by-user - user just cancelled
+      if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+        throw error;
+      }
+    }
+  };
+
   const signInWithEmail = async (email: string, password: string) => {
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
@@ -294,6 +324,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isAuthenticated: !!user,
     isLoading,
     signInWithGoogle,
+    signInWithApple,
     signInWithEmail,
     signUpWithEmail,
     signOut,

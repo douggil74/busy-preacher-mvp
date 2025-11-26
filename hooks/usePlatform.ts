@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { isFromIOSApp, isPaidAppUser, shouldShowPaywall, getPlatform } from '@/lib/platform-detector';
 import { isWhitelisted } from '@/lib/whitelist';
 import { useAuth } from '@/contexts/AuthContext';
+import { hasActiveSubscription } from '@/lib/subscription';
 
 /**
  * Hook to detect platform and paywall status
@@ -18,31 +19,45 @@ export function usePlatform() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Detect platform on client side only
-    const detectedPlatform = getPlatform();
-    const fromApp = isFromIOSApp();
-    const paidUser = isPaidAppUser();
-    const whitelisted = user?.email ? isWhitelisted(user.email) : false;
+    async function checkAccess() {
+      // Detect platform on client side only
+      const detectedPlatform = getPlatform();
+      const fromApp = isFromIOSApp();
+      const paidUser = isPaidAppUser();
+      const whitelisted = user?.email ? isWhitelisted(user.email) : false;
 
-    // Whitelisted users (admin + friends) get full access
-    const hasPaidAccess = paidUser || whitelisted;
-    const needsPaywall = !hasPaidAccess;
+      // Check for active web subscription
+      let hasWebSubscription = false;
+      if (user?.uid && !fromApp) {
+        hasWebSubscription = await hasActiveSubscription(user.uid);
+      }
 
-    setPlatform(detectedPlatform);
-    setIsApp(fromApp);
-    setIsPaid(hasPaidAccess);
-    setShowPaywall(needsPaywall);
-    setIsLoading(false);
+      // User has paid access if:
+      // 1. They're from iOS app (paid $2.99)
+      // 2. They're whitelisted (admin/friends)
+      // 3. They have an active web subscription
+      const hasPaidAccess = paidUser || whitelisted || hasWebSubscription;
+      const needsPaywall = !hasPaidAccess;
 
-    // Log for debugging (remove in production)
-    console.log('Platform detected:', {
-      platform: detectedPlatform,
-      isApp: fromApp,
-      isPaidUser: paidUser,
-      whitelisted,
-      hasPaidAccess,
-      showPaywall: needsPaywall,
-    });
+      setPlatform(detectedPlatform);
+      setIsApp(fromApp);
+      setIsPaid(hasPaidAccess);
+      setShowPaywall(needsPaywall);
+      setIsLoading(false);
+
+      // Log for debugging (remove in production)
+      console.log('Platform detected:', {
+        platform: detectedPlatform,
+        isApp: fromApp,
+        isPaidUser: paidUser,
+        whitelisted,
+        hasWebSubscription,
+        hasPaidAccess,
+        showPaywall: needsPaywall,
+      });
+    }
+
+    checkAccess();
   }, [user]);
 
   return {

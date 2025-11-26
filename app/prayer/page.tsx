@@ -28,6 +28,7 @@ import { EncouragingBanner } from '@/components/EncouragingBanner';
 import { card, button, input, typography, cn } from '@/lib/ui-constants';
 import { getPastorNote } from '@/lib/personalMessages';
 import RequireAuth from '@/components/RequireAuth';
+import { Paywall } from '@/components/Paywall';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -372,6 +373,7 @@ export default function PrayerPage() {
 
   return (
     <RequireAuth>
+    <Paywall>
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white">
       <div className="max-w-3xl mx-auto px-4 py-12">
         {pastorNote && <EncouragingBanner message={pastorNote} />}
@@ -452,6 +454,7 @@ export default function PrayerPage() {
         />
       </div>
     </div>
+    </Paywall>
   </RequireAuth>
   );
 }

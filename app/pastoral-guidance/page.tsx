@@ -12,6 +12,7 @@ import MandatoryReportingModal from '@/components/MandatoryReportingModal';
 import PastoralInbox from '@/components/PastoralInbox';
 import { useAuth } from '@/contexts/AuthContext';
 import RequireAuth from '@/components/RequireAuth';
+import { Paywall } from '@/components/Paywall';
 import jsPDF from 'jspdf';
 
 const playfair = Playfair_Display({
@@ -422,6 +423,7 @@ export default function PastoralGuidancePage() {
 
   return (
     <RequireAuth>
+    <Paywall>
     <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
       <style jsx>{`
         @keyframes typingDot {
@@ -760,6 +762,7 @@ export default function PastoralGuidancePage() {
         firstName={firstName}
       />
     </div>
+    </Paywall>
   </RequireAuth>
   );
 }

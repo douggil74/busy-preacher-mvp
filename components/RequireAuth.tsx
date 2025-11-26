@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Playfair_Display } from 'next/font/google';
 import { usePlatform } from '@/hooks/usePlatform';
+import { isWhitelisted } from '@/lib/whitelist';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -21,6 +22,11 @@ export default function RequireAuth({ children }: RequireAuthProps) {
   const { isPaid, isApp, isLoading: platformLoading } = usePlatform();
   const router = useRouter();
   const [isSigningIn, setIsSigningIn] = useState(false);
+
+  // Whitelisted users (admin + friends) get automatic access
+  if (user?.email && isWhitelisted(user.email)) {
+    return <>{children}</>;
+  }
 
   // iOS app users (who paid $2.99) get automatic access
   if (isPaid && isApp && !platformLoading) {

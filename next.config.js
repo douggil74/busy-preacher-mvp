@@ -16,6 +16,19 @@ const nextConfig = {
   // Optimize package imports
   experimental: {
     optimizePackageImports: ['lucide-react', 'jspdf', '@radix-ui/react-dialog'],
+    serverComponentsExternalPackages: ['firebase-admin'],
+  },
+
+  // Exclude firebase-admin from client bundle
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        'firebase-admin': false,
+        '@/lib/firebase-admin': false,
+      };
+    }
+    return config;
   },
 };
 

@@ -7,7 +7,7 @@
 import { Capacitor } from '@capacitor/core';
 import { SignInWithApple, SignInWithAppleResponse } from '@capacitor-community/apple-sign-in';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
-import { OAuthProvider, GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
 /**
@@ -39,6 +39,10 @@ export async function initializeNativeGoogleAuth() {
 /**
  * Native Apple Sign-In for iOS
  * Returns Firebase User
+ *
+ * NEW APPROACH: Instead of client-side credential exchange (which fails in WebView),
+ * we send the Apple token to our backend API which exchanges it for a Firebase
+ * custom token. This bypasses ALL WebView OAuth restrictions!
  */
 export async function nativeAppleSignIn() {
   try {
@@ -57,24 +61,40 @@ export async function nativeAppleSignIn() {
       throw new Error('No identity token received from Apple Sign-In');
     }
 
-    // CRITICAL FIX: Use both idToken AND accessToken (authorization code)
-    const provider = new OAuthProvider('apple.com');
-    const credential = provider.credential({
-      idToken: result.response.identityToken,
-      accessToken: result.response.authorizationCode || undefined,
+    // Send Apple token to backend for exchange
+    console.log('🔄 Sending token to backend for exchange...');
+
+    const apiUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const response = await fetch(`${apiUrl}/api/auth/apple-native`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        identityToken: result.response.identityToken,
+        authorizationCode: result.response.authorizationCode,
+        user: result.response.user,
+      }),
     });
 
-    console.log('🔑 Signing in to Firebase...');
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Backend authentication failed');
+    }
 
-    // Sign in to Firebase
-    const userCredential = await signInWithCredential(auth, credential);
+    const { customToken } = await response.json();
+    console.log('✅ Got custom token from backend');
+
+    // Sign in to Firebase with custom token
+    console.log('🔑 Signing in to Firebase with custom token...');
+    const { signInWithCustomToken } = await import('firebase/auth');
+    const userCredential = await signInWithCustomToken(auth, customToken);
 
     console.log('✅ SUCCESS! User:', userCredential.user.email);
 
     return userCredential.user;
   } catch (error: any) {
     console.error('❌ ERROR:', error);
-    alert(`FAILED: ${error.code}\n${error.message}`);
     throw error;
   }
 }

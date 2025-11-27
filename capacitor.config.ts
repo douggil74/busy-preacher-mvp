@@ -5,10 +5,10 @@ const config: CapacitorConfig = {
   appName: 'The Busy Christian App',
   webDir: 'www',
 
-  // PRODUCTION MODE: App loads from deployed website
+  // LOCAL DEV MODE: App loads from localhost for testing
   server: {
-    url: 'https://www.thebusychristianapp.com',
-    cleartext: false
+    url: 'http://localhost:3000',
+    cleartext: true
   },
 
   // iOS specific configuration

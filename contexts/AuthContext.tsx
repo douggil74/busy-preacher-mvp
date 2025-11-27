@@ -228,23 +228,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithApple = async () => {
     try {
+      const isNative = isNativeIOSApp();
+      console.log('🔍 Platform check: isNativeIOSApp =', isNative);
+      alert(`Platform: ${isNative ? 'Native iOS' : 'Web Browser'}`);
+
       let firebaseUser: FirebaseUser;
 
       // Use native sign-in for iOS app, web OAuth for browser
-      if (isNativeIOSApp()) {
+      if (isNative) {
         console.log('🍎 Using native Apple Sign-In for iOS...');
+        alert('Calling native Apple Sign-In...');
         firebaseUser = await nativeAppleSignIn();
+        alert('Native sign-in returned!');
       } else {
         const provider = new OAuthProvider('apple.com');
         provider.addScope('email');
         provider.addScope('name');
 
         console.log('🌐 Using web Apple Sign-In with popup...');
+        alert('Using WEB Apple Sign-In (popup)');
         const result = await signInWithPopup(auth, provider);
         firebaseUser = result.user;
       }
 
       console.log('✅ Apple Sign-in successful:', firebaseUser.email, 'UID:', firebaseUser.uid);
+      alert(`SUCCESS! Signed in as ${firebaseUser.email}`);
 
       // Update last sign in
       await setDoc(
@@ -258,6 +266,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('❌ Apple sign in error:', error);
       console.error('Error code:', error.code);
       console.error('Error message:', error.message);
+      alert(`ERROR in AuthContext:\n${error.code}\n${error.message}`);
 
       // Don't throw for popup-closed-by-user - user just cancelled
       if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {

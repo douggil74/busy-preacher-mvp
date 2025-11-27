@@ -70,27 +70,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const firstName = displayName.split(' ')[0];
 
             // Update profile with missing fields
+            const updateData: any = {
+              firstName,
+              fullName: displayName,
+              email: firebaseUser.email || '',
+              lastSignIn: serverTimestamp()
+            };
+
+            // Only add photoURL if it exists
+            if (firebaseUser.photoURL) {
+              updateData.photoURL = firebaseUser.photoURL;
+            }
+
             await setDoc(
               doc(db, 'users', firebaseUser.uid),
-              {
-                firstName,
-                fullName: displayName,
-                email: firebaseUser.email || '',
-                photoURL: firebaseUser.photoURL || undefined,
-                lastSignIn: serverTimestamp()
-              },
+              updateData,
               { merge: true }
             );
 
             // Set user with updated data
-            const updatedUser = {
+            const updatedUser: any = {
               uid: firebaseUser.uid,  // Add uid from Firebase auth
               ...profileData,
               firstName,
               fullName: displayName,
-              email: firebaseUser.email || '',
-              photoURL: firebaseUser.photoURL
-            } as UserProfile;
+              email: firebaseUser.email || ''
+            };
+
+            // Only add photoURL if it exists
+            if (firebaseUser.photoURL) {
+              updatedUser.photoURL = firebaseUser.photoURL;
+            }
             console.log('✅ Setting user state:', updatedUser.firstName, updatedUser.uid);
             setUser(updatedUser);
             // Save to localStorage for email transcripts
@@ -147,10 +157,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       firstName,
       fullName: displayName,
       email: firebaseUser.email || '',
-      photoURL: firebaseUser.photoURL || undefined,
       createdAt: serverTimestamp(),
       lastSignIn: serverTimestamp()
     };
+
+    // Only add photoURL if it exists
+    if (firebaseUser.photoURL) {
+      profile.photoURL = firebaseUser.photoURL;
+    }
 
     await setDoc(doc(db, 'users', firebaseUser.uid), profile);
     return profile;

@@ -37,6 +37,30 @@ export async function initializeNativeGoogleAuth() {
 }
 
 /**
+ * Generate a random string for nonce
+ */
+function generateNonce(length: number = 32): string {
+  const charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+  let result = '';
+  const randomValues = new Uint8Array(length);
+  crypto.getRandomValues(randomValues);
+  randomValues.forEach((v) => {
+    result += charset[v % charset.length];
+  });
+  return result;
+}
+
+/**
+ * SHA256 hash a string
+ */
+async function sha256(str: string): Promise<string> {
+  const buffer = new TextEncoder().encode(str);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
  * Native Apple Sign-In for iOS
  * Returns Firebase User
  */
@@ -44,33 +68,35 @@ export async function nativeAppleSignIn() {
   try {
     console.log('🍎 Starting native Apple Sign-In...');
 
-    // Generate a random nonce for security
-    const nonce = Math.random().toString(36).substring(2, 15);
+    // Generate a random nonce and hash it with SHA256
+    const rawNonce = generateNonce();
+    const hashedNonce = await sha256(rawNonce);
+
+    console.log('🔐 Generated nonce for Apple Sign-In');
 
     const result: SignInWithAppleResponse = await SignInWithApple.authorize({
       clientId: 'com.busychristian.signin',
       redirectURI: 'https://thebusychristian-app.firebaseapp.com/__/auth/handler',
       scopes: 'email name',
-      state: Math.random().toString(36).substring(7),
-      nonce: nonce,
+      state: generateNonce(10),
+      nonce: hashedNonce,
     });
 
     console.log('✅ Native Apple Sign-In successful');
     console.log('Identity Token:', result.response.identityToken ? 'present' : 'missing');
-    console.log('Authorization Code:', result.response.authorizationCode ? 'present' : 'missing');
 
     if (!result.response.identityToken) {
       throw new Error('No identity token received from Apple Sign-In');
     }
 
-    // Create Firebase credential with both identity token and nonce
+    // Create Firebase credential with identity token and raw (unhashed) nonce
     const provider = new OAuthProvider('apple.com');
     const credential = provider.credential({
       idToken: result.response.identityToken,
-      rawNonce: nonce,
+      rawNonce: rawNonce,  // Use the raw nonce, not the hashed one
     });
 
-    console.log('🔑 Signing in to Firebase...');
+    console.log('🔑 Signing in to Firebase with credential...');
 
     // Sign in to Firebase
     const userCredential = await signInWithCredential(auth, credential);
@@ -79,7 +105,9 @@ export async function nativeAppleSignIn() {
     return userCredential.user;
   } catch (error: any) {
     console.error('❌ Native Apple Sign-In error:', error);
-    console.error('Error details:', JSON.stringify(error, null, 2));
+    console.error('Error code:', error.code);
+    console.error('Error message:', error.message);
+    alert('Apple Sign-In Error: ' + error.message);
     throw error;
   }
 }

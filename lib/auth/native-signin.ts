@@ -44,11 +44,15 @@ export async function nativeAppleSignIn() {
   try {
     console.log('🍎 Starting native Apple Sign-In...');
 
+    // Generate a random nonce for security
+    const nonce = Math.random().toString(36).substring(2, 15);
+
     const result: SignInWithAppleResponse = await SignInWithApple.authorize({
       clientId: 'com.busychristian.signin',
       redirectURI: 'https://thebusychristian-app.firebaseapp.com/__/auth/handler',
       scopes: 'email name',
       state: Math.random().toString(36).substring(7),
+      nonce: nonce,
     });
 
     console.log('✅ Native Apple Sign-In successful');
@@ -59,11 +63,11 @@ export async function nativeAppleSignIn() {
       throw new Error('No identity token received from Apple Sign-In');
     }
 
-    // Create Firebase credential with identity token only
-    // For native iOS sign-in, we don't need a nonce
+    // Create Firebase credential with both identity token and nonce
     const provider = new OAuthProvider('apple.com');
     const credential = provider.credential({
       idToken: result.response.identityToken,
+      rawNonce: nonce,
     });
 
     console.log('🔑 Signing in to Firebase...');

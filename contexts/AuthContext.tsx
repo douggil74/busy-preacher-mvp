@@ -12,7 +12,7 @@ import {
   onAuthStateChanged,
   User as FirebaseUser
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp, deleteField } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 
 export interface UserProfile {
@@ -77,9 +77,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               lastSignIn: serverTimestamp()
             };
 
-            // Only add photoURL if it exists
+            // Handle photoURL: add if exists, delete if doesn't
             if (firebaseUser.photoURL) {
               updateData.photoURL = firebaseUser.photoURL;
+            } else {
+              // Explicitly delete photoURL field if user doesn't have one
+              updateData.photoURL = deleteField();
             }
 
             await setDoc(
@@ -88,10 +91,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               { merge: true }
             );
 
-            // Set user with updated data
+            // Set user with updated data (filter out undefined values from profileData)
+            const { photoURL: _, ...cleanProfileData } = profileData;
             const updatedUser: any = {
               uid: firebaseUser.uid,  // Add uid from Firebase auth
-              ...profileData,
+              ...cleanProfileData,
               firstName,
               fullName: displayName,
               email: firebaseUser.email || ''
@@ -100,6 +104,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Only add photoURL if it exists
             if (firebaseUser.photoURL) {
               updatedUser.photoURL = firebaseUser.photoURL;
+            } else if (profileData.photoURL) {
+              updatedUser.photoURL = profileData.photoURL;
             }
             console.log('✅ Setting user state:', updatedUser.firstName, updatedUser.uid);
             setUser(updatedUser);

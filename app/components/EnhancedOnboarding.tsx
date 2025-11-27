@@ -66,12 +66,14 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
   // Auto-advance from sign-in step when user signs in
   useEffect(() => {
     if (user && step === 0) {
-      // Pre-fill name and email from Google account
+      // Pre-fill name and email from account
       setData(prev => ({
         ...prev,
         name: user.firstName || "",
         email: user.email || ""
       }));
+      setIsSigningIn(false);
+      setSignInMethod(null);
       setStep(1);
     }
   }, [user, step]);

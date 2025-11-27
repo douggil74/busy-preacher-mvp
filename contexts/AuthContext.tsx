@@ -314,6 +314,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await firebaseSignOut(auth);
       setUser(null);
       setFirebaseUser(null);
+
+      // Clear all auth-related localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('bc-user-email');
+        localStorage.removeItem('bc-user-name');
+        localStorage.removeItem('bc-onboarding-complete');
+        localStorage.removeItem('bc-style');
+        localStorage.removeItem('bc-study-style');
+        // Reload to reset all state
+        window.location.href = '/';
+      }
     } catch (error) {
       console.error('Sign out error:', error);
       throw error;

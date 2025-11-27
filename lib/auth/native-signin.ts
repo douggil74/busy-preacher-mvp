@@ -47,8 +47,10 @@ export async function nativeAppleSignIn() {
     console.log('🍎 Starting native Apple Sign-In for iOS...');
     alert('Starting Apple Sign-In...');
 
-    // Simplest possible call - no nonce, no client ID for native iOS
+    // Call Apple Sign-In (clientId required by plugin)
     const result: SignInWithAppleResponse = await SignInWithApple.authorize({
+      clientId: 'com.busychristian.app',  // Use bundle ID for native iOS
+      redirectURI: 'https://thebusychristian-app.firebaseapp.com/__/auth/handler',
       scopes: 'email name',
     });
 

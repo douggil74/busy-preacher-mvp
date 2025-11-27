@@ -14,6 +14,12 @@ import {
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp, deleteField } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
+import {
+  isNativeIOSApp,
+  initializeNativeGoogleAuth,
+  nativeAppleSignIn,
+  nativeGoogleSignIn
+} from '@/lib/auth/native-signin';
 
 export interface UserProfile {
   uid: string;
@@ -49,6 +55,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Initialize native Google Auth on app startup
+  useEffect(() => {
+    initializeNativeGoogleAuth();
+  }, []);
 
   // Listen to Firebase auth state
   useEffect(() => {
@@ -178,19 +189,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async () => {
     try {
-      const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({
-        prompt: 'select_account'
-      });
+      let firebaseUser: FirebaseUser;
 
-      // Use popup for all environments - more reliable than redirect
-      console.log('🔐 Attempting Google sign-in with popup...');
-      const result = await signInWithPopup(auth, provider);
-      console.log('✅ Sign-in successful:', result.user.email, 'UID:', result.user.uid);
+      // Use native sign-in for iOS app, web OAuth for browser
+      if (isNativeIOSApp()) {
+        console.log('📱 Using native Google Sign-In for iOS...');
+        firebaseUser = await nativeGoogleSignIn();
+      } else {
+        const provider = new GoogleAuthProvider();
+        provider.setCustomParameters({
+          prompt: 'select_account'
+        });
+
+        console.log('🌐 Using web Google Sign-In with popup...');
+        const result = await signInWithPopup(auth, provider);
+        firebaseUser = result.user;
+      }
+
+      console.log('✅ Google Sign-in successful:', firebaseUser.email, 'UID:', firebaseUser.uid);
 
       // Update last sign in
       await setDoc(
-        doc(db, 'users', result.user.uid),
+        doc(db, 'users', firebaseUser.uid),
         { lastSignIn: serverTimestamp() },
         { merge: true }
       );
@@ -208,33 +228,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithApple = async () => {
     try {
-      const provider = new OAuthProvider('apple.com');
-      provider.addScope('email');
-      provider.addScope('name');
+      let firebaseUser: FirebaseUser;
 
-      // Use popup for better reliability on web/desktop
-      console.log('🍎 Attempting Apple sign-in with popup...');
-      console.log('Auth instance:', auth);
-      console.log('Provider:', provider.providerId);
+      // Use native sign-in for iOS app, web OAuth for browser
+      if (isNativeIOSApp()) {
+        console.log('🍎 Using native Apple Sign-In for iOS...');
+        firebaseUser = await nativeAppleSignIn();
+      } else {
+        const provider = new OAuthProvider('apple.com');
+        provider.addScope('email');
+        provider.addScope('name');
 
-      const result = await signInWithPopup(auth, provider);
-      console.log('✅ Apple sign-in successful:', result.user.email, 'UID:', result.user.uid);
+        console.log('🌐 Using web Apple Sign-In with popup...');
+        const result = await signInWithPopup(auth, provider);
+        firebaseUser = result.user;
+      }
+
+      console.log('✅ Apple Sign-in successful:', firebaseUser.email, 'UID:', firebaseUser.uid);
 
       // Update last sign in
       await setDoc(
-        doc(db, 'users', result.user.uid),
+        doc(db, 'users', firebaseUser.uid),
         { lastSignIn: serverTimestamp() },
         { merge: true }
       );
       requestLocationPermission();
 
     } catch (error: any) {
-      console.error('❌ Apple sign in error - FULL ERROR:', error);
+      console.error('❌ Apple sign in error:', error);
       console.error('Error code:', error.code);
       console.error('Error message:', error.message);
-      console.error('Error name:', error.name);
-      console.error('Error stack:', error.stack);
-      console.error('Error customData:', error.customData);
 
       // Don't throw for popup-closed-by-user - user just cancelled
       if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {

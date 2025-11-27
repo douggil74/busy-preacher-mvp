@@ -37,77 +37,61 @@ export async function initializeNativeGoogleAuth() {
 }
 
 /**
- * Generate a random string for nonce
- */
-function generateNonce(length: number = 32): string {
-  const charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
-  let result = '';
-  const randomValues = new Uint8Array(length);
-  crypto.getRandomValues(randomValues);
-  randomValues.forEach((v) => {
-    result += charset[v % charset.length];
-  });
-  return result;
-}
-
-/**
- * SHA256 hash a string
- */
-async function sha256(str: string): Promise<string> {
-  const buffer = new TextEncoder().encode(str);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-/**
  * Native Apple Sign-In for iOS
  * Returns Firebase User
+ *
+ * SIMPLIFIED: No nonce for native iOS - just use identity token directly
  */
 export async function nativeAppleSignIn() {
   try {
-    console.log('🍎 Starting native Apple Sign-In...');
+    console.log('🍎 Starting native Apple Sign-In for iOS...');
+    alert('Starting Apple Sign-In...');
 
-    // Generate a random nonce and hash it with SHA256
-    const rawNonce = generateNonce();
-    const hashedNonce = await sha256(rawNonce);
-
-    console.log('🔐 Generated nonce for Apple Sign-In');
-
+    // Simplest possible call - no nonce, no client ID for native iOS
     const result: SignInWithAppleResponse = await SignInWithApple.authorize({
-      clientId: 'com.busychristian.signin',
-      redirectURI: 'https://thebusychristian-app.firebaseapp.com/__/auth/handler',
       scopes: 'email name',
-      state: generateNonce(10),
-      nonce: hashedNonce,
     });
 
-    console.log('✅ Native Apple Sign-In successful');
-    console.log('Identity Token:', result.response.identityToken ? 'present' : 'missing');
+    console.log('✅ Got response from Apple');
+    console.log('Identity Token:', result.response.identityToken ? 'YES' : 'NO');
+    console.log('User:', result.response.user);
+    console.log('Email:', result.response.email);
+    console.log('Full Name:', result.response.givenName, result.response.familyName);
 
     if (!result.response.identityToken) {
+      alert('Error: No identity token from Apple');
       throw new Error('No identity token received from Apple Sign-In');
     }
 
-    // Create Firebase credential with identity token and raw (unhashed) nonce
+    alert('Got token from Apple, signing in to Firebase...');
+
+    // Use identity token directly with Firebase - no nonce needed for native
     const provider = new OAuthProvider('apple.com');
     const credential = provider.credential({
       idToken: result.response.identityToken,
-      rawNonce: rawNonce,  // Use the raw nonce, not the hashed one
     });
 
-    console.log('🔑 Signing in to Firebase with credential...');
+    console.log('🔑 Created Firebase credential, signing in...');
 
     // Sign in to Firebase
     const userCredential = await signInWithCredential(auth, credential);
-    console.log('✅ Firebase sign-in successful:', userCredential.user.email);
+
+    console.log('✅ Firebase sign-in SUCCESS!');
+    console.log('User email:', userCredential.user.email);
+    console.log('User UID:', userCredential.user.uid);
+
+    alert('Success! Signed in as: ' + userCredential.user.email);
 
     return userCredential.user;
   } catch (error: any) {
-    console.error('❌ Native Apple Sign-In error:', error);
+    console.error('❌ APPLE SIGN-IN ERROR:', error);
     console.error('Error code:', error.code);
     console.error('Error message:', error.message);
-    alert('Apple Sign-In Error: ' + error.message);
+    console.error('Full error:', JSON.stringify(error, null, 2));
+
+    const errorMsg = `Apple Sign-In Failed!\n\nCode: ${error.code || 'unknown'}\n\nMessage: ${error.message || 'No message'}\n\nPlease screenshot this!`;
+    alert(errorMsg);
+
     throw error;
   }
 }

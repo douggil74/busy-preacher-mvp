@@ -39,61 +39,42 @@ export async function initializeNativeGoogleAuth() {
 /**
  * Native Apple Sign-In for iOS
  * Returns Firebase User
- *
- * SIMPLIFIED: No nonce for native iOS - just use identity token directly
  */
 export async function nativeAppleSignIn() {
   try {
     console.log('🍎 Starting native Apple Sign-In for iOS...');
-    alert('Starting Apple Sign-In...');
 
-    // Call Apple Sign-In (clientId required by plugin)
+    // Call Apple Sign-In
     const result: SignInWithAppleResponse = await SignInWithApple.authorize({
-      clientId: 'com.busychristian.app',  // Use bundle ID for native iOS
+      clientId: 'com.busychristian.app',
       redirectURI: 'https://thebusychristian-app.firebaseapp.com/__/auth/handler',
       scopes: 'email name',
     });
 
     console.log('✅ Got response from Apple');
-    console.log('Identity Token:', result.response.identityToken ? 'YES' : 'NO');
-    console.log('User:', result.response.user);
-    console.log('Email:', result.response.email);
-    console.log('Full Name:', result.response.givenName, result.response.familyName);
 
     if (!result.response.identityToken) {
-      alert('Error: No identity token from Apple');
       throw new Error('No identity token received from Apple Sign-In');
     }
 
-    alert('Got token from Apple, signing in to Firebase...');
-
-    // Use identity token directly with Firebase - no nonce needed for native
+    // CRITICAL FIX: Use both idToken AND accessToken (authorization code)
     const provider = new OAuthProvider('apple.com');
     const credential = provider.credential({
       idToken: result.response.identityToken,
+      accessToken: result.response.authorizationCode || undefined,
     });
 
-    console.log('🔑 Created Firebase credential, signing in...');
+    console.log('🔑 Signing in to Firebase...');
 
     // Sign in to Firebase
     const userCredential = await signInWithCredential(auth, credential);
 
-    console.log('✅ Firebase sign-in SUCCESS!');
-    console.log('User email:', userCredential.user.email);
-    console.log('User UID:', userCredential.user.uid);
-
-    alert('Success! Signed in as: ' + userCredential.user.email);
+    console.log('✅ SUCCESS! User:', userCredential.user.email);
 
     return userCredential.user;
   } catch (error: any) {
-    console.error('❌ APPLE SIGN-IN ERROR:', error);
-    console.error('Error code:', error.code);
-    console.error('Error message:', error.message);
-    console.error('Full error:', JSON.stringify(error, null, 2));
-
-    const errorMsg = `Apple Sign-In Failed!\n\nCode: ${error.code || 'unknown'}\n\nMessage: ${error.message || 'No message'}\n\nPlease screenshot this!`;
-    alert(errorMsg);
-
+    console.error('❌ ERROR:', error);
+    alert(`FAILED: ${error.code}\n${error.message}`);
     throw error;
   }
 }

@@ -52,13 +52,21 @@ export async function nativeAppleSignIn() {
     });
 
     console.log('✅ Native Apple Sign-In successful');
+    console.log('Identity Token:', result.response.identityToken ? 'present' : 'missing');
+    console.log('Authorization Code:', result.response.authorizationCode ? 'present' : 'missing');
 
-    // Create Firebase credential
+    if (!result.response.identityToken) {
+      throw new Error('No identity token received from Apple Sign-In');
+    }
+
+    // Create Firebase credential with identity token only
+    // For native iOS sign-in, we don't need a nonce
     const provider = new OAuthProvider('apple.com');
     const credential = provider.credential({
       idToken: result.response.identityToken,
-      rawNonce: result.response.user || undefined,
     });
+
+    console.log('🔑 Signing in to Firebase...');
 
     // Sign in to Firebase
     const userCredential = await signInWithCredential(auth, credential);
@@ -67,6 +75,7 @@ export async function nativeAppleSignIn() {
     return userCredential.user;
   } catch (error: any) {
     console.error('❌ Native Apple Sign-In error:', error);
+    console.error('Error details:', JSON.stringify(error, null, 2));
     throw error;
   }
 }

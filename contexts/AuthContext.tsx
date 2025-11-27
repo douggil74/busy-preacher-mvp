@@ -194,6 +194,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Use popup for better reliability on web/desktop
       console.log('🍎 Attempting Apple sign-in with popup...');
+      console.log('Auth instance:', auth);
+      console.log('Provider:', provider.providerId);
+
       const result = await signInWithPopup(auth, provider);
       console.log('✅ Apple sign-in successful:', result.user.email, 'UID:', result.user.uid);
 
@@ -206,9 +209,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       requestLocationPermission();
 
     } catch (error: any) {
-      console.error('❌ Apple sign in error:', error);
+      console.error('❌ Apple sign in error - FULL ERROR:', error);
       console.error('Error code:', error.code);
       console.error('Error message:', error.message);
+      console.error('Error name:', error.name);
+      console.error('Error stack:', error.stack);
+      console.error('Error customData:', error.customData);
+
       // Don't throw for popup-closed-by-user - user just cancelled
       if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
         throw error;

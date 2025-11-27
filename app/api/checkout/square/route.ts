@@ -1,13 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-const { Client, Environment } = require('square');
 
-const client = new Client({
-  accessToken: process.env.SQUARE_ACCESS_TOKEN!,
-  environment: process.env.SQUARE_ENVIRONMENT === 'production' ? Environment.Production : Environment.Sandbox,
-});
+// Force Node.js runtime for Square SDK compatibility
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
+    // Import Square SDK at runtime to avoid build-time issues
+    const { Client, Environment } = require('square');
+
+    const client = new Client({
+      accessToken: process.env.SQUARE_ACCESS_TOKEN!,
+      environment: process.env.SQUARE_ENVIRONMENT === 'production' ? Environment.Production : Environment.Sandbox,
+    });
+
     const { userId, userEmail } = await request.json();
 
     if (!userId || !userEmail) {

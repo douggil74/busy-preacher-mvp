@@ -12,6 +12,27 @@ function ensureDataDir() {
   }
 }
 
+// Check if banner should be shown based on schedule
+function isWithinSchedule(banner: any): boolean {
+  if (!banner.active) return false;
+
+  const now = new Date();
+
+  // Check start time
+  if (banner.startTime) {
+    const startDate = new Date(banner.startTime);
+    if (now < startDate) return false;
+  }
+
+  // Check end time
+  if (banner.endTime) {
+    const endDate = new Date(banner.endTime);
+    if (now > endDate) return false;
+  }
+
+  return true;
+}
+
 // GET - Read current banner
 export async function GET() {
   try {
@@ -29,7 +50,15 @@ export async function GET() {
     const data = fs.readFileSync(bannerFilePath, 'utf-8');
     const banner = JSON.parse(data);
 
-    return NextResponse.json(banner);
+    // Check if within schedule - override active status
+    const isScheduleActive = isWithinSchedule(banner);
+
+    return NextResponse.json({
+      ...banner,
+      active: isScheduleActive,
+      // Also return the raw schedule data for admin display
+      scheduledActive: banner.active,
+    });
   } catch (error) {
     console.error('Error reading banner:', error);
     return NextResponse.json(
@@ -43,13 +72,15 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { message, active } = body;
+    const { message, active, startTime, endTime } = body;
 
     ensureDataDir();
 
     const banner = {
       message: message || '',
       active: active !== undefined ? active : true,
+      startTime: startTime || null, // ISO string or null
+      endTime: endTime || null, // ISO string or null
       id: `banner_${Date.now()}`,
       updatedAt: new Date().toISOString(),
     };

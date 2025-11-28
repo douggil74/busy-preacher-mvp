@@ -346,18 +346,36 @@ export default function PastoralGuidancePage() {
         setMessages(prev => [...prev, assistantMessage]);
       } else {
         // Stream multiple bubbles with typing animation between each
+        // Using realistic timing to feel like real texting
         setIsLoading(false); // Stop initial loading indicator
 
         for (let i = 0; i < paragraphs.length; i++) {
+          const paragraphLength = paragraphs[i].length;
+
           // Show typing indicator before each bubble (except first since we just stopped loading)
           if (i > 0) {
+            // First, pause like we're thinking about what to say next
+            const thinkingPause = 600 + Math.random() * 800; // 0.6-1.4s thinking
+            await new Promise(resolve => setTimeout(resolve, thinkingPause));
+
+            // Now show typing indicator
             setIsLoading(true);
-            await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 400)); // 0.8-1.2s typing
+
+            // Typing duration varies based on message length
+            // Longer messages = longer typing time (feels natural)
+            const baseTyping = 1800 + Math.random() * 1200; // 1.8-3s base
+            const lengthBonus = Math.min(paragraphLength * 8, 2000); // up to 2s extra for long messages
+            const typingTime = baseTyping + (lengthBonus * Math.random()); // randomize the length bonus
+
+            await new Promise(resolve => setTimeout(resolve, typingTime));
             setIsLoading(false);
+          } else {
+            // For first bubble after initial loading, add a small natural pause
+            await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 200));
           }
 
-          // Small pause before showing the bubble
-          await new Promise(resolve => setTimeout(resolve, 150));
+          // Brief pause after typing stops before bubble appears (feels like hitting send)
+          await new Promise(resolve => setTimeout(resolve, 200 + Math.random() * 150));
 
           const bubbleMessage: Message = {
             id: `${Date.now()}_${i}`,

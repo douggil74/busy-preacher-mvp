@@ -1,21 +1,29 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { X, Info } from 'lucide-react';
 import storage from '@/lib/storage';
 
 export default function AdminBanner() {
   const [banner, setBanner] = useState<{ message: string; id: string } | null>(null);
   const [dismissed, setDismissed] = useState(true);
+  const pathname = usePathname();
+
+  // Don't show banner on splash screen
+  const isSplashPage = pathname === '/splash' || pathname === '/';
 
   useEffect(() => {
+    // Don't fetch banner on splash page
+    if (isSplashPage) return;
+
     // Fetch banner on mount
     fetchBanner();
 
     // Poll for updates every 30 seconds (reduced from 10s to minimize server load)
     const interval = setInterval(fetchBanner, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [isSplashPage]);
 
   const fetchBanner = async () => {
     try {
@@ -61,30 +69,29 @@ export default function AdminBanner() {
     setDismissed(true);
   };
 
-  if (!banner || dismissed) return null;
+  // Don't render on splash page or if no banner/dismissed
+  if (isSplashPage || !banner || dismissed) return null;
 
   return (
     <div className="bg-red-600 border-b-2 border-red-700 shadow-lg">
-      <div className="max-w-7xl mx-auto px-4 py-3">
-        <div className="flex items-center gap-3">
-          <div className="flex-shrink-0">
-            <div className="p-2 bg-white/20 rounded-lg">
-              <Info className="w-5 h-5 text-white" />
-            </div>
+      <div className="max-w-7xl mx-auto px-3 py-2">
+        <div className="flex items-start gap-2">
+          <div className="flex-shrink-0 mt-0.5">
+            <Info className="w-4 h-4 text-white" />
           </div>
 
           <div className="flex-1 min-w-0">
-            <p className="text-white font-bold text-sm md:text-base">
+            <p className="text-white font-semibold text-sm leading-tight">
               {banner.message}
             </p>
           </div>
 
           <button
             onClick={handleDismiss}
-            className="flex-shrink-0 p-2 hover:bg-white/20 rounded-lg transition-colors"
+            className="flex-shrink-0 p-1 hover:bg-white/20 rounded transition-colors -mt-0.5"
             aria-label="Dismiss banner"
           >
-            <X className="w-5 h-5 text-white" />
+            <X className="w-4 h-4 text-white" />
           </button>
         </div>
       </div>

@@ -147,7 +147,8 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
           setAuthError('Invalid email or password. Please try again.');
           break;
         case 'auth/email-already-in-use':
-          setAuthError('Account exists. Try signing in!');
+          setAuthError('This email is already registered. Switching to sign in...');
+          setTimeout(() => setAuthMode('signin'), 1500);
           break;
         case 'auth/weak-password':
           setAuthError('Password must be at least 6 characters');
@@ -477,9 +478,30 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
                         : 'Send Reset Email'}
                     </button>
                     {authMode === 'signup' && (
-                      <p className="text-white/50 text-xs mt-3">
-                        No credit card required to start. Cancel anytime.
-                      </p>
+                      <div className="space-y-3 mt-4">
+                        <p className="text-white/50 text-xs">
+                          No credit card required to start your free trial.
+                        </p>
+                        <div className="pt-3 border-t border-white/10 space-y-2">
+                          <div className="flex items-center justify-center gap-2 text-white/50 text-xs">
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                            Secure payment via Square after trial
+                          </div>
+                          <div className="flex items-center justify-center gap-3 text-white/40 text-xs">
+                            <span>Credit/Debit</span>
+                            <span>•</span>
+                            <span>Apple Pay</span>
+                            <span>•</span>
+                            <span>Google Pay</span>
+                          </div>
+                          <p className="text-white/40 text-xs leading-relaxed">
+                            After your 7-day trial, subscription auto-renews at $2.99/mo or $35.88/yr.
+                            Cancel anytime. By signing up, you agree to our Terms of Service.
+                          </p>
+                        </div>
+                      </div>
                     )}
                   </form>
 

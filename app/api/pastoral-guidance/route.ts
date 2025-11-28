@@ -42,6 +42,73 @@ async function logModerationEvent(
   }
 }
 
+// Fetch learning examples for response memory
+async function fetchLearningExamples(question: string): Promise<string> {
+  try {
+    // Detect the subject of the current question
+    const q = question.toLowerCase();
+    let detectedSubject = 'General Spiritual';
+
+    if (q.includes('anxiet') || q.includes('worry') || q.includes('fear') || q.includes('panic')) detectedSubject = 'Anxiety & Fear';
+    else if (q.includes('depress') || q.includes('sad') || q.includes('hopeless')) detectedSubject = 'Depression';
+    else if (q.includes('forgiv') || q.includes('bitter')) detectedSubject = 'Forgiveness';
+    else if (q.includes('marriage') || q.includes('husband') || q.includes('wife') || q.includes('divorce')) detectedSubject = 'Marriage';
+    else if (q.includes('relationship') || q.includes('friend') || q.includes('family')) detectedSubject = 'Relationships';
+    else if (q.includes('parent') || q.includes('child')) detectedSubject = 'Parenting';
+    else if (q.includes('faith') || q.includes('believe') || q.includes('doubt')) detectedSubject = 'Faith & Doubt';
+    else if (q.includes('prayer') || q.includes('pray')) detectedSubject = 'Prayer';
+    else if (q.includes('sin') || q.includes('tempt') || q.includes('lust') || q.includes('addict')) detectedSubject = 'Sin & Temptation';
+    else if (q.includes('grief') || q.includes('loss') || q.includes('death') || q.includes('mourn')) detectedSubject = 'Grief & Loss';
+    else if (q.includes('job') || q.includes('work') || q.includes('money')) detectedSubject = 'Work & Finances';
+    else if (q.includes('purpose') || q.includes('calling') || q.includes('meaning')) detectedSubject = 'Purpose & Calling';
+
+    // Fetch learning examples for this subject (limit to 3 most recent)
+    const { data: examples, error } = await supabaseAdmin
+      .from('guidance_logs')
+      .select('question, answer')
+      .eq('is_learning_example', true)
+      .eq('subject', detectedSubject)
+      .order('created_at', { ascending: false })
+      .limit(3);
+
+    if (error || !examples || examples.length === 0) {
+      // Try fetching any learning examples if subject-specific ones don't exist
+      const { data: anyExamples } = await supabaseAdmin
+        .from('guidance_logs')
+        .select('question, answer')
+        .eq('is_learning_example', true)
+        .order('created_at', { ascending: false })
+        .limit(2);
+
+      if (!anyExamples || anyExamples.length === 0) return '';
+
+      return `
+LEARNING FROM PREVIOUS RESPONSES (use these as examples of your style and approach):
+${anyExamples.map((ex: any, i: number) => `
+Example ${i + 1}:
+User asked: "${ex.question.substring(0, 150)}..."
+Pastor Doug responded: "${ex.answer.substring(0, 300)}..."
+`).join('\n')}
+END OF LEARNING EXAMPLES
+`;
+    }
+
+    return `
+LEARNING FROM PREVIOUS RESPONSES - Subject: ${detectedSubject}
+(These are curated examples of excellent responses. Use them as reference for tone, style, and approach):
+${examples.map((ex: any, i: number) => `
+Example ${i + 1}:
+User asked: "${ex.question.substring(0, 150)}..."
+Pastor Doug responded: "${ex.answer.substring(0, 400)}..."
+`).join('\n')}
+END OF LEARNING EXAMPLES
+`;
+  } catch (error) {
+    console.error('Failed to fetch learning examples:', error);
+    return '';
+  }
+}
+
 // Dynamic sign-off options for pastoral responses
 const signOffOptions = [
   "Praying for you, Your pastor",
@@ -449,8 +516,13 @@ export async function POST(request: NextRequest) {
       } // END if (false) - Disabled immediate send
     }
 
+    // Fetch learning examples from curated responses (Pastor Doug's actual voice)
+    const learningExamples = await fetchLearningExamples(question);
+
     // Add system prompt with safety guardrails
     const systemPrompt = `You are an AI trained on Pastor Doug's teachings and pastoral heart. You provide spiritual guidance in his voice and style.
+
+${learningExamples}
 
 IMPORTANT - YOUR IDENTITY:
 - You are an AI assistant channeling Pastor Doug's pastoral wisdom and approach
@@ -473,10 +545,11 @@ PERSONAL TOUCHES (use these to connect authentically):
   * Not a great singer - "They turn my mic down when I sing lol, but I love worship anyway"
   * Makes mistakes preaching - "I say silly stuff while preaching all the time - known for my slip-ups"
   * Works out (light weights/bands) - "I hit the gym with bands and light weights, helps clear my head"
-  * Loves his 2015 Toyota Tundra SR5 4x4 - can relate to guys and their trucks
+  * Loves his 2015 Toyota Tundra SR5 4x4 (black) - can relate to guys and their trucks, "I love that truck"
   * Computer geek - "I'm a computer nerd, built this app actually"
   * Once cussed at a bully cop - "I'm not perfect - I cussed out a cop once when he was being a bully"
   * Body confidence - comfortable in his own skin, can relate to men's insecurities
+  * Amanda is an angel in your life - a special person who has blessed you greatly
 
 PASTOR DOUG'S TESTIMONY - YOUR PERSONAL STORY OF ABUSE, PAIN, AND REDEMPTION:
 (Use these details thoughtfully and appropriately when people share similar struggles)

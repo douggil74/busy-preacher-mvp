@@ -26,6 +26,7 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  isStreaming?: boolean; // For multi-bubble streaming effect
 }
 
 export default function PastoralGuidancePage() {
@@ -328,14 +329,54 @@ export default function PastoralGuidancePage() {
 
       const data = await response.json();
 
-      const assistantMessage: Message = {
+      // Split response into paragraphs for multi-bubble effect
+      const paragraphs = data.answer
+        .split(/\n\n+/)
+        .map((p: string) => p.trim())
+        .filter((p: string) => p.length > 0);
+
+      // If only one paragraph or short response, show as single bubble
+      if (paragraphs.length <= 1 || data.answer.length < 200) {
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: data.answer,
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, assistantMessage]);
+      } else {
+        // Stream multiple bubbles with typing animation between each
+        setIsLoading(false); // Stop initial loading indicator
+
+        for (let i = 0; i < paragraphs.length; i++) {
+          // Show typing indicator before each bubble (except first since we just stopped loading)
+          if (i > 0) {
+            setIsLoading(true);
+            await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 400)); // 0.8-1.2s typing
+            setIsLoading(false);
+          }
+
+          // Small pause before showing the bubble
+          await new Promise(resolve => setTimeout(resolve, 150));
+
+          const bubbleMessage: Message = {
+            id: `${Date.now()}_${i}`,
+            role: 'assistant',
+            content: paragraphs[i],
+            timestamp: new Date(),
+          };
+
+          setMessages(prev => [...prev, bubbleMessage]);
+        }
+      }
+
+      // For logging/saving, use the full combined answer
+      const fullAssistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: data.answer,
         timestamp: new Date(),
       };
-
-      setMessages(prev => [...prev, assistantMessage]);
 
       // Use API's detection flags
       const isCrisis = data.isCrisis || false;
@@ -376,15 +417,15 @@ export default function PastoralGuidancePage() {
       }
 
       // PRIORITY 1: Show MANDATORY reporting modal if minor reporting abuse (cannot skip)
-      if (isMandatoryReport && !modalShownForMessages.current.has(assistantMessage.id)) {
-        modalShownForMessages.current.add(assistantMessage.id);
+      if (isMandatoryReport && !modalShownForMessages.current.has(fullAssistantMessage.id)) {
+        modalShownForMessages.current.add(fullAssistantMessage.id);
         setTimeout(() => {
           setShowMandatoryModal(true);
         }, 500);
       }
       // PRIORITY 2: Show contact modal for crisis or serious situations (can skip)
-      else if ((isCrisis || isSerious) && !modalShownForMessages.current.has(assistantMessage.id)) {
-        modalShownForMessages.current.add(assistantMessage.id);
+      else if ((isCrisis || isSerious) && !modalShownForMessages.current.has(fullAssistantMessage.id)) {
+        modalShownForMessages.current.add(fullAssistantMessage.id);
         setIsCrisisModal(isCrisis);
         setTimeout(() => {
           setShowContactModal(true);
@@ -437,6 +478,17 @@ export default function PastoralGuidancePage() {
           }
         }
 
+        @keyframes bubbleFadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(8px) scale(0.98);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+
         .typing-dot {
           animation: typingDot 1.4s infinite ease-in-out;
         }
@@ -451,6 +503,10 @@ export default function PastoralGuidancePage() {
 
         .typing-dot:nth-child(3) {
           animation-delay: 0.4s;
+        }
+
+        .message-bubble {
+          animation: bubbleFadeIn 0.25s ease-out;
         }
       `}</style>
       {pastorNote && <EncouragingBanner message={pastorNote} />}
@@ -623,57 +679,74 @@ export default function PastoralGuidancePage() {
             </div>
           </div>
         ) : (
-          <div className="space-y-3">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} items-end gap-2`}
-              >
+          <div className="space-y-1">
+            {messages.map((message, index) => {
+              // Check if this is a consecutive message from the same role
+              const prevMessage = messages[index - 1];
+              const nextMessage = messages[index + 1];
+              const isConsecutive = prevMessage?.role === message.role;
+              const hasMoreFromSameRole = nextMessage?.role === message.role;
+
+              // Show label only for first message in a sequence of assistant messages
+              const showLabel = message.role === 'assistant' && !isConsecutive;
+              // Show timestamp only for last message in a sequence
+              const showTimestamp = !hasMoreFromSameRole;
+
+              return (
+                <div
+                  key={message.id}
+                  className={`message-bubble flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} items-end gap-2 ${isConsecutive ? 'mt-0.5' : 'mt-3'}`}
+                >
+                  <div className="flex flex-col" style={{ maxWidth: '75%' }}>
+                    {showLabel && (
+                      <p className="text-xs font-medium mb-1 ml-3" style={{ color: 'var(--text-secondary)' }}>
+                        Pastor
+                      </p>
+                    )}
+                    <div
+                      className={cn(
+                        'px-4 py-2.5',
+                        message.role === 'user'
+                          ? 'rounded-[20px] !text-white'
+                          : 'rounded-[20px] shadow-sm'
+                      )}
+                      style={message.role === 'user' ? {
+                        backgroundColor: '#007AFF',
+                        color: 'white',
+                      } : {
+                        backgroundColor: 'var(--card-bg)',
+                        borderWidth: '1px',
+                        borderStyle: 'solid',
+                        borderColor: 'var(--card-border)',
+                        color: 'var(--text-primary)'
+                      }}
+                    >
+                      <p
+                        className={message.role === 'user' ? 'text-sm leading-relaxed whitespace-pre-wrap !text-white' : 'text-sm leading-relaxed whitespace-pre-wrap'}
+                      >
+                        {message.content}
+                      </p>
+                    </div>
+                    {showTimestamp && (
+                      <p
+                        className="text-xs mt-1 px-2"
+                        style={{ color: 'var(--text-secondary)' }}
+                      >
+                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+            {isLoading && (
+              <div className={`message-bubble flex justify-start items-end gap-2 ${messages[messages.length - 1]?.role === 'assistant' ? 'mt-0.5' : 'mt-3'}`}>
                 <div className="flex flex-col" style={{ maxWidth: '75%' }}>
-                  {message.role === 'assistant' && (
+                  {messages[messages.length - 1]?.role !== 'assistant' && (
                     <p className="text-xs font-medium mb-1 ml-3" style={{ color: 'var(--text-secondary)' }}>
                       Pastor
                     </p>
                   )}
-                  <div
-                    className={cn(
-                      'px-4 py-2.5',
-                      message.role === 'user'
-                        ? 'rounded-[20px] !text-white'
-                        : 'rounded-[20px] shadow-sm'
-                    )}
-                    style={message.role === 'user' ? {
-                      backgroundColor: '#007AFF',
-                      color: 'white',
-                    } : {
-                      backgroundColor: 'var(--card-bg)',
-                      borderWidth: '1px',
-                      borderStyle: 'solid',
-                      borderColor: 'var(--card-border)',
-                      color: 'var(--text-primary)'
-                    }}
-                  >
-                    <p
-                      className={message.role === 'user' ? 'text-sm leading-relaxed whitespace-pre-wrap !text-white' : 'text-sm leading-relaxed whitespace-pre-wrap'}
-                    >
-                      {message.content}
-                    </p>
-                  </div>
-                  <p
-                    className="text-xs mt-1 px-2"
-                    style={{ color: 'var(--text-secondary)' }}
-                  >
-                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </p>
-                </div>
-              </div>
-            ))}
-            {isLoading && (
-              <div className="flex justify-start items-end gap-2">
-                <div className="flex flex-col" style={{ maxWidth: '75%' }}>
-                  <p className="text-xs font-medium mb-1 ml-3" style={{ color: 'var(--text-secondary)' }}>
-                    Pastor
-                  </p>
                   <div className="rounded-[20px] shadow-sm px-5 py-3" style={{
                     backgroundColor: 'var(--card-bg)',
                     borderWidth: '1px',

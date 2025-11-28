@@ -6,11 +6,12 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    const { Client, Environment } = require('square');
+    // Square v43+ uses SquareClient and SquareEnvironment
+    const { SquareClient, SquareEnvironment } = require('square');
 
-    const client = new Client({
-      accessToken: process.env.SQUARE_ACCESS_TOKEN!,
-      environment: process.env.SQUARE_ENVIRONMENT === 'production' ? Environment.Production : Environment.Sandbox,
+    const client = new SquareClient({
+      token: process.env.SQUARE_ACCESS_TOKEN!,
+      environment: process.env.SQUARE_ENVIRONMENT === 'production' ? SquareEnvironment.Production : SquareEnvironment.Sandbox,
     });
 
     const { userId, userEmail } = await request.json();
@@ -31,7 +32,8 @@ export async function POST(request: NextRequest) {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
     // Create a checkout link to update card on file
-    const { result } = await client.checkoutApi.createPaymentLink({
+    // Using Square v43 API: client.checkout.paymentLinks.create()
+    const result = await client.checkout.paymentLinks.create({
       idempotencyKey: `update-card-${userId}-${Date.now()}`,
       quickPay: {
         name: 'Update Payment Method',

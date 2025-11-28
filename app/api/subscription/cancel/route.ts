@@ -31,14 +31,16 @@ export async function POST(request: NextRequest) {
     // If using Square subscriptions, cancel via API
     if (subscription?.squareSubscriptionId) {
       try {
-        const { Client, Environment } = require('square');
+        // Square v43+ uses SquareClient and SquareEnvironment
+        const { SquareClient, SquareEnvironment } = require('square');
 
-        const client = new Client({
-          accessToken: process.env.SQUARE_ACCESS_TOKEN!,
-          environment: process.env.SQUARE_ENVIRONMENT === 'production' ? Environment.Production : Environment.Sandbox,
+        const client = new SquareClient({
+          token: process.env.SQUARE_ACCESS_TOKEN!,
+          environment: process.env.SQUARE_ENVIRONMENT === 'production' ? SquareEnvironment.Production : SquareEnvironment.Sandbox,
         });
 
-        await client.subscriptionsApi.cancelSubscription(subscription.squareSubscriptionId);
+        // Square v43 API: client.subscriptions.cancel()
+        await client.subscriptions.cancel(subscription.squareSubscriptionId);
       } catch (squareError: any) {
         console.error('Square cancel error:', squareError);
         // Continue with local cancel even if Square fails

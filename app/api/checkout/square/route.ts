@@ -22,8 +22,8 @@ const PRICING = {
 };
 
 async function getOrCreateSquareCustomer(client: any, userId: string, userEmail: string, userName?: string) {
-  // Search for existing customer by email
-  const { result: searchResult } = await client.customersApi.searchCustomers({
+  // Search for existing customer by email using Square v43 API
+  const searchResult = await client.customers.search({
     query: {
       filter: {
         emailAddress: {
@@ -37,8 +37,8 @@ async function getOrCreateSquareCustomer(client: any, userId: string, userEmail:
     return searchResult.customers[0];
   }
 
-  // Create new customer
-  const { result: createResult } = await client.customersApi.createCustomer({
+  // Create new customer using Square v43 API
+  const createResult = await client.customers.create({
     idempotencyKey: `customer-${userId}-${Date.now()}`,
     emailAddress: userEmail,
     givenName: userName || 'User',
@@ -51,11 +51,12 @@ async function getOrCreateSquareCustomer(client: any, userId: string, userEmail:
 export async function POST(request: NextRequest) {
   try {
     // Import Square SDK at runtime to avoid build-time issues
-    const { Client, Environment } = require('square');
+    // Square v43+ uses SquareClient and SquareEnvironment
+    const { SquareClient, SquareEnvironment } = require('square');
 
-    const client = new Client({
-      accessToken: process.env.SQUARE_ACCESS_TOKEN!,
-      environment: process.env.SQUARE_ENVIRONMENT === 'production' ? Environment.Production : Environment.Sandbox,
+    const client = new SquareClient({
+      token: process.env.SQUARE_ACCESS_TOKEN!,
+      environment: process.env.SQUARE_ENVIRONMENT === 'production' ? SquareEnvironment.Production : SquareEnvironment.Sandbox,
     });
 
     const { userId, userEmail, userName, plan = 'annual' } = await request.json();
@@ -83,7 +84,8 @@ export async function POST(request: NextRequest) {
     // Otherwise, fall back to simple payment link
     if (pricing.planId) {
       // Create checkout link that will store card on file and create subscription
-      const { result: checkoutResult } = await client.checkoutApi.createPaymentLink({
+      // Using Square v43 API: client.checkout.paymentLinks.create()
+      const checkoutResult = await client.checkout.paymentLinks.create({
         idempotencyKey: `subscription-${userId}-${plan}-${Date.now()}`,
         quickPay: {
           name: pricing.name,
@@ -100,7 +102,6 @@ export async function POST(request: NextRequest) {
             applePay: true,
             googlePay: true,
           },
-          // Store card on file for future subscription payments
           merchantSupportEmail: 'support@busypreacher.com',
         },
         prePopulatedData: {
@@ -128,7 +129,8 @@ export async function POST(request: NextRequest) {
       }
     } else {
       // Fallback: Simple payment link (no subscription plans configured)
-      const { result: paymentResult } = await client.checkoutApi.createPaymentLink({
+      // Using Square v43 API: client.checkout.paymentLinks.create()
+      const paymentResult = await client.checkout.paymentLinks.create({
         idempotencyKey: `${userId}-${plan}-${Date.now()}`,
         quickPay: {
           name: pricing.name,

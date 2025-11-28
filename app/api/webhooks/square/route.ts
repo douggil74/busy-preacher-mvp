@@ -94,18 +94,19 @@ async function handlePaymentCompleted(payment: any) {
     // Create subscription in Square if we have a plan ID
     if (pending?.planId) {
       try {
-        const { Client, Environment } = require('square');
-        const client = new Client({
-          accessToken: process.env.SQUARE_ACCESS_TOKEN!,
-          environment: process.env.SQUARE_ENVIRONMENT === 'production' ? Environment.Production : Environment.Sandbox,
+        // Square v43+ uses SquareClient and SquareEnvironment
+        const { SquareClient, SquareEnvironment } = require('square');
+        const client = new SquareClient({
+          token: process.env.SQUARE_ACCESS_TOKEN!,
+          environment: process.env.SQUARE_ENVIRONMENT === 'production' ? SquareEnvironment.Production : SquareEnvironment.Sandbox,
         });
 
         // Get card on file from payment
         const cardId = payment.card_details?.card?.id;
 
         if (cardId) {
-          // Create subscription
-          const { result } = await client.subscriptionsApi.createSubscription({
+          // Create subscription using Square v43 API
+          const result = await client.subscriptions.create({
             idempotencyKey: `sub-${userId}-${Date.now()}`,
             locationId: process.env.SQUARE_LOCATION_ID!,
             customerId: customerId,
@@ -121,7 +122,7 @@ async function handlePaymentCompleted(payment: any) {
               status: 'active',
               squareSubscriptionId: result.subscription.id,
               squareCustomerId: customerId,
-              startDate: result.subscription.start_date,
+              startDate: result.subscription.startDate,
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
             });

@@ -4,6 +4,7 @@
 import { useState, useEffect } from "react";
 import { Playfair_Display, Nunito_Sans } from "next/font/google";
 import { useAuth } from "@/contexts/AuthContext";
+import { ConfirmationResult } from "firebase/auth";
 
 const playfair = Playfair_Display({
   weight: ["600", "700"],
@@ -34,18 +35,26 @@ interface EnhancedOnboardingProps {
 }
 
 export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingProps) {
-  const { user, signInWithEmail, signUpWithEmail, resetPassword, updateUserPhone } = useAuth();
+  const { user, signInWithEmail, signUpWithEmail, resetPassword, updateUserPhone, sendPhoneCode, verifyPhoneCode } = useAuth();
   const [step, setStep] = useState(0);
   const [authMode, setAuthMode] = useState<'signin' | 'signup' | 'reset'>('signup');
+  const [authMethod, setAuthMethod] = useState<'email' | 'phone'>('email');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [authMessage, setAuthMessage] = useState<string | null>(null);
 
-  // Auth form fields
+  // Email auth form fields
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
   const [authFirstName, setAuthFirstName] = useState('');
   const [authPhone, setAuthPhone] = useState('');
+
+  // Phone auth state
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [phoneFirstName, setPhoneFirstName] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+  const [phoneStep, setPhoneStep] = useState<'enter' | 'verify'>('enter');
 
   const [data, setData] = useState<OnboardingData>({
     name: "",
@@ -160,6 +169,96 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
     }
   };
 
+  // Format phone number as user types
+  const formatPhoneDisplay = (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 3) return numbers;
+    if (numbers.length <= 6) return `(${numbers.slice(0, 3)}) ${numbers.slice(3)}`;
+    return `(${numbers.slice(0, 3)}) ${numbers.slice(3, 6)}-${numbers.slice(6, 10)}`;
+  };
+
+  const handleSendPhoneCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError(null);
+    setAuthMessage(null);
+    setIsSubmitting(true);
+
+    try {
+      if (!phoneFirstName.trim()) {
+        setAuthError('Please enter your first name');
+        setIsSubmitting(false);
+        return;
+      }
+
+      const numbers = phoneNumber.replace(/\D/g, '');
+      if (numbers.length !== 10) {
+        setAuthError('Please enter a valid 10-digit phone number');
+        setIsSubmitting(false);
+        return;
+      }
+
+      const result = await sendPhoneCode(numbers, 'onboarding-recaptcha-container');
+      setConfirmationResult(result);
+      setPhoneStep('verify');
+      setAuthMessage('Verification code sent! Check your text messages.');
+    } catch (err: any) {
+      console.error('Phone auth error:', err);
+      if (err.code === 'auth/invalid-phone-number') {
+        setAuthError('Invalid phone number. Please check and try again.');
+      } else if (err.code === 'auth/too-many-requests') {
+        setAuthError('Too many attempts. Please try again later.');
+      } else {
+        setAuthError(err.message || 'Failed to send code. Please try again.');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError(null);
+    setAuthMessage(null);
+    setIsSubmitting(true);
+
+    try {
+      if (!confirmationResult) {
+        setAuthError('Session expired. Please request a new code.');
+        setPhoneStep('enter');
+        return;
+      }
+
+      if (verificationCode.length !== 6) {
+        setAuthError('Please enter the 6-digit code');
+        setIsSubmitting(false);
+        return;
+      }
+
+      await verifyPhoneCode(confirmationResult, verificationCode, phoneFirstName.trim());
+    } catch (err: any) {
+      console.error('Verification error:', err);
+      if (err.code === 'auth/invalid-verification-code') {
+        setAuthError('Invalid code. Please check and try again.');
+      } else if (err.code === 'auth/code-expired') {
+        setAuthError('Code expired. Please request a new one.');
+        setPhoneStep('enter');
+      } else {
+        setAuthError(err.message || 'Verification failed. Please try again.');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const switchAuthMethod = (method: 'email' | 'phone') => {
+    setAuthMethod(method);
+    setAuthError(null);
+    setAuthMessage(null);
+    setPhoneStep('enter');
+    setVerificationCode('');
+    setConfirmationResult(null);
+  };
+
   const handleComplete = async () => {
     localStorage.setItem('bc-study-style', data.studyStyle);
     localStorage.setItem('bc-onboarding-complete', 'true');
@@ -221,22 +320,50 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
             <div className="space-y-6 text-center">
               <div className="text-6xl mb-4">📖</div>
               <h2 className={`${playfair.className} text-3xl font-bold text-yellow-400 mb-3`}>
-                {authMode === 'signup' ? 'Start Your Free Trial' : authMode === 'signin' ? 'Welcome Back' : 'Reset Password'}
+                {authMethod === 'phone'
+                  ? (phoneStep === 'verify' ? 'Enter Code' : 'Sign In with Phone')
+                  : (authMode === 'signup' ? 'Start Your Free Trial' : authMode === 'signin' ? 'Welcome Back' : 'Reset Password')}
               </h2>
               <p className="text-lg text-white/80 leading-relaxed mb-2">
-                {authMode === 'signup'
-                  ? 'Join thousands of believers deepening their faith'
-                  : authMode === 'signin'
-                  ? 'Sign in to continue your journey'
-                  : 'Enter your email to reset password'}
+                {authMethod === 'phone'
+                  ? (phoneStep === 'verify' ? 'Enter the code sent to your phone' : 'Quick sign in with your phone number')
+                  : (authMode === 'signup'
+                    ? 'Join thousands of believers deepening their faith'
+                    : authMode === 'signin'
+                    ? 'Sign in to continue your journey'
+                    : 'Enter your email to reset password')}
               </p>
-              {authMode === 'signup' && (
+              {authMethod === 'email' && authMode === 'signup' && (
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/30 rounded-full text-green-400 text-sm">
                   <span>7 days free</span>
                   <span className="text-white/40">•</span>
                   <span>Then just $2.99/mo</span>
                 </div>
               )}
+
+              {/* Auth Method Toggle */}
+              <div className="flex gap-2 max-w-md mx-auto">
+                <button
+                  onClick={() => switchAuthMethod('email')}
+                  className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
+                    authMethod === 'email'
+                      ? 'bg-yellow-400/20 border border-yellow-400 text-yellow-400'
+                      : 'bg-white/5 border border-white/10 text-white/60 hover:border-white/20'
+                  }`}
+                >
+                  Email
+                </button>
+                <button
+                  onClick={() => switchAuthMethod('phone')}
+                  className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
+                    authMethod === 'phone'
+                      ? 'bg-yellow-400/20 border border-yellow-400 text-yellow-400'
+                      : 'bg-white/5 border border-white/10 text-white/60 hover:border-white/20'
+                  }`}
+                >
+                  Phone
+                </button>
+              </div>
 
               {authError && (
                 <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
@@ -250,103 +377,170 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
                 </div>
               )}
 
-              <form onSubmit={handleAuthSubmit} className="max-w-md mx-auto space-y-4">
-                {authMode === 'signup' && (
-                  <>
+              {/* Phone Auth Form */}
+              {authMethod === 'phone' && (
+                <>
+                  {phoneStep === 'enter' ? (
+                    <form onSubmit={handleSendPhoneCode} className="max-w-md mx-auto space-y-4">
+                      <input
+                        type="text"
+                        value={phoneFirstName}
+                        onChange={(e) => setPhoneFirstName(e.target.value)}
+                        placeholder="First name"
+                        className="w-full px-4 py-3 rounded-lg bg-white/5 border-2 border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
+                        required
+                      />
+                      <input
+                        type="tel"
+                        value={formatPhoneDisplay(phoneNumber)}
+                        onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                        placeholder="(555) 555-5555"
+                        className="w-full px-4 py-3 rounded-lg bg-white/5 border-2 border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
+                        required
+                      />
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="w-full py-4 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold rounded-xl transition-colors disabled:opacity-50"
+                      >
+                        {isSubmitting ? 'Sending...' : 'Send Verification Code'}
+                      </button>
+                    </form>
+                  ) : (
+                    <form onSubmit={handleVerifyCode} className="max-w-md mx-auto space-y-4">
+                      <input
+                        type="text"
+                        value={verificationCode}
+                        onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        placeholder="123456"
+                        className="w-full px-4 py-3 rounded-lg bg-white/5 border-2 border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50 text-center text-2xl tracking-widest"
+                        maxLength={6}
+                        required
+                      />
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="w-full py-4 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold rounded-xl transition-colors disabled:opacity-50"
+                      >
+                        {isSubmitting ? 'Verifying...' : 'Verify Code'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setPhoneStep('enter'); setAuthMessage(null); }}
+                        className="w-full text-white/50 hover:text-white/70 text-sm transition-colors"
+                      >
+                        Use a different number
+                      </button>
+                    </form>
+                  )}
+                </>
+              )}
+
+              {/* Email Auth Form */}
+              {authMethod === 'email' && (
+                <>
+                  <form onSubmit={handleAuthSubmit} className="max-w-md mx-auto space-y-4">
+                    {authMode === 'signup' && (
+                      <>
+                        <input
+                          type="text"
+                          value={authFirstName}
+                          onChange={(e) => setAuthFirstName(e.target.value)}
+                          placeholder="First name"
+                          className="w-full px-4 py-3 rounded-lg bg-white/5 border-2 border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
+                          required
+                        />
+                        <input
+                          type="tel"
+                          value={authPhone}
+                          onChange={(e) => setAuthPhone(e.target.value)}
+                          placeholder="Phone (optional - for crisis support)"
+                          className="w-full px-4 py-3 rounded-lg bg-white/5 border-2 border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
+                        />
+                      </>
+                    )}
+
                     <input
-                      type="text"
-                      value={authFirstName}
-                      onChange={(e) => setAuthFirstName(e.target.value)}
-                      placeholder="First name"
+                      type="email"
+                      value={authEmail}
+                      onChange={(e) => setAuthEmail(e.target.value)}
+                      placeholder="Email address"
                       className="w-full px-4 py-3 rounded-lg bg-white/5 border-2 border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
                       required
                     />
-                    <input
-                      type="tel"
-                      value={authPhone}
-                      onChange={(e) => setAuthPhone(e.target.value)}
-                      placeholder="Phone (optional - for crisis support)"
-                      className="w-full px-4 py-3 rounded-lg bg-white/5 border-2 border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
-                    />
-                  </>
-                )}
 
-                <input
-                  type="email"
-                  value={authEmail}
-                  onChange={(e) => setAuthEmail(e.target.value)}
-                  placeholder="Email address"
-                  className="w-full px-4 py-3 rounded-lg bg-white/5 border-2 border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
-                  required
-                />
+                    {authMode !== 'reset' && (
+                      <input
+                        type="password"
+                        value={authPassword}
+                        onChange={(e) => setAuthPassword(e.target.value)}
+                        placeholder="Password (min 6 characters)"
+                        className="w-full px-4 py-3 rounded-lg bg-white/5 border-2 border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
+                        required
+                        minLength={6}
+                      />
+                    )}
 
-                {authMode !== 'reset' && (
-                  <input
-                    type="password"
-                    value={authPassword}
-                    onChange={(e) => setAuthPassword(e.target.value)}
-                    placeholder="Password (min 6 characters)"
-                    className="w-full px-4 py-3 rounded-lg bg-white/5 border-2 border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
-                    required
-                    minLength={6}
-                  />
-                )}
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full py-4 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold rounded-xl transition-colors disabled:opacity-50"
-                >
-                  {isSubmitting
-                    ? 'Please wait...'
-                    : authMode === 'signup'
-                    ? 'Start My Free Trial'
-                    : authMode === 'signin'
-                    ? 'Sign In'
-                    : 'Send Reset Email'}
-                </button>
-                {authMode === 'signup' && (
-                  <p className="text-white/50 text-xs mt-3">
-                    No credit card required to start. Cancel anytime.
-                  </p>
-                )}
-              </form>
-
-              <div className="space-y-2">
-                {authMode === 'signup' && (
-                  <button
-                    onClick={() => { setAuthMode('signin'); setAuthError(null); setAuthMessage(null); }}
-                    className="text-yellow-400 hover:text-yellow-300 text-sm"
-                  >
-                    Already have an account? Sign in
-                  </button>
-                )}
-                {authMode === 'signin' && (
-                  <>
                     <button
-                      onClick={() => { setAuthMode('signup'); setAuthError(null); setAuthMessage(null); }}
-                      className="text-yellow-400 hover:text-yellow-300 text-sm"
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full py-4 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold rounded-xl transition-colors disabled:opacity-50"
                     >
-                      Need an account? Sign up
+                      {isSubmitting
+                        ? 'Please wait...'
+                        : authMode === 'signup'
+                        ? 'Start My Free Trial'
+                        : authMode === 'signin'
+                        ? 'Sign In'
+                        : 'Send Reset Email'}
                     </button>
-                    <br />
-                    <button
-                      onClick={() => { setAuthMode('reset'); setAuthError(null); setAuthMessage(null); }}
-                      className="text-white/50 hover:text-white/70 text-sm"
-                    >
-                      Forgot password?
-                    </button>
-                  </>
-                )}
-                {authMode === 'reset' && (
-                  <button
-                    onClick={() => { setAuthMode('signin'); setAuthError(null); setAuthMessage(null); }}
-                    className="text-yellow-400 hover:text-yellow-300 text-sm"
-                  >
-                    Back to sign in
-                  </button>
-                )}
-              </div>
+                    {authMode === 'signup' && (
+                      <p className="text-white/50 text-xs mt-3">
+                        No credit card required to start. Cancel anytime.
+                      </p>
+                    )}
+                  </form>
+
+                  <div className="space-y-2">
+                    {authMode === 'signup' && (
+                      <button
+                        onClick={() => { setAuthMode('signin'); setAuthError(null); setAuthMessage(null); }}
+                        className="text-yellow-400 hover:text-yellow-300 text-sm"
+                      >
+                        Already have an account? Sign in
+                      </button>
+                    )}
+                    {authMode === 'signin' && (
+                      <>
+                        <button
+                          onClick={() => { setAuthMode('signup'); setAuthError(null); setAuthMessage(null); }}
+                          className="text-yellow-400 hover:text-yellow-300 text-sm"
+                        >
+                          Need an account? Sign up
+                        </button>
+                        <br />
+                        <button
+                          onClick={() => { setAuthMode('reset'); setAuthError(null); setAuthMessage(null); }}
+                          className="text-white/50 hover:text-white/70 text-sm"
+                        >
+                          Forgot password?
+                        </button>
+                      </>
+                    )}
+                    {authMode === 'reset' && (
+                      <button
+                        onClick={() => { setAuthMode('signin'); setAuthError(null); setAuthMessage(null); }}
+                        className="text-yellow-400 hover:text-yellow-300 text-sm"
+                      >
+                        Back to sign in
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {/* Invisible reCAPTCHA container */}
+              <div id="onboarding-recaptcha-container"></div>
             </div>
           )}
 

@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { ConfirmationResult } from 'firebase/auth';
 
 interface SignInModalProps {
   isOpen: boolean;
@@ -11,18 +12,40 @@ interface SignInModalProps {
 }
 
 export function SignInModal({ isOpen, onClose, message }: SignInModalProps) {
-  const { signInWithEmail, signUpWithEmail, resetPassword } = useAuth();
+  const { signInWithEmail, signUpWithEmail, resetPassword, sendPhoneCode, verifyPhoneCode } = useAuth();
+
+  // Auth method toggle
+  const [authMethod, setAuthMethod] = useState<'email' | 'phone'>('email');
+
+  // Email auth state
   const [mode, setMode] = useState<'signin' | 'signup' | 'reset'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
+
+  // Phone auth state
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+  const [phoneStep, setPhoneStep] = useState<'enter' | 'verify'>('enter');
+  const [phoneFirstName, setPhoneFirstName] = useState('');
+
+  // Common state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Format phone number as user types
+  const formatPhoneDisplay = (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 3) return numbers;
+    if (numbers.length <= 6) return `(${numbers.slice(0, 3)}) ${numbers.slice(3)}`;
+    return `(${numbers.slice(0, 3)}) ${numbers.slice(3, 6)}-${numbers.slice(6, 10)}`;
+  };
+
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
@@ -78,6 +101,89 @@ export function SignInModal({ isOpen, onClose, message }: SignInModalProps) {
     }
   };
 
+  const handleSendPhoneCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSuccessMessage(null);
+    setLoading(true);
+
+    try {
+      if (!phoneFirstName.trim()) {
+        setError('Please enter your first name');
+        setLoading(false);
+        return;
+      }
+
+      const numbers = phoneNumber.replace(/\D/g, '');
+      if (numbers.length !== 10) {
+        setError('Please enter a valid 10-digit phone number');
+        setLoading(false);
+        return;
+      }
+
+      const result = await sendPhoneCode(numbers, 'modal-recaptcha-container');
+      setConfirmationResult(result);
+      setPhoneStep('verify');
+      setSuccessMessage('Verification code sent! Check your text messages.');
+    } catch (err: any) {
+      console.error('Phone auth error:', err);
+      if (err.code === 'auth/invalid-phone-number') {
+        setError('Invalid phone number. Please check and try again.');
+      } else if (err.code === 'auth/too-many-requests') {
+        setError('Too many attempts. Please try again later.');
+      } else {
+        setError(err.message || 'Failed to send code. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSuccessMessage(null);
+    setLoading(true);
+
+    try {
+      if (!confirmationResult) {
+        setError('Session expired. Please request a new code.');
+        setPhoneStep('enter');
+        return;
+      }
+
+      if (verificationCode.length !== 6) {
+        setError('Please enter the 6-digit code');
+        setLoading(false);
+        return;
+      }
+
+      await verifyPhoneCode(confirmationResult, verificationCode, phoneFirstName.trim());
+      onClose();
+    } catch (err: any) {
+      console.error('Verification error:', err);
+      if (err.code === 'auth/invalid-verification-code') {
+        setError('Invalid code. Please check and try again.');
+      } else if (err.code === 'auth/code-expired') {
+        setError('Code expired. Please request a new one.');
+        setPhoneStep('enter');
+      } else {
+        setError(err.message || 'Verification failed. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const switchAuthMethod = (method: 'email' | 'phone') => {
+    setAuthMethod(method);
+    setError(null);
+    setSuccessMessage(null);
+    setPhoneStep('enter');
+    setVerificationCode('');
+    setConfirmationResult(null);
+  };
+
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[100] p-4 overflow-y-auto">
       <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl max-w-md w-full shadow-2xl border border-white/10 p-8 my-auto">
@@ -85,11 +191,39 @@ export function SignInModal({ isOpen, onClose, message }: SignInModalProps) {
         <div className="text-center mb-6">
           <div className="text-4xl mb-3">📖</div>
           <h2 className="text-2xl font-bold text-white mb-2">
-            {mode === 'signin' ? 'Welcome Back' : mode === 'signup' ? 'Create Account' : 'Reset Password'}
+            {authMethod === 'phone'
+              ? (phoneStep === 'verify' ? 'Enter Code' : 'Sign In')
+              : (mode === 'signin' ? 'Welcome Back' : mode === 'signup' ? 'Create Account' : 'Reset Password')}
           </h2>
           <p className="text-white/60 text-sm">
-            {message || (mode === 'signin' ? 'Sign in to continue' : mode === 'signup' ? 'Join our community' : 'Enter your email to reset')}
+            {message || (authMethod === 'phone'
+              ? (phoneStep === 'verify' ? 'Enter the code sent to your phone' : 'Sign in with your phone number')
+              : (mode === 'signin' ? 'Sign in to continue' : mode === 'signup' ? 'Join our community' : 'Enter your email to reset'))}
           </p>
+        </div>
+
+        {/* Auth Method Toggle */}
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => switchAuthMethod('email')}
+            className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
+              authMethod === 'email'
+                ? 'bg-yellow-400/20 border border-yellow-400 text-yellow-400'
+                : 'bg-white/5 border border-white/10 text-white/60 hover:border-white/20'
+            }`}
+          >
+            Email
+          </button>
+          <button
+            onClick={() => switchAuthMethod('phone')}
+            className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
+              authMethod === 'phone'
+                ? 'bg-yellow-400/20 border border-yellow-400 text-yellow-400'
+                : 'bg-white/5 border border-white/10 text-white/60 hover:border-white/20'
+            }`}
+          >
+            Phone
+          </button>
         </div>
 
         {/* Error Message */}
@@ -106,85 +240,151 @@ export function SignInModal({ isOpen, onClose, message }: SignInModalProps) {
           </div>
         )}
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {mode === 'signup' && (
-            <input
-              type="text"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              placeholder="First name"
-              className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
-              required
-            />
-          )}
+        {/* Phone Auth Form */}
+        {authMethod === 'phone' && (
+          <>
+            {phoneStep === 'enter' ? (
+              <form onSubmit={handleSendPhoneCode} className="space-y-4">
+                <input
+                  type="text"
+                  value={phoneFirstName}
+                  onChange={(e) => setPhoneFirstName(e.target.value)}
+                  placeholder="First name"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
+                  required
+                />
+                <input
+                  type="tel"
+                  value={formatPhoneDisplay(phoneNumber)}
+                  onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  placeholder="(555) 555-5555"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
+                  required
+                />
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold rounded-lg transition-colors disabled:opacity-50"
+                >
+                  {loading ? 'Sending...' : 'Send Verification Code'}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyCode} className="space-y-4">
+                <input
+                  type="text"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="123456"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50 text-center text-2xl tracking-widest"
+                  maxLength={6}
+                  required
+                />
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold rounded-lg transition-colors disabled:opacity-50"
+                >
+                  {loading ? 'Verifying...' : 'Verify Code'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setPhoneStep('enter'); setSuccessMessage(null); }}
+                  className="w-full text-white/50 hover:text-white/70 text-sm transition-colors"
+                >
+                  Use a different number
+                </button>
+              </form>
+            )}
+          </>
+        )}
 
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email address"
-            className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
-            required
-          />
+        {/* Email Auth Form */}
+        {authMethod === 'email' && (
+          <>
+            <form onSubmit={handleEmailSubmit} className="space-y-4">
+              {mode === 'signup' && (
+                <input
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="First name"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
+                  required
+                />
+              )}
 
-          {mode !== 'reset' && (
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
-              className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
-              required
-              minLength={6}
-            />
-          )}
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email address"
+                className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
+                required
+              />
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold rounded-lg transition-colors disabled:opacity-50"
-          >
-            {loading ? 'Please wait...' : mode === 'signin' ? 'Sign In' : mode === 'signup' ? 'Create Account' : 'Send Reset Email'}
-          </button>
-        </form>
+              {mode !== 'reset' && (
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Password"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
+                  required
+                  minLength={6}
+                />
+              )}
 
-        {/* Mode Switcher */}
-        <div className="mt-4 text-center space-y-2">
-          {mode === 'signin' && (
-            <>
               <button
-                onClick={() => { setMode('signup'); setError(null); setSuccessMessage(null); }}
-                className="text-yellow-400 hover:text-yellow-300 text-sm"
+                type="submit"
+                disabled={loading}
+                className="w-full py-3 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold rounded-lg transition-colors disabled:opacity-50"
               >
-                Need an account? Sign up
+                {loading ? 'Please wait...' : mode === 'signin' ? 'Sign In' : mode === 'signup' ? 'Create Account' : 'Send Reset Email'}
               </button>
-              <br />
-              <button
-                onClick={() => { setMode('reset'); setError(null); setSuccessMessage(null); }}
-                className="text-white/50 hover:text-white/70 text-sm"
-              >
-                Forgot password?
-              </button>
-            </>
-          )}
-          {mode === 'signup' && (
-            <button
-              onClick={() => { setMode('signin'); setError(null); setSuccessMessage(null); }}
-              className="text-yellow-400 hover:text-yellow-300 text-sm"
-            >
-              Already have an account? Sign in
-            </button>
-          )}
-          {mode === 'reset' && (
-            <button
-              onClick={() => { setMode('signin'); setError(null); setSuccessMessage(null); }}
-              className="text-yellow-400 hover:text-yellow-300 text-sm"
-            >
-              Back to sign in
-            </button>
-          )}
-        </div>
+            </form>
+
+            {/* Mode Switcher */}
+            <div className="mt-4 text-center space-y-2">
+              {mode === 'signin' && (
+                <>
+                  <button
+                    onClick={() => { setMode('signup'); setError(null); setSuccessMessage(null); }}
+                    className="text-yellow-400 hover:text-yellow-300 text-sm"
+                  >
+                    Need an account? Sign up
+                  </button>
+                  <br />
+                  <button
+                    onClick={() => { setMode('reset'); setError(null); setSuccessMessage(null); }}
+                    className="text-white/50 hover:text-white/70 text-sm"
+                  >
+                    Forgot password?
+                  </button>
+                </>
+              )}
+              {mode === 'signup' && (
+                <button
+                  onClick={() => { setMode('signin'); setError(null); setSuccessMessage(null); }}
+                  className="text-yellow-400 hover:text-yellow-300 text-sm"
+                >
+                  Already have an account? Sign in
+                </button>
+              )}
+              {mode === 'reset' && (
+                <button
+                  onClick={() => { setMode('signin'); setError(null); setSuccessMessage(null); }}
+                  className="text-yellow-400 hover:text-yellow-300 text-sm"
+                >
+                  Back to sign in
+                </button>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* Invisible reCAPTCHA container */}
+        <div id="modal-recaptcha-container"></div>
 
         {/* Close Button */}
         <button

@@ -18,13 +18,19 @@ interface RequireAuthProps {
 }
 
 export default function RequireAuth({ children }: RequireAuthProps) {
-  const { user, isLoading, signInWithGoogle, signInWithApple } = useAuth();
+  const { user, isLoading, signInWithEmail, signUpWithEmail, resetPassword } = useAuth();
   const { isPaid, isApp, isLoading: platformLoading } = usePlatform();
   const router = useRouter();
-  const [isSigningIn, setIsSigningIn] = useState(false);
-  const [signInMethod, setSignInMethod] = useState<'apple' | 'google' | null>(null);
 
-  // Whitelisted users (admin + friends) get automatic access
+  const [mode, setMode] = useState<'signin' | 'signup' | 'reset'>('signin');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+
+  // Whitelisted users get automatic access
   if (user?.email && isWhitelisted(user.email)) {
     return <>{children}</>;
   }
@@ -46,6 +52,58 @@ export default function RequireAuth({ children }: RequireAuthProps) {
     );
   }
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setMessage(null);
+    setIsSubmitting(true);
+
+    try {
+      if (mode === 'signin') {
+        await signInWithEmail(email, password);
+      } else if (mode === 'signup') {
+        if (!firstName.trim()) {
+          setError('Please enter your first name');
+          setIsSubmitting(false);
+          return;
+        }
+        await signUpWithEmail(email, password, firstName.trim(), firstName.trim());
+      } else if (mode === 'reset') {
+        await resetPassword(email);
+        setMessage('Password reset email sent! Check your inbox.');
+        setMode('signin');
+      }
+    } catch (err: any) {
+      console.error('Auth error:', err);
+
+      // User-friendly error messages
+      switch (err.code) {
+        case 'auth/invalid-email':
+          setError('Please enter a valid email address');
+          break;
+        case 'auth/user-not-found':
+          setError('No account found with this email. Try signing up!');
+          break;
+        case 'auth/wrong-password':
+          setError('Incorrect password. Try again or reset your password.');
+          break;
+        case 'auth/email-already-in-use':
+          setError('An account already exists with this email. Try signing in!');
+          break;
+        case 'auth/weak-password':
+          setError('Password must be at least 6 characters');
+          break;
+        case 'auth/too-many-requests':
+          setError('Too many attempts. Please try again later.');
+          break;
+        default:
+          setError(err.message || 'Something went wrong. Please try again.');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   // If not authenticated, show sign-in prompt
   if (!user) {
     return (
@@ -56,100 +114,136 @@ export default function RequireAuth({ children }: RequireAuthProps) {
             <div className="flex justify-center mb-6">
               <div className="p-4 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-full">
                 <svg className="w-8 h-8 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               </div>
             </div>
 
             {/* Title */}
             <h1 className={`${playfair.className} text-3xl font-bold text-white text-center mb-3`}>
-              Sign In Required
+              {mode === 'signin' ? 'Welcome Back' : mode === 'signup' ? 'Create Account' : 'Reset Password'}
             </h1>
             <p className="text-white/70 text-center mb-6">
-              Create a free account to access all features
-            </p>
-            <p className="text-white/50 text-sm text-center mb-8">
-              iOS app users already have access ✓
+              {mode === 'signin'
+                ? 'Sign in to access all features'
+                : mode === 'signup'
+                ? 'Join our community today'
+                : 'Enter your email to reset your password'}
             </p>
 
-            {/* Sign In Buttons */}
-            <div className="space-y-3">
-              {/* Apple Sign In - MUST be first per Apple guidelines */}
-              <button
-                onClick={async () => {
-                  setIsSigningIn(true);
-                  setSignInMethod('apple');
-                  try {
-                    await signInWithApple();
-                  } catch (error) {
-                    console.error('Apple sign in error:', error);
-                    setIsSigningIn(false);
-                    setSignInMethod(null);
-                  }
-                }}
-                disabled={isSigningIn}
-                className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-black hover:bg-gray-900 text-white rounded-lg font-semibold transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed border border-white/20"
-              >
-                {isSigningIn && signInMethod === 'apple' ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    <span>Signing in...</span>
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
-                    </svg>
-                    <span>Continue with Apple</span>
-                  </>
-                )}
-              </button>
+            {/* Error Message */}
+            {error && (
+              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+                {error}
+              </div>
+            )}
 
-              {/* Google Sign In */}
+            {/* Success Message */}
+            {message && (
+              <div className="mb-4 p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-green-400 text-sm">
+                {message}
+              </div>
+            )}
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {mode === 'signup' && (
+                <div>
+                  <label className="block text-sm font-medium text-white/80 mb-2">
+                    First Name
+                  </label>
+                  <input
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="Your first name"
+                    className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50 transition-colors"
+                    required
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-white/80 mb-2">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50 transition-colors"
+                  required
+                />
+              </div>
+
+              {mode !== 'reset' && (
+                <div>
+                  <label className="block text-sm font-medium text-white/80 mb-2">
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50 transition-colors"
+                    required
+                    minLength={6}
+                  />
+                </div>
+              )}
+
               <button
-                onClick={async () => {
-                  setIsSigningIn(true);
-                  setSignInMethod('google');
-                  try {
-                    await signInWithGoogle();
-                  } catch (error) {
-                    console.error('Google sign in error:', error);
-                    setIsSigningIn(false);
-                    setSignInMethod(null);
-                  }
-                }}
-                disabled={isSigningIn}
-                className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-white hover:bg-gray-50 text-slate-900 rounded-lg font-semibold transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full py-3 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSigningIn && signInMethod === 'google' ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-900"></div>
-                    <span>Signing in...</span>
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-5 h-5" viewBox="0 0 24 24">
-                      <path
-                        fill="#4285F4"
-                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                      />
-                      <path
-                        fill="#34A853"
-                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                      />
-                      <path
-                        fill="#FBBC05"
-                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                      />
-                      <path
-                        fill="#EA4335"
-                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                      />
-                    </svg>
-                    <span>Continue with Google</span>
-                  </>
-                )}
+                {isSubmitting
+                  ? 'Please wait...'
+                  : mode === 'signin'
+                  ? 'Sign In'
+                  : mode === 'signup'
+                  ? 'Create Account'
+                  : 'Send Reset Email'}
               </button>
+            </form>
+
+            {/* Mode Switcher */}
+            <div className="mt-6 text-center space-y-2">
+              {mode === 'signin' && (
+                <>
+                  <button
+                    onClick={() => { setMode('signup'); setError(null); setMessage(null); }}
+                    className="text-yellow-400 hover:text-yellow-300 text-sm transition-colors"
+                  >
+                    Don't have an account? Sign up
+                  </button>
+                  <br />
+                  <button
+                    onClick={() => { setMode('reset'); setError(null); setMessage(null); }}
+                    className="text-white/50 hover:text-white/70 text-sm transition-colors"
+                  >
+                    Forgot password?
+                  </button>
+                </>
+              )}
+              {mode === 'signup' && (
+                <button
+                  onClick={() => { setMode('signin'); setError(null); setMessage(null); }}
+                  className="text-yellow-400 hover:text-yellow-300 text-sm transition-colors"
+                >
+                  Already have an account? Sign in
+                </button>
+              )}
+              {mode === 'reset' && (
+                <button
+                  onClick={() => { setMode('signin'); setError(null); setMessage(null); }}
+                  className="text-yellow-400 hover:text-yellow-300 text-sm transition-colors"
+                >
+                  Back to sign in
+                </button>
+              )}
             </div>
 
             {/* Back to Home */}

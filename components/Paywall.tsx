@@ -24,6 +24,7 @@ export function Paywall({ children, showPreview = false }: PaywallProps) {
   const { isPaid, showPaywall, isLoading } = usePlatform();
   const { user } = useAuth();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<'annual' | 'monthly'>('annual');
 
   // While loading, show nothing to avoid flash
   if (isLoading) {
@@ -35,7 +36,7 @@ export function Paywall({ children, showPreview = false }: PaywallProps) {
     return <>{children}</>;
   }
 
-  const handleSubscribe = async () => {
+  const handleSubscribe = async (plan: 'annual' | 'monthly') => {
     if (!user) {
       alert('Please sign in first');
       return;
@@ -49,6 +50,7 @@ export function Paywall({ children, showPreview = false }: PaywallProps) {
         body: JSON.stringify({
           userId: user.uid,
           userEmail: user.email,
+          plan,
         }),
       });
 
@@ -80,57 +82,103 @@ export function Paywall({ children, showPreview = false }: PaywallProps) {
       )}
 
       {/* Paywall overlay */}
-      <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 p-4">
-        <div className="max-w-md w-full p-8 bg-white/5 border border-white/10 rounded-2xl shadow-2xl backdrop-blur">
+      <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 p-4 overflow-y-auto">
+        <div className="max-w-lg w-full p-8 bg-white/5 border border-white/10 rounded-2xl shadow-2xl backdrop-blur my-8">
           {/* Icon */}
-          <div className="flex justify-center mb-6">
-            <div className="p-4 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-full">
-              <svg className="w-8 h-8 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-              </svg>
-            </div>
+          <div className="flex justify-center mb-4">
+            <div className="text-5xl">📖</div>
           </div>
 
-          <h2 className="text-3xl font-bold text-white text-center mb-3">
-            Premium Access
+          <h2 className="text-3xl font-bold text-white text-center mb-2">
+            Continue Your Journey
           </h2>
           <p className="text-white/70 text-center mb-6">
-            Get full access to all features, daily devotionals, and the prayer community.
+            Your free trial has ended. Subscribe to keep growing in faith with full access to all features.
           </p>
 
           {/* Features */}
-          <div className="space-y-2 mb-8">
+          <div className="space-y-2 mb-6">
             <div className="flex items-center gap-2 text-white/80">
-              <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-              <span>Daily devotionals & Bible study</span>
+              <span>Daily devotionals & personalized Bible study</span>
             </div>
             <div className="flex items-center gap-2 text-white/80">
-              <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-              <span>Prayer community & support</span>
+              <span>Prayer community & spiritual support</span>
             </div>
             <div className="flex items-center gap-2 text-white/80">
-              <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-              <span>Ask the Pastor - AI guidance</span>
+              <span>Ask the Pastor - compassionate AI guidance</span>
             </div>
             <div className="flex items-center gap-2 text-white/80">
-              <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-              <span>All study tools & courses</span>
+              <span>Deep study tools, courses & sermons</span>
             </div>
+          </div>
+
+          {/* Pricing Options */}
+          <div className="space-y-3 mb-6">
+            {/* Annual Plan */}
+            <button
+              onClick={() => setSelectedPlan('annual')}
+              className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
+                selectedPlan === 'annual'
+                  ? 'border-yellow-400 bg-yellow-400/10'
+                  : 'border-white/20 bg-white/5 hover:bg-white/10'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-white text-lg">Annual</span>
+                    <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full font-semibold">
+                      SAVE 25%
+                    </span>
+                  </div>
+                  <p className="text-white/60 text-sm">$35.88 billed annually</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-yellow-400">$2.99</div>
+                  <div className="text-white/50 text-sm">/month</div>
+                </div>
+              </div>
+            </button>
+
+            {/* Monthly Plan */}
+            <button
+              onClick={() => setSelectedPlan('monthly')}
+              className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
+                selectedPlan === 'monthly'
+                  ? 'border-yellow-400 bg-yellow-400/10'
+                  : 'border-white/20 bg-white/5 hover:bg-white/10'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="font-bold text-white text-lg">Monthly</span>
+                  <p className="text-white/60 text-sm">Flexible, cancel anytime</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-white">$3.99</div>
+                  <div className="text-white/50 text-sm">/month</div>
+                </div>
+              </div>
+            </button>
           </div>
 
           {/* Subscribe button */}
           <button
-            onClick={handleSubscribe}
+            onClick={() => handleSubscribe(selectedPlan)}
             disabled={isCheckingOut}
-            className="w-full bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-slate-900 font-bold py-4 px-6 rounded-lg transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed mb-4"
+            className="w-full bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-slate-900 font-bold py-4 px-6 rounded-xl transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed mb-4"
           >
             {isCheckingOut ? (
               <span className="flex items-center justify-center gap-2">
@@ -138,12 +186,14 @@ export function Paywall({ children, showPreview = false }: PaywallProps) {
                 Loading checkout...
               </span>
             ) : (
-              <span>Subscribe - $2.99/month</span>
+              <span>
+                {selectedPlan === 'annual' ? 'Subscribe & Save - $35.88/year' : 'Subscribe - $3.99/month'}
+              </span>
             )}
           </button>
 
           <p className="text-white/50 text-sm text-center">
-            Cancel anytime. Already have iOS app? You're all set! ✓
+            Secure payment via Square. Cancel anytime.
           </p>
         </div>
       </div>

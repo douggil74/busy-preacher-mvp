@@ -86,7 +86,7 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="bg-slate-900 rounded-2xl border-2 border-yellow-400/30 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-slate-900 rounded-2xl border-2 border-yellow-400/30 max-w-2xl w-full max-h-[90vh] overflow-y-auto transform scale-90 origin-center">
         {/* Progress Bar */}
         <div className="sticky top-0 bg-slate-900/95 backdrop-blur px-8 pt-6 pb-4 border-b border-white/10">
           <div className="flex justify-between items-center mb-2">

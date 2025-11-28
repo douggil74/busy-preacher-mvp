@@ -305,8 +305,9 @@ export default function PrayerPage() {
     const prayer = communityPrayers.find(p => p.id === prayerId);
     const currentUserId = user.uid;
 
-    // Check if user already prayed
-    if (!prayer || prayer.hearts.some(h => h.userId === currentUserId)) {
+    // Check if user already prayed (handle missing hearts array)
+    const hearts = prayer?.hearts || [];
+    if (!prayer || hearts.some(h => h.userId === currentUserId)) {
       console.log('Cannot add heart: prayer not found or user already prayed');
       return;
     }
@@ -711,7 +712,9 @@ function CommunityPrayerList({
         // Use authenticated user ID if available
         const currentUserId = currentUser?.uid;
         const isMyPrayer = currentUserId && currentUserId === prayer.userId;
-        const hasUserPrayed = currentUserId && prayer.hearts.some(h => h.userId === currentUserId);
+        // Handle missing hearts array for older prayers
+        const hearts = prayer.hearts || [];
+        const hasUserPrayed = currentUserId && hearts.some(h => h.userId === currentUserId);
 
         return (
           <div

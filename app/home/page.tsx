@@ -363,7 +363,7 @@ const [searchedKeyword, setSearchedKeyword] = useState("");
   const statusWords = ["Fetching…", "Researching…", "Synthesizing…", "Formatting…", "Ready"];
 
   const { style: displayStyle, hydrated } = useStudyStyle();
-  const { pattern, insight, showCheckIn, dismissCheckIn, refresh: refreshJourney } = useStudyJourney();
+  const { pattern, insight, showCheckIn, dismissCheckIn, dismissInsight, refresh: refreshJourney } = useStudyJourney();
 
   useEffect(() => {
     if (insight && insight.priority >= 100) {
@@ -1084,7 +1084,7 @@ const handleKeywordResultSelect = (reference: string) => {
           message={insight.message}
           emoji={insight.emoji}
           type={insight.type}
-          onDismiss={() => refreshJourney()}
+          onDismiss={dismissInsight}
         />
       )}
 

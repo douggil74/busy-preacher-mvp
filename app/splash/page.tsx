@@ -132,11 +132,7 @@ export default function SplashPage() {
               ? 'logoFadeIn 1.2s ease-out forwards'
               : 'logoFadeOut 1.5s ease-in-out forwards',
             marginBottom: '1.5rem',
-            borderRadius: '50%',
-            boxShadow: visible
-              ? '0 0 40px rgba(255, 215, 0, 0.4), 0 0 80px rgba(255, 215, 0, 0.2)'
-              : '0 0 20px rgba(255, 215, 0, 0.2)',
-            transition: 'box-shadow 1.5s ease-in-out',
+            filter: 'drop-shadow(0 0 30px rgba(255, 215, 0, 0.4)) drop-shadow(0 0 60px rgba(255, 215, 0, 0.2))',
           }}
         >
           <Image
@@ -146,7 +142,7 @@ export default function SplashPage() {
             height={200}
             priority
             className="select-none"
-            style={{ display: 'block', borderRadius: '50%' }}
+            style={{ display: 'block' }}
           />
         </div>
 

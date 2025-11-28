@@ -9,7 +9,7 @@
   color-scheme: dark;
   --bc-font-scale: 1;
 
-  /* Theme Customizer Variables (defaults) */
+  /* Theme Customizer Variables (defaults - dark mode) */
   --bg-color: #020617;
   --card-bg: rgba(255, 255, 255, 0.05);
   --card-border: rgba(255, 255, 255, 0.1);
@@ -19,7 +19,8 @@
   --text-muted: rgba(255, 255, 255, 0.4);
   --accent-color: #facc15;
   --accent-hover: #fde047;
-  --font-family: 'Nunito Sans', Inter, system-ui, sans-serif;
+  /* Professional font stack: Inter for modern clean look */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
   --font-size: 16px;
 
   /* Extended Design System Colors */
@@ -89,25 +90,53 @@ h1, h2, h3 {
 /* ========================================
    THEME SWITCHING (Dark/Light)
    ======================================== */
-html.dark { 
-  color-scheme: dark; 
+html.dark {
+  color-scheme: dark;
 }
 
 html.light {
   color-scheme: light;
-  filter: invert(1) hue-rotate(180deg);
+  --bg-color: #f8fafc;
+  --card-bg: #ffffff;
+  --card-border: rgba(0, 0, 0, 0.1);
+  --text-primary: #0f172a;
+  --text-secondary: rgba(15, 23, 42, 0.8);
+  --text-tertiary: rgba(15, 23, 42, 0.6);
+  --text-muted: rgba(15, 23, 42, 0.4);
+  --accent-color: #d97706;
+  --accent-hover: #b45309;
 }
 
-/* Protect media from inversion in light mode */
-html.light img,
-html.light video,
-html.light canvas,
-html.light svg,
-html.light picture,
-html.light [data-keep-colors],
-html.light .no-invert,
-html.light [data-bg] {
-  filter: invert(1) hue-rotate(180deg);
+/* Light mode specific overrides for better contrast */
+html.light body {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+html.light .dark\:bg-slate-900,
+html.light .dark\:bg-slate-800 {
+  background-color: #ffffff !important;
+}
+
+html.light .dark\:text-white,
+html.light .dark\:text-slate-100,
+html.light .dark\:text-slate-200 {
+  color: #0f172a !important;
+}
+
+html.light .dark\:text-slate-300,
+html.light .dark\:text-slate-400 {
+  color: #334155 !important;
+}
+
+html.light .dark\:border-slate-700,
+html.light .dark\:border-slate-600 {
+  border-color: #e2e8f0 !important;
+}
+
+/* Fix modal backgrounds in light mode */
+html.light .bg-black\/50 {
+  background-color: rgba(0, 0, 0, 0.4) !important;
 }
 
 /* ========================================

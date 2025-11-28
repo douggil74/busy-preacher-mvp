@@ -50,8 +50,15 @@ export function useStudyJourney() {
   const [pattern, setPattern] = useState<StudyPattern | null>(null);
   const [insight, setInsight] = useState<PastoralInsight | null>(null);
   const [showCheckIn, setShowCheckIn] = useState(false);
+  const [insightDismissed, setInsightDismissed] = useState(false);
 
   useEffect(() => {
+    // Check if insight was dismissed today
+    const dismissedDate = localStorage.getItem("bc-insight-dismissed");
+    const today = new Date().toDateString();
+    if (dismissedDate === today) {
+      setInsightDismissed(true);
+    }
     analyzeJourney();
   }, []);
 
@@ -297,6 +304,11 @@ export function useStudyJourney() {
     localStorage.setItem("bc-last-check-in", Date.now().toString());
   };
 
+  const dismissInsight = () => {
+    setInsightDismissed(true);
+    localStorage.setItem("bc-insight-dismissed", new Date().toDateString());
+  };
+
   const recordStudy = (passage?: string, theme?: string, type: "passage" | "theme" | "combined" = "passage") => {
     // This will be called after a study is generated
     analyzeJourney();
@@ -304,9 +316,10 @@ export function useStudyJourney() {
 
   return {
     pattern,
-    insight,
+    insight: insightDismissed ? null : insight,
     showCheckIn,
     dismissCheckIn,
+    dismissInsight,
     recordStudy,
     refresh: analyzeJourney,
   };

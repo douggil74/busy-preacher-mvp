@@ -2,9 +2,32 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
+// In-memory cache for word study results (persists between requests)
+const wordStudyCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+// Clean expired entries periodically
+function cleanExpiredCache() {
+  const now = Date.now();
+  for (const [key, value] of wordStudyCache.entries()) {
+    if (now - value.timestamp > CACHE_TTL) {
+      wordStudyCache.delete(key);
+    }
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const { surface, lemma, strongs, book } = await req.json();
+
+    // Create cache key from word identifiers
+    const cacheKey = `${strongs}-${lemma}`;
+
+    // Check cache first
+    const cached = wordStudyCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      return NextResponse.json(cached.data);
+    }
 
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
@@ -56,6 +79,7 @@ Return ONLY valid JSON with these exact keys:
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 0.4,
+      max_tokens: 600, // Limit response size for faster generation
       messages: [
         {
           role: "system",
@@ -78,12 +102,22 @@ Return ONLY valid JSON with these exact keys:
       parsed = {};
     }
 
-    return NextResponse.json({
+    const result = {
       usage: parsed.usage || "Detailed usage information unavailable.",
       etymology: parsed.etymology || "",
       references: Array.isArray(parsed.references) ? parsed.references : [],
       relatedWords: Array.isArray(parsed.relatedWords) ? parsed.relatedWords : [],
-    });
+    };
+
+    // Store in cache for future requests
+    wordStudyCache.set(cacheKey, { data: result, timestamp: Date.now() });
+
+    // Periodically clean expired entries (every 100 requests)
+    if (wordStudyCache.size > 100) {
+      cleanExpiredCache();
+    }
+
+    return NextResponse.json(result);
 
   } catch (err) {
     console.error("Word study error:", err);

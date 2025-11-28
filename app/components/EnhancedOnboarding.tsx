@@ -34,10 +34,19 @@ interface EnhancedOnboardingProps {
 }
 
 export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingProps) {
-  const { user, signInWithGoogle, signInWithApple } = useAuth();
-  const [step, setStep] = useState(0); // Start at 0 for sign-in
-  const [isSigningIn, setIsSigningIn] = useState(false);
-  const [signInMethod, setSignInMethod] = useState<'apple' | 'google' | null>(null);
+  const { user, signInWithEmail, signUpWithEmail, resetPassword, updateUserPhone } = useAuth();
+  const [step, setStep] = useState(0);
+  const [authMode, setAuthMode] = useState<'signin' | 'signup' | 'reset'>('signup');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [authMessage, setAuthMessage] = useState<string | null>(null);
+
+  // Auth form fields
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authFirstName, setAuthFirstName] = useState('');
+  const [authPhone, setAuthPhone] = useState('');
+
   const [data, setData] = useState<OnboardingData>({
     name: "",
     studyStyle: "Casual Devotional",
@@ -66,14 +75,12 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
   // Auto-advance from sign-in step when user signs in
   useEffect(() => {
     if (user && step === 0) {
-      // Pre-fill name and email from account
       setData(prev => ({
         ...prev,
         name: user.firstName || "",
         email: user.email || ""
       }));
-      setIsSigningIn(false);
-      setSignInMethod(null);
+      setIsSubmitting(false);
       setStep(1);
     }
   }, [user, step]);
@@ -91,16 +98,71 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
   };
 
   const prevStep = () => {
-    // Can't go back to sign-in step (step 0) once authenticated
     if (step > 1) setStep(step - 1);
   };
 
+  const handleAuthSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError(null);
+    setAuthMessage(null);
+    setIsSubmitting(true);
+
+    try {
+      if (authMode === 'signin') {
+        await signInWithEmail(authEmail, authPassword);
+      } else if (authMode === 'signup') {
+        if (!authFirstName.trim()) {
+          setAuthError('Please enter your first name');
+          setIsSubmitting(false);
+          return;
+        }
+        await signUpWithEmail(authEmail, authPassword, authFirstName.trim(), authFirstName.trim());
+        // Save phone number if provided (for crisis support contact)
+        if (authPhone.trim()) {
+          await updateUserPhone(authPhone.trim());
+        }
+      } else if (authMode === 'reset') {
+        await resetPassword(authEmail);
+        setAuthMessage('Password reset email sent! Check your inbox.');
+        setAuthMode('signin');
+        setIsSubmitting(false);
+        return;
+      }
+    } catch (err: any) {
+      console.error('Auth error:', err.code, err.message);
+      switch (err.code) {
+        case 'auth/invalid-email':
+          setAuthError('Please enter a valid email address');
+          break;
+        case 'auth/user-not-found':
+          setAuthError('No account found. Try signing up!');
+          break;
+        case 'auth/wrong-password':
+          setAuthError('Incorrect password');
+          break;
+        case 'auth/invalid-credential':
+        case 'auth/invalid-login-credentials':
+          setAuthError('Invalid email or password. Please try again.');
+          break;
+        case 'auth/email-already-in-use':
+          setAuthError('Account exists. Try signing in!');
+          break;
+        case 'auth/weak-password':
+          setAuthError('Password must be at least 6 characters');
+          break;
+        case 'auth/too-many-requests':
+          setAuthError('Too many attempts. Please try again later.');
+          break;
+        default:
+          setAuthError(err.message || 'Something went wrong');
+      }
+      setIsSubmitting(false);
+    }
+  };
+
   const handleComplete = async () => {
-    // Save to localStorage
     localStorage.setItem('bc-study-style', data.studyStyle);
     localStorage.setItem('bc-onboarding-complete', 'true');
-
-    // Save all preferences
     localStorage.setItem('bc-onboarding-data', JSON.stringify({
       name: data.name,
       studyGoal: data.studyGoal,
@@ -111,16 +173,13 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
       email: data.email,
       completedAt: new Date().toISOString(),
     }));
-
-    console.log('✅ Onboarding complete! Preferences saved locally.');
-
     onComplete(data);
   };
 
   const canProceed = () => {
     switch (step) {
       case 0:
-        return !!user; // Must be signed in to proceed
+        return !!user;
       case 1:
         return data.name.trim().length > 0;
       case 2:
@@ -132,7 +191,7 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
       case 5:
         return true;
       case 6:
-        return true; // Email is optional
+        return true;
       default:
         return false;
     }
@@ -157,112 +216,136 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
 
         {/* Content */}
         <div className="p-8">
-          {/* Step 0: Sign In */}
+          {/* Step 0: Sign In/Up */}
           {step === 0 && (
             <div className="space-y-6 text-center">
-              <div className="text-6xl mb-4">🙏</div>
+              <div className="text-6xl mb-4">📖</div>
               <h2 className={`${playfair.className} text-3xl font-bold text-yellow-400 mb-3`}>
-                Sign In to Continue
+                {authMode === 'signup' ? 'Start Your Free Trial' : authMode === 'signin' ? 'Welcome Back' : 'Reset Password'}
               </h2>
-              <p className="text-lg text-white/80 leading-relaxed mb-6">
-                Join our prayer community and connect with others
+              <p className="text-lg text-white/80 leading-relaxed mb-2">
+                {authMode === 'signup'
+                  ? 'Join thousands of believers deepening their faith'
+                  : authMode === 'signin'
+                  ? 'Sign in to continue your journey'
+                  : 'Enter your email to reset password'}
               </p>
-
-              <div className="mt-8 max-w-md mx-auto space-y-3">
-                {/* Sign in with Apple - MUST be first per Apple guidelines */}
-                <button
-                  onClick={async () => {
-                    setIsSigningIn(true);
-                    setSignInMethod('apple');
-                    try {
-                      await signInWithApple();
-                      // Auto-advance is handled by useEffect
-                    } catch (error) {
-                      console.error('Apple sign in error:', error);
-                      setIsSigningIn(false);
-                      setSignInMethod(null);
-                    }
-                  }}
-                  disabled={isSigningIn}
-                  className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-black hover:bg-gray-900 text-white rounded-xl font-semibold transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed border border-white/20"
-                >
-                  {isSigningIn && signInMethod === 'apple' ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      <span>Signing in...</span>
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
-                      </svg>
-                      <span>Continue with Apple</span>
-                    </>
-                  )}
-                </button>
-
-                {/* Google Sign-In */}
-                <button
-                  onClick={async () => {
-                    setIsSigningIn(true);
-                    setSignInMethod('google');
-                    try {
-                      await signInWithGoogle();
-                      // Auto-advance is handled by useEffect
-                    } catch (error) {
-                      console.error('Google sign in error:', error);
-                      setIsSigningIn(false);
-                      setSignInMethod(null);
-                    }
-                  }}
-                  disabled={isSigningIn}
-                  className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white hover:bg-gray-50 text-slate-900 rounded-xl font-semibold transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSigningIn && signInMethod === 'google' ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-900"></div>
-                      <span>Signing in...</span>
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-5 h-5" viewBox="0 0 24 24">
-                        <path
-                          fill="#4285F4"
-                          d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                        />
-                        <path
-                          fill="#34A853"
-                          d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                        />
-                        <path
-                          fill="#FBBC05"
-                          d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                        />
-                        <path
-                          fill="#EA4335"
-                          d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                        />
-                      </svg>
-                      <span>Continue with Google</span>
-                    </>
-                  )}
-                </button>
-
-                <p className="text-sm text-white/50 mt-4">
-                  We'll only display your first name publicly for your privacy
-                </p>
-
-                <div className="mt-6 p-4 rounded-lg bg-blue-500/10 border border-blue-500/30">
-                  <p className="text-sm text-blue-300 text-left">
-                    <strong>Why sign in?</strong>
-                    <br />
-                    • Access pastoral guidance and AI-powered counseling
-                    <br />
-                    • Join the prayer community and share requests
-                    <br />
-                    • Save your preferences and progress
-                  </p>
+              {authMode === 'signup' && (
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/30 rounded-full text-green-400 text-sm">
+                  <span>7 days free</span>
+                  <span className="text-white/40">•</span>
+                  <span>Then just $2.99/mo</span>
                 </div>
+              )}
+
+              {authError && (
+                <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+                  {authError}
+                </div>
+              )}
+
+              {authMessage && (
+                <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-green-400 text-sm">
+                  {authMessage}
+                </div>
+              )}
+
+              <form onSubmit={handleAuthSubmit} className="max-w-md mx-auto space-y-4">
+                {authMode === 'signup' && (
+                  <>
+                    <input
+                      type="text"
+                      value={authFirstName}
+                      onChange={(e) => setAuthFirstName(e.target.value)}
+                      placeholder="First name"
+                      className="w-full px-4 py-3 rounded-lg bg-white/5 border-2 border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
+                      required
+                    />
+                    <input
+                      type="tel"
+                      value={authPhone}
+                      onChange={(e) => setAuthPhone(e.target.value)}
+                      placeholder="Phone (optional - for crisis support)"
+                      className="w-full px-4 py-3 rounded-lg bg-white/5 border-2 border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
+                    />
+                  </>
+                )}
+
+                <input
+                  type="email"
+                  value={authEmail}
+                  onChange={(e) => setAuthEmail(e.target.value)}
+                  placeholder="Email address"
+                  className="w-full px-4 py-3 rounded-lg bg-white/5 border-2 border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
+                  required
+                />
+
+                {authMode !== 'reset' && (
+                  <input
+                    type="password"
+                    value={authPassword}
+                    onChange={(e) => setAuthPassword(e.target.value)}
+                    placeholder="Password (min 6 characters)"
+                    className="w-full px-4 py-3 rounded-lg bg-white/5 border-2 border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
+                    required
+                    minLength={6}
+                  />
+                )}
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full py-4 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold rounded-xl transition-colors disabled:opacity-50"
+                >
+                  {isSubmitting
+                    ? 'Please wait...'
+                    : authMode === 'signup'
+                    ? 'Start My Free Trial'
+                    : authMode === 'signin'
+                    ? 'Sign In'
+                    : 'Send Reset Email'}
+                </button>
+                {authMode === 'signup' && (
+                  <p className="text-white/50 text-xs mt-3">
+                    No credit card required to start. Cancel anytime.
+                  </p>
+                )}
+              </form>
+
+              <div className="space-y-2">
+                {authMode === 'signup' && (
+                  <button
+                    onClick={() => { setAuthMode('signin'); setAuthError(null); setAuthMessage(null); }}
+                    className="text-yellow-400 hover:text-yellow-300 text-sm"
+                  >
+                    Already have an account? Sign in
+                  </button>
+                )}
+                {authMode === 'signin' && (
+                  <>
+                    <button
+                      onClick={() => { setAuthMode('signup'); setAuthError(null); setAuthMessage(null); }}
+                      className="text-yellow-400 hover:text-yellow-300 text-sm"
+                    >
+                      Need an account? Sign up
+                    </button>
+                    <br />
+                    <button
+                      onClick={() => { setAuthMode('reset'); setAuthError(null); setAuthMessage(null); }}
+                      className="text-white/50 hover:text-white/70 text-sm"
+                    >
+                      Forgot password?
+                    </button>
+                  </>
+                )}
+                {authMode === 'reset' && (
+                  <button
+                    onClick={() => { setAuthMode('signin'); setAuthError(null); setAuthMessage(null); }}
+                    className="text-yellow-400 hover:text-yellow-300 text-sm"
+                  >
+                    Back to sign in
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -442,12 +525,6 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
                   <span>1x/week</span>
                   <span>Daily</span>
                 </div>
-
-                <div className="mt-6 p-4 rounded-lg bg-blue-500/10 border border-blue-500/30">
-                  <p className="text-sm text-blue-300">
-                    💡 <strong>Tip:</strong> Even 10 minutes a day can transform your faith journey!
-                  </p>
-                </div>
               </div>
             </div>
           )}
@@ -471,19 +548,19 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
                     key: "enableDevotional" as const,
                     emoji: "🌅",
                     title: "Daily Devotional",
-                    description: "Start each day with a fresh devotional from Our Daily Bread",
+                    description: "Start each day with a fresh devotional",
                   },
                   {
                     key: "enableReadingPlan" as const,
                     emoji: "📖",
                     title: "Reading Plan Widget",
-                    description: "Track your progress through structured Bible reading plans",
+                    description: "Track your progress through Bible reading plans",
                   },
                   {
                     key: "enableReminders" as const,
                     emoji: "🔔",
                     title: "Study Reminders",
-                    description: "Gentle encouragement when you haven't studied in a while",
+                    description: "Gentle encouragement when you haven't studied",
                   },
                 ].map((feature) => (
                   <button
@@ -519,47 +596,15 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
             </div>
           )}
 
-          {/* Step 6: Email (Optional) */}
+          {/* Step 6: Confirmation */}
           {step === 6 && (
             <div className="space-y-6 text-center">
-              <div className="text-5xl mb-4">💌</div>
+              <div className="text-5xl mb-4">🎉</div>
               <h2 className={`${playfair.className} text-2xl font-bold text-yellow-400 mb-3`}>
-                Stay Connected (Optional)
+                All Set, {data.name}!
               </h2>
 
-              <div className="max-w-md mx-auto">
-                <p className="text-white/70 mb-6">
-                  Get notified about new features, study resources, and occasional encouragement.
-                </p>
-
-                <div className="text-left mb-6">
-                  <label className="block text-sm text-white/80 mb-2">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    value={data.email}
-                    onChange={(e) => updateData({ email: e.target.value })}
-                    placeholder="your@email.com (optional)"
-                    className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
-                  />
-                  <p className="text-xs text-white/50 mt-2">
-                    We'll never spam you. Unsubscribe anytime.
-                  </p>
-                </div>
-
-                <div className="p-6 rounded-xl bg-gradient-to-br from-yellow-400/10 to-orange-400/10 border border-yellow-400/30">
-                  <h3 className={`${playfair.className} text-xl font-bold text-yellow-400 mb-2`}>
-                    All Set, {data.name}! 🎉
-                  </h3>
-                  <p className="text-white/70 text-sm">
-                    Your personalized Bible study experience is ready!
-                  </p>
-                </div>
-              </div>
-
-              {/* Summary */}
-              <div className="max-w-md mx-auto mt-8 p-6 rounded-xl bg-white/5 border border-white/10 text-left">
+              <div className="max-w-md mx-auto p-6 rounded-xl bg-white/5 border border-white/10 text-left">
                 <h3 className="font-semibold text-lg mb-3 text-yellow-400">Your Preferences:</h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
@@ -576,6 +621,10 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
                   </div>
                 </div>
               </div>
+
+              <p className="text-white/70">
+                Your personalized Bible study experience is ready!
+              </p>
             </div>
           )}
         </div>
@@ -605,7 +654,7 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
                 onClick={handleComplete}
                 className="flex-1 px-6 py-3 rounded-lg bg-yellow-400 text-slate-900 font-semibold hover:bg-yellow-300 transition-colors"
               >
-                Start Studying! 🚀
+                Start Studying!
               </button>
             )}
           </div>

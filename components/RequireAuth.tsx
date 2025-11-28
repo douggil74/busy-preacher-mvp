@@ -237,29 +237,38 @@ export default function RequireAuth({ children }: RequireAuthProps) {
                   : 'Enter your email to reset your password')}
             </p>
 
-            {/* Auth Method Toggle */}
-            <div className="flex gap-2 mb-6">
+            {/* Auth Method Toggle - More Prominent */}
+            <div className="flex gap-3 mb-2">
               <button
                 onClick={() => switchAuthMethod('email')}
-                className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
+                className={`flex-1 py-3 px-4 rounded-xl text-base font-semibold transition-all flex items-center justify-center gap-2 ${
                   authMethod === 'email'
-                    ? 'bg-yellow-400/20 border border-yellow-400 text-yellow-400'
-                    : 'bg-white/5 border border-white/10 text-white/60 hover:border-white/20'
+                    ? 'bg-yellow-400/20 border-2 border-yellow-400 text-yellow-400 shadow-lg shadow-yellow-400/20'
+                    : 'bg-white/5 border-2 border-white/20 text-white/70 hover:border-white/40 hover:bg-white/10'
                 }`}
               >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
                 Email
               </button>
               <button
                 onClick={() => switchAuthMethod('phone')}
-                className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
+                className={`flex-1 py-3 px-4 rounded-xl text-base font-semibold transition-all flex items-center justify-center gap-2 ${
                   authMethod === 'phone'
-                    ? 'bg-yellow-400/20 border border-yellow-400 text-yellow-400'
-                    : 'bg-white/5 border border-white/10 text-white/60 hover:border-white/20'
+                    ? 'bg-yellow-400/20 border-2 border-yellow-400 text-yellow-400 shadow-lg shadow-yellow-400/20'
+                    : 'bg-white/5 border-2 border-white/20 text-white/70 hover:border-white/40 hover:bg-white/10'
                 }`}
               >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
                 Phone
               </button>
             </div>
+            <p className="text-white/50 text-xs mb-4 text-center">
+              {authMethod === 'phone' ? 'Quick sign in - no password needed!' : 'Sign in with your email and password'}
+            </p>
 
             {/* Error Message */}
             {error && (

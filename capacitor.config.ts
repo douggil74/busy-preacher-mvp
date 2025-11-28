@@ -5,9 +5,9 @@ const config: CapacitorConfig = {
   appName: 'The Busy Christian App',
   webDir: 'www',
 
-  // LOCAL DEV MODE: App loads from localhost for testing
+  // LOCAL DEV MODE: Use network IP so iOS simulator/device can access
   server: {
-    url: 'http://localhost:3000',
+    url: 'http://192.168.1.31:3000',
     cleartext: true
   },
 

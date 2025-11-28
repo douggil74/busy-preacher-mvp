@@ -6,6 +6,60 @@ import { isWhitelisted } from '@/lib/whitelist';
 import { useAuth } from '@/contexts/AuthContext';
 import { hasActiveSubscription } from '@/lib/subscription';
 
+const FREE_TRIAL_DAYS = 7;
+
+/**
+ * Check if user is still within their free trial period
+ */
+function isWithinFreeTrial(createdAt: any): boolean {
+  if (!createdAt) return true; // If no creation date, assume trial active
+
+  // Handle Firestore Timestamp or Date
+  let createdDate: Date;
+  if (createdAt.toDate) {
+    createdDate = createdAt.toDate();
+  } else if (createdAt instanceof Date) {
+    createdDate = createdAt;
+  } else if (typeof createdAt === 'string') {
+    createdDate = new Date(createdAt);
+  } else {
+    return true; // Unknown format, assume trial active
+  }
+
+  const now = new Date();
+  const trialEndDate = new Date(createdDate);
+  trialEndDate.setDate(trialEndDate.getDate() + FREE_TRIAL_DAYS);
+
+  return now < trialEndDate;
+}
+
+/**
+ * Calculate days remaining in trial
+ */
+function getDaysRemainingInTrial(createdAt: any): number {
+  if (!createdAt) return FREE_TRIAL_DAYS;
+
+  let createdDate: Date;
+  if (createdAt.toDate) {
+    createdDate = createdAt.toDate();
+  } else if (createdAt instanceof Date) {
+    createdDate = createdAt;
+  } else if (typeof createdAt === 'string') {
+    createdDate = new Date(createdAt);
+  } else {
+    return FREE_TRIAL_DAYS;
+  }
+
+  const now = new Date();
+  const trialEndDate = new Date(createdDate);
+  trialEndDate.setDate(trialEndDate.getDate() + FREE_TRIAL_DAYS);
+
+  const msRemaining = trialEndDate.getTime() - now.getTime();
+  const daysRemaining = Math.ceil(msRemaining / (1000 * 60 * 60 * 24));
+
+  return Math.max(0, daysRemaining);
+}
+
 /**
  * Hook to detect platform and paywall status
  * Use this to conditionally show paywalls or premium features
@@ -17,6 +71,8 @@ export function usePlatform() {
   const [isPaid, setIsPaid] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isInTrial, setIsInTrial] = useState(false);
+  const [trialDaysRemaining, setTrialDaysRemaining] = useState(0);
 
   useEffect(() => {
     async function checkAccess() {
@@ -32,17 +88,24 @@ export function usePlatform() {
         hasWebSubscription = await hasActiveSubscription(user.uid);
       }
 
+      // Check free trial status
+      const inTrial = user?.createdAt ? isWithinFreeTrial(user.createdAt) : true;
+      const daysRemaining = user?.createdAt ? getDaysRemainingInTrial(user.createdAt) : FREE_TRIAL_DAYS;
+
       // User has paid access if:
       // 1. They're from iOS app (paid $2.99)
       // 2. They're whitelisted (admin/friends)
       // 3. They have an active web subscription
-      const hasPaidAccess = paidUser || whitelisted || hasWebSubscription;
+      // 4. They're within their free trial period
+      const hasPaidAccess = paidUser || whitelisted || hasWebSubscription || inTrial;
       const needsPaywall = !hasPaidAccess;
 
       setPlatform(detectedPlatform);
       setIsApp(fromApp);
       setIsPaid(hasPaidAccess);
       setShowPaywall(needsPaywall);
+      setIsInTrial(inTrial && !paidUser && !whitelisted && !hasWebSubscription);
+      setTrialDaysRemaining(daysRemaining);
       setIsLoading(false);
 
       // Log for debugging (remove in production)
@@ -52,6 +115,8 @@ export function usePlatform() {
         isPaidUser: paidUser,
         whitelisted,
         hasWebSubscription,
+        inTrial,
+        daysRemaining,
         hasPaidAccess,
         showPaywall: needsPaywall,
       });
@@ -66,5 +131,7 @@ export function usePlatform() {
     isPaid,
     showPaywall,
     isLoading,
+    isInTrial,
+    trialDaysRemaining,
   };
 }

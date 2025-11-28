@@ -4,6 +4,20 @@ import { NextRequest, NextResponse } from 'next/server';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+// Pricing tiers
+const PRICING = {
+  annual: {
+    name: 'The Busy Christian - Annual (Save 25%)',
+    amount: BigInt(3588), // $35.88/year ($2.99/mo)
+    description: 'Billed annually - Best Value!',
+  },
+  monthly: {
+    name: 'The Busy Christian - Monthly',
+    amount: BigInt(399), // $3.99/month
+    description: 'Billed monthly',
+  },
+};
+
 export async function POST(request: NextRequest) {
   try {
     // Import Square SDK at runtime to avoid build-time issues
@@ -14,7 +28,7 @@ export async function POST(request: NextRequest) {
       environment: process.env.SQUARE_ENVIRONMENT === 'production' ? Environment.Production : Environment.Sandbox,
     });
 
-    const { userId, userEmail } = await request.json();
+    const { userId, userEmail, plan = 'annual' } = await request.json();
 
     if (!userId || !userEmail) {
       return NextResponse.json(
@@ -23,21 +37,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const pricing = PRICING[plan as keyof typeof PRICING] || PRICING.annual;
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
     // Create a checkout session with Square
     const response = await client.checkoutApi.createPaymentLink({
-      idempotencyKey: `${userId}-${Date.now()}`,
+      idempotencyKey: `${userId}-${plan}-${Date.now()}`,
       quickPay: {
-        name: 'The Busy Christian - Monthly Subscription',
+        name: pricing.name,
         priceMoney: {
-          amount: BigInt(299), // $2.99 in cents
+          amount: pricing.amount,
           currency: 'USD',
         },
         locationId: process.env.SQUARE_LOCATION_ID!,
       },
       checkoutOptions: {
-        redirectUrl: `${baseUrl}/subscription/success`,
+        redirectUrl: `${baseUrl}/subscription/success?plan=${plan}`,
         askForShippingAddress: false,
         acceptedPaymentMethods: {
           applePay: true,

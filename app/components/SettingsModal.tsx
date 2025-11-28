@@ -2,8 +2,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Playfair_Display } from "next/font/google";
 import { NotificationService } from '@/lib/notificationService';
+import { useAuth } from '@/contexts/AuthContext';
 
 const playfair = Playfair_Display({
   weight: ["600", "700"],
@@ -21,6 +23,8 @@ interface SettingsModalProps {
 type DeleteOption = "all" | "history" | "notes" | "journey" | null;
 
 export function SettingsModal({ isOpen, onClose, userName, currentStyle }: SettingsModalProps) {
+  const { user } = useAuth();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"preferences" | "account" | "data">("preferences");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteOption, setDeleteOption] = useState<DeleteOption>(null);
@@ -397,16 +401,35 @@ export function SettingsModal({ isOpen, onClose, userName, currentStyle }: Setti
               <div>
                 <h3 className="text-lg font-semibold text-white mb-4">💳 Subscription & Billing</h3>
                 <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-                  <p className="text-sm text-white/70 mb-4">
-                    View your subscription status, payment method, and billing history.
-                  </p>
-                  <a
-                    href="/account"
-                    onClick={onClose}
-                    className="block w-full text-center py-3 rounded-lg bg-yellow-400 text-slate-900 font-semibold hover:bg-yellow-300 transition-colors"
-                  >
-                    Manage Subscription
-                  </a>
+                  {user ? (
+                    <>
+                      <p className="text-sm text-white/70 mb-4">
+                        View your subscription status, payment method, and billing history.
+                      </p>
+                      <a
+                        href="/account"
+                        onClick={onClose}
+                        className="block w-full text-center py-3 rounded-lg bg-yellow-400 text-slate-900 font-semibold hover:bg-yellow-300 transition-colors"
+                      >
+                        Manage Subscription
+                      </a>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm text-white/70 mb-4">
+                        Sign in to manage your subscription and billing.
+                      </p>
+                      <button
+                        onClick={() => {
+                          onClose();
+                          router.push('/');
+                        }}
+                        className="block w-full text-center py-3 rounded-lg bg-yellow-400 text-slate-900 font-semibold hover:bg-yellow-300 transition-colors"
+                      >
+                        Sign In
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

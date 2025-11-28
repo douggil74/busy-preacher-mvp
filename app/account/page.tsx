@@ -257,10 +257,10 @@ export default function AccountPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-white/60">Plan</span>
                   <span className="text-white">
-                    {subscription.currentPeriodEnd &&
+                    {subscription.currentPeriodEnd && subscription.currentPeriodStart &&
                       new Date(subscription.currentPeriodEnd).getTime() - new Date(subscription.currentPeriodStart).getTime() > 60 * 24 * 60 * 60 * 1000
                       ? 'Annual ($35.88/year)'
-                      : 'Monthly ($3.99/month)'}
+                      : subscription.plan === 'annual' ? 'Annual ($35.88/year)' : 'Monthly ($3.99/month)'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">

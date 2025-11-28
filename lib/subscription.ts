@@ -3,14 +3,29 @@ import { db } from './firebase';
 
 export interface Subscription {
   userId: string;
-  stripeCustomerId: string;
-  stripeSubscriptionId: string;
-  status: 'active' | 'canceled' | 'past_due' | 'incomplete' | 'trialing';
-  currentPeriodStart: Date;
-  currentPeriodEnd: Date;
+  plan?: 'monthly' | 'annual';
+  status: 'active' | 'canceled' | 'past_due' | 'incomplete' | 'trialing' | 'pending' | 'paused' | 'inactive' | 'payment_failed';
+  type?: 'subscription' | 'one_time';
+  // Square fields
+  squareCustomerId?: string;
+  squareSubscriptionId?: string;
+  squarePaymentId?: string;
+  startDate?: string;
+  chargedThroughDate?: string;
+  expiresAt?: string;
+  paidAt?: string;
+  canceledDate?: string;
+  // Legacy Stripe fields
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+  currentPeriodStart?: Date;
+  currentPeriodEnd?: Date;
   canceledAt?: Date;
-  createdAt: Date;
-  updatedAt: Date;
+  // Common fields
+  createdAt: string | Date;
+  updatedAt: string | Date;
+  lastPaymentAt?: string;
+  lastPaymentFailedAt?: string;
 }
 
 /**
@@ -26,11 +41,28 @@ export async function hasActiveSubscription(userId: string): Promise<boolean> {
 
     const sub = subDoc.data() as Subscription;
 
-    // Check if subscription is active and not expired
+    // Check if subscription is active
     const isActive = sub.status === 'active' || sub.status === 'trialing';
-    const notExpired = sub.currentPeriodEnd && new Date(sub.currentPeriodEnd) > new Date();
 
-    return isActive && notExpired;
+    // Check expiration for one-time payments
+    if (sub.type === 'one_time' && sub.expiresAt) {
+      const notExpired = new Date(sub.expiresAt) > new Date();
+      return isActive && notExpired;
+    }
+
+    // Check charged through date for subscriptions
+    if (sub.chargedThroughDate) {
+      const notExpired = new Date(sub.chargedThroughDate) > new Date();
+      return isActive && notExpired;
+    }
+
+    // Legacy Stripe check
+    if (sub.currentPeriodEnd) {
+      const notExpired = new Date(sub.currentPeriodEnd) > new Date();
+      return isActive && notExpired;
+    }
+
+    return isActive;
   } catch (error) {
     console.error('Error checking subscription:', error);
     return false;

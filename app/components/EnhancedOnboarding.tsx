@@ -120,16 +120,9 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
       if (authMode === 'signin') {
         await signInWithEmail(authEmail, authPassword);
       } else if (authMode === 'signup') {
-        if (!authFirstName.trim()) {
-          setAuthError('Please enter your first name');
-          setIsSubmitting(false);
-          return;
-        }
-        await signUpWithEmail(authEmail, authPassword, authFirstName.trim(), authFirstName.trim());
-        // Save phone number if provided (for crisis support contact)
-        if (authPhone.trim()) {
-          await updateUserPhone(authPhone.trim());
-        }
+        // Use email prefix as temp name - real name collected in Step 1
+        const tempName = authEmail.split('@')[0] || 'User';
+        await signUpWithEmail(authEmail, authPassword, tempName, tempName);
       } else if (authMode === 'reset') {
         await resetPassword(authEmail);
         setAuthMessage('Password reset email sent! Check your inbox.');
@@ -449,26 +442,6 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
               {authMethod === 'email' && (
                 <>
                   <form onSubmit={handleAuthSubmit} className="max-w-md mx-auto space-y-4">
-                    {authMode === 'signup' && (
-                      <>
-                        <input
-                          type="text"
-                          value={authFirstName}
-                          onChange={(e) => setAuthFirstName(e.target.value)}
-                          placeholder="First name"
-                          className="w-full px-4 py-3 rounded-lg bg-white/5 border-2 border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
-                          required
-                        />
-                        <input
-                          type="tel"
-                          value={authPhone}
-                          onChange={(e) => setAuthPhone(e.target.value)}
-                          placeholder="Phone (optional - for crisis support)"
-                          className="w-full px-4 py-3 rounded-lg bg-white/5 border-2 border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
-                        />
-                      </>
-                    )}
-
                     <input
                       type="email"
                       value={authEmail}

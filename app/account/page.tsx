@@ -22,6 +22,7 @@ export default function AccountPage() {
   const [loading, setLoading] = useState(true);
   const [cancellingSubscription, setCancellingSubscription] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [updatingPayment, setUpdatingPayment] = useState(false);
 
   useEffect(() => {
     async function loadSubscription() {
@@ -67,6 +68,32 @@ export default function AccountPage() {
       alert('Failed to cancel subscription. Please try again.');
     } finally {
       setCancellingSubscription(false);
+    }
+  };
+
+  const handleUpdatePayment = async () => {
+    if (!user?.uid) return;
+
+    setUpdatingPayment(true);
+    try {
+      const response = await fetch('/api/subscription/update-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.uid, userEmail: user.email }),
+      });
+
+      const data = await response.json();
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert(data.error || 'Unable to update payment method');
+      }
+    } catch (error) {
+      console.error('Update payment error:', error);
+      alert('Failed to update payment method. Please try again.');
+    } finally {
+      setUpdatingPayment(false);
     }
   };
 
@@ -319,13 +346,11 @@ export default function AccountPage() {
               Payments are processed securely via Square.
             </p>
             <button
-              onClick={() => {
-                // For now, redirect to checkout to update card
-                alert('To update your payment method, please contact support at pastor.doug@thebusychristian.app');
-              }}
-              className="w-full py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
+              onClick={handleUpdatePayment}
+              disabled={updatingPayment}
+              className="w-full py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors disabled:opacity-50"
             >
-              Update payment method
+              {updatingPayment ? 'Loading...' : 'Update payment method'}
             </button>
           </section>
         )}

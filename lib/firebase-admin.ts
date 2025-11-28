@@ -13,8 +13,14 @@ if (!admin.apps.length) {
       credential: admin.credential.cert({
         projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
         clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
-        // Private key is stored with \n as literal string in env vars
-        privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+        // Private key handling: support both literal \n strings and actual newlines
+        privateKey: (() => {
+          const key = process.env.FIREBASE_ADMIN_PRIVATE_KEY;
+          if (!key) return undefined;
+          // If key contains literal \n, replace with actual newlines
+          // Otherwise, assume it already has proper newlines
+          return key.includes('\\n') ? key.replace(/\\n/g, '\n') : key;
+        })(),
       }),
     });
     console.log('✅ Firebase Admin initialized successfully');

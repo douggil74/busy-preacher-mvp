@@ -73,6 +73,7 @@ export function usePlatform() {
   const [isLoading, setIsLoading] = useState(true);
   const [isInTrial, setIsInTrial] = useState(false);
   const [trialDaysRemaining, setTrialDaysRemaining] = useState(0);
+  const [isUserWhitelisted, setIsUserWhitelisted] = useState(false);
 
   useEffect(() => {
     async function checkAccess() {
@@ -106,6 +107,7 @@ export function usePlatform() {
       setShowPaywall(needsPaywall);
       setIsInTrial(inTrial && !paidUser && !whitelisted && !hasWebSubscription);
       setTrialDaysRemaining(daysRemaining);
+      setIsUserWhitelisted(whitelisted);
       setIsLoading(false);
 
       // Log for debugging (remove in production)
@@ -133,5 +135,6 @@ export function usePlatform() {
     isLoading,
     isInTrial,
     trialDaysRemaining,
+    isWhitelisted: isUserWhitelisted,
   };
 }

@@ -6,10 +6,20 @@
 export function isFromIOSApp(): boolean {
   if (typeof window === 'undefined') return false;
 
-  // Check if running in Capacitor (iOS app)
-  const isCapacitor =
-    // @ts-ignore - Capacitor global
-    typeof window.Capacitor !== 'undefined' ||
+  // Check if running in Capacitor native app (NOT just if Capacitor JS is loaded)
+  // @ts-ignore - Capacitor global
+  const capacitor = window.Capacitor;
+
+  // Capacitor.isNativePlatform() returns true ONLY when running in native iOS/Android
+  // It returns false when running in a regular web browser, even if Capacitor JS is bundled
+  const isNativeApp = capacitor?.isNativePlatform?.() === true;
+
+  // Also check platform - 'ios' or 'android' means native, 'web' means browser
+  const nativePlatform = capacitor?.getPlatform?.();
+  const isNativePlatformByName = nativePlatform === 'ios' || nativePlatform === 'android';
+
+  // Check user agent for custom app identifier
+  const hasAppUserAgent =
     navigator.userAgent.includes('Capacitor') ||
     navigator.userAgent.includes('The Busy Christian App');
 
@@ -17,7 +27,7 @@ export function isFromIOSApp(): boolean {
   const urlParams = new URLSearchParams(window.location.search);
   const fromApp = urlParams.get('source') === 'ios-app';
 
-  return isCapacitor || fromApp;
+  return isNativeApp || isNativePlatformByName || hasAppUserAgent || fromApp;
 }
 
 export function isPaidAppUser(): boolean {

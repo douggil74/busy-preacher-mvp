@@ -8,6 +8,9 @@ import {
   signOut as firebaseSignOut,
   onAuthStateChanged,
   sendPasswordResetEmail,
+  signInWithPhoneNumber,
+  RecaptchaVerifier,
+  ConfirmationResult,
   User as FirebaseUser
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
@@ -40,6 +43,9 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   updateUserLocation: (city: string, state: string, country?: string) => Promise<void>;
   updateUserPhone: (phone: string) => Promise<void>;
+  // Phone auth
+  sendPhoneCode: (phoneNumber: string, recaptchaContainerId: string) => Promise<ConfirmationResult>;
+  verifyPhoneCode: (confirmationResult: ConfirmationResult, code: string, firstName?: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -206,6 +212,65 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser({ ...user, phone });
   };
 
+  // Phone authentication - Step 1: Send verification code
+  const sendPhoneCode = async (phoneNumber: string, recaptchaContainerId: string): Promise<ConfirmationResult> => {
+    try {
+      // Format phone number to E.164 format if not already
+      let formattedPhone = phoneNumber.replace(/\D/g, '');
+      if (!formattedPhone.startsWith('1') && formattedPhone.length === 10) {
+        formattedPhone = '1' + formattedPhone; // Add US country code
+      }
+      if (!formattedPhone.startsWith('+')) {
+        formattedPhone = '+' + formattedPhone;
+      }
+
+      // Create invisible reCAPTCHA verifier
+      const recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaContainerId, {
+        size: 'invisible',
+        callback: () => {
+          console.log('reCAPTCHA verified');
+        },
+        'expired-callback': () => {
+          console.log('reCAPTCHA expired');
+        }
+      });
+
+      const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone, recaptchaVerifier);
+      return confirmationResult;
+    } catch (error: any) {
+      console.error('Phone sign in error:', error);
+      throw error;
+    }
+  };
+
+  // Phone authentication - Step 2: Verify the code
+  const verifyPhoneCode = async (confirmationResult: ConfirmationResult, code: string, firstName?: string) => {
+    try {
+      const result = await confirmationResult.confirm(code);
+
+      // Check if user profile exists
+      const userDoc = await getDoc(doc(db, 'users', result.user.uid));
+
+      if (!userDoc.exists()) {
+        // Create new user profile for phone user
+        const profile: UserProfile = {
+          uid: result.user.uid,
+          firstName: firstName || 'User',
+          fullName: firstName || 'User',
+          email: '', // Phone users don't have email
+          phone: result.user.phoneNumber || '',
+          createdAt: serverTimestamp(),
+          lastSignIn: serverTimestamp()
+        };
+
+        await setDoc(doc(db, 'users', result.user.uid), profile);
+      }
+    } catch (error: any) {
+      console.error('Code verification error:', error);
+      throw error;
+    }
+  };
+
   const value: AuthContextType = {
     user,
     firebaseUser,
@@ -216,7 +281,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     resetPassword,
     signOut,
     updateUserLocation,
-    updateUserPhone
+    updateUserPhone,
+    sendPhoneCode,
+    verifyPhoneCode
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

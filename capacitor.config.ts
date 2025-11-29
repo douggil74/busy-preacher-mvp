@@ -1,15 +1,25 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
+// Set to 'development' for local testing, 'production' for App Store builds
+const mode = 'production';
+
 const config: CapacitorConfig = {
   appId: 'com.busychristian.app',
   appName: 'The Busy Christian App',
   webDir: 'www',
 
-  // LOCAL DEV MODE: Use network IP so iOS simulator/device can access
-  server: {
-    url: 'http://192.168.1.31:3000',
-    cleartext: true
-  },
+  // Server configuration based on mode
+  server: mode === 'development'
+    ? {
+        // LOCAL DEV MODE: Use network IP so iOS simulator/device can access
+        url: 'http://192.168.1.31:3000',
+        cleartext: true
+      }
+    : {
+        // PRODUCTION MODE: Use live website (with www to avoid redirect)
+        url: 'https://www.thebusychristianapp.com',
+        cleartext: false
+      },
 
   // iOS specific configuration
   ios: {

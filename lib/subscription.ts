@@ -86,3 +86,76 @@ export async function getUserSubscription(userId: string): Promise<Subscription 
     return null;
   }
 }
+
+/**
+ * Check if user has an active promo code (free forever access)
+ */
+export async function hasActivePromoAccess(userId: string): Promise<boolean> {
+  try {
+    const userDoc = await getDoc(doc(db, 'users', userId));
+
+    if (!userDoc.exists()) {
+      return false;
+    }
+
+    const userData = userDoc.data();
+    const subscription = userData?.subscription;
+
+    // Check for promo access (free forever)
+    if (subscription?.hasPromoAccess === true) {
+      return true;
+    }
+
+    // Check for active promo with expiration
+    const promo = userData?.promo?.active;
+    if (promo?.hasForeverAccess) {
+      return true;
+    }
+
+    if (promo?.expiresAt) {
+      const expiresAt = promo.expiresAt.toDate ? promo.expiresAt.toDate() : new Date(promo.expiresAt);
+      return expiresAt > new Date();
+    }
+
+    return false;
+  } catch (error) {
+    console.error('Error checking promo access:', error);
+    return false;
+  }
+}
+
+/**
+ * Check if user has an active iOS IAP subscription (from RevenueCat webhook)
+ */
+export async function hasActiveIosSubscription(userId: string): Promise<boolean> {
+  try {
+    const userDoc = await getDoc(doc(db, 'users', userId));
+
+    if (!userDoc.exists()) {
+      return false;
+    }
+
+    const userData = userDoc.data();
+    const subscription = userData?.subscription;
+
+    if (!subscription) {
+      return false;
+    }
+
+    // Check hasIosSubscription flag (set by RevenueCat webhook)
+    if (subscription.hasIosSubscription === true) {
+      // Also check expiration if available
+      const iosData = subscription.ios;
+      if (iosData?.expiresAt) {
+        const expiresAt = iosData.expiresAt.toDate ? iosData.expiresAt.toDate() : new Date(iosData.expiresAt);
+        return expiresAt > new Date();
+      }
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error('Error checking iOS subscription:', error);
+    return false;
+  }
+}

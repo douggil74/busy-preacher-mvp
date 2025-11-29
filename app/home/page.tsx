@@ -29,6 +29,9 @@ import WordStudyModal from "@/components/WordStudyModal";
 import { getTimeBasedGreeting, getLoadingMessage, getPastorNote, getStudyPrompt } from "@/lib/personalMessages";
 import RequireAuth from '@/components/RequireAuth';
 import { Paywall } from '@/components/Paywall';
+import { TrialWelcomeModal } from '@/components/TrialWelcomeModal';
+import { usePlatform } from '@/hooks/usePlatform';
+import { useAuth } from '@/contexts/AuthContext';
 
 function copyToClipboard(text: string) {
   if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
@@ -309,6 +312,9 @@ function exportOutlinePDF(args: { outlines: any[] }) {
 
 export default function Page(): JSX.Element {
   const router = useRouter();
+  const { user } = useAuth();
+  const { isInTrial, trialDaysRemaining, isApp, isPaid } = usePlatform();
+  const [showTrialModal, setShowTrialModal] = useState(false);
   const [savedStudies, setSavedStudies] = useState<SavedStudy[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [notes, setNotes] = useState<StudyNote[]>([]);
@@ -440,6 +446,24 @@ useEffect(() => {
       setShowOnboarding(true);
     }
   }, []);
+
+  // Show trial welcome modal for new trial users (only on web, not iOS app)
+  useEffect(() => {
+    // Show modal only for trial users who aren't app users or whitelisted
+    if (!user?.uid || !isInTrial || isApp) return;
+
+    // Check if user has already seen the trial modal
+    const hasSeenTrialModal = localStorage.getItem(`trial_welcome_shown_${user.uid}`);
+
+    if (!hasSeenTrialModal) {
+      // Small delay to avoid showing immediately on page load
+      const timer = setTimeout(() => {
+        setShowTrialModal(true);
+      }, 1500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [user?.uid, isInTrial, isApp]);
   
   useEffect(() => {
     const saved = localStorage.getItem("bc-notes");
@@ -1866,6 +1890,12 @@ const handleKeywordResultSelect = (reference: string) => {
         isOpen={showDevotionalModal}
         userName={userName}
         onClose={() => setShowDevotionalModal(false)}
+      />
+
+      <TrialWelcomeModal
+        isOpen={showTrialModal}
+        onClose={() => setShowTrialModal(false)}
+        trialDaysRemaining={trialDaysRemaining}
       />
 
       <WordStudyModal

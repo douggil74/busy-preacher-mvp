@@ -31,8 +31,9 @@ export function isFromIOSApp(): boolean {
 }
 
 export function isPaidAppUser(): boolean {
-  // iOS app users paid $2.99 upfront, so they get full access
-  return isFromIOSApp();
+  // With RevenueCat, iOS users don't pay upfront - they subscribe via in-app purchase
+  // This now returns false, subscription status is checked via RevenueCat
+  return false;
 }
 
 export function shouldShowPaywall(): boolean {

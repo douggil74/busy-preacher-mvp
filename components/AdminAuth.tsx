@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Lock, Eye, EyeOff, Shield } from 'lucide-react';
 import { hasAdminPassword, setAdminPassword, verifyAdminPassword, setAdminSession, isAdminAuthenticated } from '@/lib/adminAuth';
 import { useAuth } from '@/contexts/AuthContext';
-import { isWhitelisted } from '@/lib/whitelist';
+import { isAdmin } from '@/lib/whitelist';
 
 interface AdminAuthProps {
   children: React.ReactNode;
@@ -29,9 +29,9 @@ export default function AdminAuth({ children }: AdminAuthProps) {
     if (authLoading) return;
 
     try {
-      // Whitelisted users get automatic access (bypass password)
-      if (user?.email && isWhitelisted(user.email)) {
-        console.log('✅ Admin access granted via whitelist:', user.email);
+      // Admin users get automatic access (bypass password)
+      if (user?.email && isAdmin(user.email)) {
+        console.log('✅ Admin access granted:', user.email);
         setIsAuthenticated(true);
         setIsLoading(false);
         return;

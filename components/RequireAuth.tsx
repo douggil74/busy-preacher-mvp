@@ -225,7 +225,7 @@ export default function RequireAuth({ children }: RequireAuthProps) {
             <h1 className={`${playfair.className} text-3xl font-bold text-white text-center mb-3`}>
               {authMethod === 'phone'
                 ? (phoneStep === 'verify' ? 'Enter Code' : 'Sign In')
-                : (mode === 'signin' ? 'Welcome Back' : mode === 'signup' ? 'Create Account' : 'Reset Password')}
+                : (mode === 'signin' ? 'Sign In' : mode === 'signup' ? 'Create Account' : 'Reset Password')}
             </h1>
             <p className="text-white/70 text-center mb-6">
               {authMethod === 'phone'

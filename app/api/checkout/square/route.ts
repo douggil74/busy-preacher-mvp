@@ -98,6 +98,7 @@ export async function POST(request: NextRequest) {
         checkoutOptions: {
           redirectUrl: `${baseUrl}/subscription/success?plan=${plan}&customerId=${customer.id}`,
           askForShippingAddress: false,
+          enableCoupon: false, // Disable Square coupon field - we handle promos on our paywall
           acceptedPaymentMethods: {
             applePay: true,
             googlePay: true,
@@ -143,6 +144,7 @@ export async function POST(request: NextRequest) {
         checkoutOptions: {
           redirectUrl: `${baseUrl}/subscription/success?plan=${plan}`,
           askForShippingAddress: false,
+          enableCoupon: false, // Disable Square coupon field - we handle promos on our paywall
           acceptedPaymentMethods: {
             applePay: true,
             googlePay: true,

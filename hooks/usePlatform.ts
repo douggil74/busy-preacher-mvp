@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { isFromIOSApp, isPaidAppUser, shouldShowPaywall, getPlatform } from '@/lib/platform-detector';
 import { isWhitelisted } from '@/lib/whitelist';
 import { useAuth } from '@/contexts/AuthContext';
-import { hasActiveSubscription } from '@/lib/subscription';
+import { hasActiveSubscription, hasActiveIosSubscription, hasActivePromoAccess } from '@/lib/subscription';
 
 const FREE_TRIAL_DAYS = 7;
 
@@ -83,10 +83,22 @@ export function usePlatform() {
       const paidUser = isPaidAppUser();
       const whitelisted = user?.email ? isWhitelisted(user.email) : false;
 
-      // Check for active web subscription
+      // Check for active web subscription (Square)
       let hasWebSubscription = false;
       if (user?.uid && !fromApp) {
         hasWebSubscription = await hasActiveSubscription(user.uid);
+      }
+
+      // Check for active iOS IAP subscription (RevenueCat)
+      let hasIosSubscription = false;
+      if (user?.uid) {
+        hasIosSubscription = await hasActiveIosSubscription(user.uid);
+      }
+
+      // Check for promo code access (free forever, etc.)
+      let hasPromoAccess = false;
+      if (user?.uid) {
+        hasPromoAccess = await hasActivePromoAccess(user.uid);
       }
 
       // Check free trial status
@@ -96,16 +108,18 @@ export function usePlatform() {
       // User has paid access if:
       // 1. They're from iOS app (paid $2.99)
       // 2. They're whitelisted (admin/friends)
-      // 3. They have an active web subscription
-      // 4. They're within their free trial period
-      const hasPaidAccess = paidUser || whitelisted || hasWebSubscription || inTrial;
+      // 3. They have an active web subscription (Square)
+      // 4. They have an active iOS IAP subscription (RevenueCat)
+      // 5. They have a promo code (free forever, etc.)
+      // 6. They're within their free trial period
+      const hasPaidAccess = paidUser || whitelisted || hasWebSubscription || hasIosSubscription || hasPromoAccess || inTrial;
       const needsPaywall = !hasPaidAccess;
 
       setPlatform(detectedPlatform);
       setIsApp(fromApp);
       setIsPaid(hasPaidAccess);
       setShowPaywall(needsPaywall);
-      setIsInTrial(inTrial && !paidUser && !whitelisted && !hasWebSubscription);
+      setIsInTrial(inTrial && !paidUser && !whitelisted && !hasWebSubscription && !hasIosSubscription && !hasPromoAccess);
       setTrialDaysRemaining(daysRemaining);
       setIsUserWhitelisted(whitelisted);
       setIsLoading(false);
@@ -117,6 +131,8 @@ export function usePlatform() {
         isPaidUser: paidUser,
         whitelisted,
         hasWebSubscription,
+        hasIosSubscription,
+        hasPromoAccess,
         inTrial,
         daysRemaining,
         hasPaidAccess,

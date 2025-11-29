@@ -23,6 +23,7 @@ export default function AccountPage() {
   const [cancellingSubscription, setCancellingSubscription] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [updatingPayment, setUpdatingPayment] = useState(false);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   useEffect(() => {
     async function loadSubscription() {
@@ -100,6 +101,40 @@ export default function AccountPage() {
   const handleSignOut = async () => {
     await signOut();
     router.push('/');
+  };
+
+  const handleSubscribe = async () => {
+    if (!user) {
+      alert('Please sign in first');
+      return;
+    }
+
+    setIsCheckingOut(true);
+    try {
+      const response = await fetch('/api/checkout/square', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.uid,
+          userEmail: user.email,
+          plan: 'annual', // Default to annual plan
+        }),
+      });
+
+      const { url, error } = await response.json();
+
+      if (error) {
+        throw new Error(error);
+      }
+
+      if (url) {
+        window.location.href = url;
+      }
+    } catch (error) {
+      console.error('Checkout error:', error);
+      alert('Failed to start checkout. Please try again.');
+      setIsCheckingOut(false);
+    }
   };
 
   const formatDate = (date: any) => {
@@ -230,10 +265,11 @@ export default function AccountPage() {
                 </p>
                 {!subscription && (
                   <button
-                    onClick={() => router.push('/home')}
-                    className="mt-3 w-full py-2 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold rounded-lg transition-colors"
+                    onClick={handleSubscribe}
+                    disabled={isCheckingOut}
+                    className="mt-3 w-full py-2 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold rounded-lg transition-colors disabled:opacity-50"
                   >
-                    Subscribe Now
+                    {isCheckingOut ? 'Loading checkout...' : 'Subscribe Now'}
                   </button>
                 )}
               </div>
@@ -326,10 +362,11 @@ export default function AccountPage() {
                   Your subscription is cancelled. You have access until {formatDate(subscription.currentPeriodEnd)}.
                 </p>
                 <button
-                  onClick={() => router.push('/home')}
-                  className="w-full py-2 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold rounded-lg transition-colors"
+                  onClick={handleSubscribe}
+                  disabled={isCheckingOut}
+                  className="w-full py-2 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold rounded-lg transition-colors disabled:opacity-50"
                 >
-                  Resubscribe
+                  {isCheckingOut ? 'Loading checkout...' : 'Resubscribe'}
                 </button>
               </div>
             )}
@@ -341,10 +378,11 @@ export default function AccountPage() {
                   Subscribe to unlock all features.
                 </p>
                 <button
-                  onClick={() => router.push('/home')}
-                  className="w-full py-2 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold rounded-lg transition-colors"
+                  onClick={handleSubscribe}
+                  disabled={isCheckingOut}
+                  className="w-full py-2 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold rounded-lg transition-colors disabled:opacity-50"
                 >
-                  Subscribe Now
+                  {isCheckingOut ? 'Loading checkout...' : 'Subscribe Now'}
                 </button>
               </div>
             )}

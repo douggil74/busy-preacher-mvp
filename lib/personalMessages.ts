@@ -219,7 +219,7 @@ export function getStudyPrompt(): string {
     "What's on your mind today? A Bible verse, or biblical view on a topic?",
     "Where do you want to dig in?",
     "What question do you have?",
-    "What are you wrestling with?",
+    "What would you like to explore today?",
     "What do you want to learn?",
     "Where should we start?"
   ];

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { PurchasesPackage } from '@revenuecat/purchases-capacitor';
-import { Playfair_Display } from 'next/font/google';
+import { Check, Sparkles, X } from 'lucide-react';
 import {
   getOfferings,
   purchasePackage,
@@ -11,12 +11,6 @@ import {
   formatPrice,
   getPackageType,
 } from '@/lib/revenuecat';
-
-const playfair = Playfair_Display({
-  weight: ['600', '700'],
-  subsets: ['latin'],
-  display: 'swap',
-});
 
 interface IOSPaywallProps {
   isOpen: boolean;
@@ -113,25 +107,50 @@ export function IOSPaywall({ isOpen, onClose, onPurchaseComplete, trialDaysRemai
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4">
-      <div className="bg-slate-900 rounded-2xl border-2 border-yellow-400/30 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)' }}
+    >
+      <div
+        className="rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto scrollbar-hide"
+        style={{
+          backgroundColor: 'var(--card-bg)',
+          border: '1px solid var(--card-border)',
+        }}
+      >
         {/* Header */}
-        <div className="p-6 text-center border-b border-white/10">
-          <div className="text-5xl mb-3">✨</div>
-          <h2 className={`${playfair.className} text-2xl font-bold text-yellow-400 mb-2`}>
+        <div
+          className="p-6 text-center"
+          style={{ borderBottom: '1px solid var(--card-border)' }}
+        >
+          <div
+            className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+            style={{
+              backgroundColor: 'color-mix(in srgb, var(--accent-color) 15%, transparent)',
+              border: '2px solid var(--accent-color)',
+            }}
+          >
+            <Sparkles className="w-8 h-8" style={{ color: 'var(--accent-color)' }} />
+          </div>
+          <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--accent-color)' }}>
             Unlock Full Access
           </h2>
           {trialDaysRemaining !== undefined && trialDaysRemaining > 0 && (
-            <p className="text-white/70 text-sm">
-              Your trial ends in <span className="text-yellow-400 font-bold">{trialDaysRemaining} days</span>
+            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+              Your trial ends in <span className="font-bold" style={{ color: 'var(--accent-color)' }}>{trialDaysRemaining} days</span>
             </p>
           )}
         </div>
 
         {/* Features */}
         <div className="p-6">
-          <div className="bg-white/5 rounded-xl p-4 mb-6">
-            <h3 className="text-white font-semibold mb-3">Premium Features:</h3>
+          <div
+            className="rounded-xl p-4 mb-6"
+            style={{
+              backgroundColor: 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
+            }}
+          >
+            <h3 className="font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>Premium Features:</h3>
             <div className="space-y-2">
               {[
                 'Daily devotionals & Bible study',
@@ -140,10 +159,8 @@ export function IOSPaywall({ isOpen, onClose, onPurchaseComplete, trialDaysRemai
                 'Prayer community & support',
                 'Offline access',
               ].map((feature, i) => (
-                <div key={i} className="flex items-center gap-2 text-white/80 text-sm">
-                  <svg className="w-5 h-5 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
+                <div key={i} className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
                   <span>{feature}</span>
                 </div>
               ))}
@@ -153,14 +170,23 @@ export function IOSPaywall({ isOpen, onClose, onPurchaseComplete, trialDaysRemai
           {/* Loading State */}
           {isLoading && (
             <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-400"></div>
+              <div
+                className="animate-spin rounded-full h-8 w-8 border-b-2"
+                style={{ borderColor: 'var(--accent-color)' }}
+              />
             </div>
           )}
 
           {/* Error State */}
           {error && (
-            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 mb-4">
-              <p className="text-red-400 text-sm text-center">{error}</p>
+            <div
+              className="rounded-lg p-3 mb-4"
+              style={{
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+              }}
+            >
+              <p className="text-red-500 text-sm text-center">{error}</p>
             </div>
           )}
 
@@ -181,40 +207,49 @@ export function IOSPaywall({ isOpen, onClose, onPurchaseComplete, trialDaysRemai
                       e.stopPropagation();
                       setSelectedPackage(pkg);
                     }}
-                    className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
-                      isSelected
-                        ? 'border-yellow-400 bg-yellow-400/10'
-                        : 'border-white/20 bg-white/5'
-                    }`}
+                    className="w-full p-4 rounded-xl transition-all text-left"
+                    style={{
+                      backgroundColor: isSelected
+                        ? 'color-mix(in srgb, var(--accent-color) 15%, transparent)'
+                        : 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
+                      border: isSelected
+                        ? '2px solid var(--accent-color)'
+                        : '2px solid var(--card-border)',
+                    }}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div
-                          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                            isSelected ? 'border-yellow-400 bg-yellow-400' : 'border-white/40'
-                          }`}
+                          className="w-5 h-5 rounded-full flex items-center justify-center"
+                          style={{
+                            border: isSelected ? '2px solid var(--accent-color)' : '2px solid var(--card-border)',
+                            backgroundColor: isSelected ? 'var(--accent-color)' : 'transparent',
+                          }}
                         >
                           {isSelected && (
-                            <div className="w-2 h-2 rounded-full bg-slate-900" />
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--bg-color)' }} />
                           )}
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="font-semibold text-white">
+                            <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>
                               {isAnnual ? 'Annual' : 'Monthly'}
                             </span>
                             {isAnnual && (
-                              <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full">
+                              <span className="px-2 py-0.5 bg-green-500/20 text-green-500 text-xs rounded-full">
                                 BEST VALUE
                               </span>
                             )}
                           </div>
-                          <p className="text-white/50 text-xs">
+                          <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                             {isAnnual ? 'Billed annually' : 'Billed monthly'}
                           </p>
                         </div>
                       </div>
-                      <span className={`font-bold ${isAnnual ? 'text-yellow-400' : 'text-white'}`}>
+                      <span
+                        className="font-bold"
+                        style={{ color: isAnnual ? 'var(--accent-color)' : 'var(--text-primary)' }}
+                      >
                         {formatPrice(pkg)}
                       </span>
                     </div>
@@ -227,7 +262,7 @@ export function IOSPaywall({ isOpen, onClose, onPurchaseComplete, trialDaysRemai
           {/* No Packages Available */}
           {!isLoading && packages.length === 0 && !error && (
             <div className="text-center py-6">
-              <p className="text-white/60">No subscription options available at this time.</p>
+              <p style={{ color: 'var(--text-secondary)' }}>No subscription options available at this time.</p>
             </div>
           )}
 
@@ -237,11 +272,15 @@ export function IOSPaywall({ isOpen, onClose, onPurchaseComplete, trialDaysRemai
               type="button"
               onClick={handlePurchase}
               disabled={isPurchasing || !selectedPackage}
-              className="w-full bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-slate-900 font-bold py-4 px-6 rounded-xl transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed mb-4"
+              className="w-full font-bold py-4 px-6 rounded-xl transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed mb-4"
+              style={{
+                backgroundColor: 'var(--accent-color)',
+                color: 'var(--bg-color)',
+              }}
             >
               {isPurchasing ? (
                 <span className="flex items-center justify-center gap-2">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-900"></div>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2" style={{ borderColor: 'var(--bg-color)' }} />
                   Processing...
                 </span>
               ) : (
@@ -255,7 +294,8 @@ export function IOSPaywall({ isOpen, onClose, onPurchaseComplete, trialDaysRemai
             type="button"
             onClick={handleRestore}
             disabled={isRestoring}
-            className="w-full py-3 text-white/60 hover:text-white transition-colors text-sm"
+            className="w-full py-3 transition-colors text-sm"
+            style={{ color: 'var(--text-secondary)' }}
           >
             {isRestoring ? 'Restoring...' : 'Restore Purchases'}
           </button>
@@ -264,13 +304,14 @@ export function IOSPaywall({ isOpen, onClose, onPurchaseComplete, trialDaysRemai
           <button
             type="button"
             onClick={onClose}
-            className="w-full py-3 text-white/40 hover:text-white/60 transition-colors text-sm mt-2"
+            className="w-full py-3 transition-colors text-sm mt-2"
+            style={{ color: 'var(--text-secondary)' }}
           >
             Maybe Later
           </button>
 
           {/* Terms */}
-          <p className="text-white/30 text-xs text-center mt-4 px-4">
+          <p className="text-xs text-center mt-4 px-4" style={{ color: 'var(--text-secondary)' }}>
             Subscriptions will be charged to your Apple ID. Subscriptions automatically renew unless cancelled at least 24 hours before the end of the current period.
           </p>
         </div>

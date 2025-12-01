@@ -1,13 +1,25 @@
 /**
  * Whitelist System
- * Two tiers:
- * - ADMIN_EMAILS: Full access + admin dashboard (no password needed)
- * - PREMIUM_EMAILS: Premium app access only (bypasses paywall, NO admin)
- * - Firestore whitelist: Dynamic list managed via admin panel
+ *
+ * Roles:
+ * - owner: Full access + admin dashboard
+ * - developer: Full access + admin dashboard
+ * - admin: Full access + admin dashboard
+ * - user: Premium app access only (bypasses paywall, NO admin)
+ *
+ * Sources:
+ * - ADMIN_EMAILS: Hardcoded owner/developer accounts
+ * - PREMIUM_EMAILS: Hardcoded premium users
+ * - Firestore whitelist: Dynamic list with roles managed via admin panel
  */
 
 import { db } from './firebase';
 import { doc, getDoc } from 'firebase/firestore';
+
+// Roles that can access admin dashboard
+export const ADMIN_ROLES = ['owner', 'developer', 'admin'] as const;
+export type AdminRole = typeof ADMIN_ROLES[number];
+export type WhitelistRole = AdminRole | 'user';
 
 // ========================================
 // ADMIN USERS - Full access + admin dashboard
@@ -25,7 +37,12 @@ const PREMIUM_EMAILS = [
 ];
 
 // Cache for Firestore whitelist checks (5 min TTL)
-const whitelistCache: Map<string, { result: boolean; timestamp: number }> = new Map();
+interface WhitelistCacheEntry {
+  exists: boolean;
+  role?: WhitelistRole;
+  timestamp: number;
+}
+const whitelistCache: Map<string, WhitelistCacheEntry> = new Map();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 /**
@@ -67,7 +84,7 @@ export async function isWhitelistedAsync(email: string | null | undefined): Prom
   // Check cache
   const cached = whitelistCache.get(normalizedEmail);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    return cached.result;
+    return cached.exists;
   }
 
   // Check Firestore whitelist
@@ -75,17 +92,75 @@ export async function isWhitelistedAsync(email: string | null | undefined): Prom
     const whitelistRef = doc(db, 'whitelist', normalizedEmail);
     const whitelistDoc = await getDoc(whitelistRef);
     const isInFirestore = whitelistDoc.exists();
+    const data = whitelistDoc.data();
+    const role = (data?.role as WhitelistRole) || 'user';
 
-    // Update cache
-    whitelistCache.set(normalizedEmail, { result: isInFirestore, timestamp: Date.now() });
+    // Update cache with role info
+    whitelistCache.set(normalizedEmail, {
+      exists: isInFirestore,
+      role: isInFirestore ? role : undefined,
+      timestamp: Date.now()
+    });
 
     if (isInFirestore) {
-      console.log(`🔒 Whitelist check: ${normalizedEmail} → ✅ FIRESTORE`);
+      console.log(`🔒 Whitelist check: ${normalizedEmail} → ✅ FIRESTORE (role: ${role})`);
     }
 
     return isInFirestore;
   } catch (error) {
     console.error('Error checking Firestore whitelist:', error);
+    return false;
+  }
+}
+
+/**
+ * Check if user has admin access (can access admin dashboard) - async version
+ * Checks both hardcoded ADMIN_EMAILS and Firestore roles (admin, developer, owner)
+ */
+export async function isAdminAsync(email: string | null | undefined): Promise<boolean> {
+  if (!email) return false;
+
+  const normalizedEmail = email.toLowerCase().trim();
+
+  // Check hardcoded admin list first
+  if (ADMIN_EMAILS.some(e => e.toLowerCase() === normalizedEmail)) {
+    return true;
+  }
+
+  // Check cache for role
+  const cached = whitelistCache.get(normalizedEmail);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.exists && cached.role !== undefined && ADMIN_ROLES.includes(cached.role as AdminRole);
+  }
+
+  // Check Firestore for role
+  try {
+    const whitelistRef = doc(db, 'whitelist', normalizedEmail);
+    const whitelistDoc = await getDoc(whitelistRef);
+
+    if (!whitelistDoc.exists()) {
+      whitelistCache.set(normalizedEmail, { exists: false, timestamp: Date.now() });
+      return false;
+    }
+
+    const data = whitelistDoc.data();
+    const role = (data?.role as WhitelistRole) || 'user';
+
+    // Update cache
+    whitelistCache.set(normalizedEmail, {
+      exists: true,
+      role,
+      timestamp: Date.now()
+    });
+
+    const hasAdminRole = ADMIN_ROLES.includes(role as AdminRole);
+    if (hasAdminRole) {
+      console.log(`🔒 Admin check: ${normalizedEmail} → ✅ HAS ADMIN ROLE (${role})`);
+    }
+
+    return hasAdminRole;
+  } catch (error) {
+    console.error('Error checking admin role:', error);
     return false;
   }
 }

@@ -158,7 +158,7 @@ function SuccessContent() {
             </button>
           </div>
           <p className="text-white/50 text-sm mt-4">
-            If the problem persists, please email support@busypreacher.com
+            If the problem persists, please email thebusychristianapp@gmail.com
           </p>
         </>
       )}

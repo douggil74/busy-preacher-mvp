@@ -91,27 +91,40 @@ export function AddPrayerModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-white/10 bg-slate-900/95 backdrop-blur-xl p-6 shadow-2xl">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)' }}
+    >
+      <div
+        className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto scrollbar-hide rounded-2xl p-6 shadow-2xl"
+        style={{
+          backgroundColor: 'var(--card-bg)',
+          border: '1px solid var(--card-border)',
+        }}
+      >
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 text-white/60 hover:text-white text-2xl w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 transition-all"
+          className="absolute top-6 right-6 text-2xl w-8 h-8 flex items-center justify-center rounded-lg transition-all"
+          style={{ color: 'var(--text-secondary)' }}
         >
           ×
         </button>
 
         <div className="mb-6 pr-10">
-          <h2 className={`${playfair.className} text-3xl font-bold mb-2 ${isAnswering ? 'text-green-400' : 'text-[#FFD966]'}`}>
-            {isAnswering 
-              ? '✅ Mark Prayer as Answered' 
-              : editingPrayer 
-                ? '✏️ Edit Prayer' 
+          <h2
+            className={`${playfair.className} text-3xl font-bold mb-2`}
+            style={{ color: isAnswering ? '#22c55e' : 'var(--accent-color)' }}
+          >
+            {isAnswering
+              ? '✅ Mark Prayer as Answered'
+              : editingPrayer
+                ? '✏️ Edit Prayer'
                 : '🙏 Add New Prayer'
             }
           </h2>
-          <p className="text-white/60 text-sm">
-            {isAnswering 
-              ? 'Share how God answered this prayer' 
+          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+            {isAnswering
+              ? 'Share how God answered this prayer'
               : 'Bring your requests to the Lord with thanksgiving'
             }
           </p>
@@ -120,7 +133,7 @@ export function AddPrayerModal({
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Title */}
           <div>
-            <label htmlFor="title" className="block text-sm font-semibold text-white/90 mb-2">
+            <label htmlFor="title" className="block text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
               Prayer Request *
             </label>
             <input
@@ -138,7 +151,7 @@ export function AddPrayerModal({
           {/* Description */}
           {!isAnswering && (
             <div>
-              <label htmlFor="description" className="block text-sm font-semibold text-white/90 mb-2">
+              <label htmlFor="description" className="block text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
                 Details (Optional)
               </label>
               <textarea
@@ -155,7 +168,7 @@ export function AddPrayerModal({
           {/* Answer Notes */}
           {isAnswering && (
             <div>
-              <label htmlFor="answerNotes" className="block text-sm font-semibold text-green-400 mb-2">
+              <label htmlFor="answerNotes" className="block text-sm font-semibold text-green-500 mb-2">
                 How God Answered This Prayer
               </label>
               <textarea
@@ -164,7 +177,8 @@ export function AddPrayerModal({
                 onChange={(e) => setAnswerNotes(e.target.value)}
                 placeholder="Share how God answered this prayer..."
                 rows={4}
-                className="w-full rounded-2xl border-2 border-green-400/30 bg-green-900/20 px-4 py-3 text-base outline-none text-green-300 placeholder:text-green-700 focus:ring-2 focus:ring-green-400/50 focus:border-green-400 transition resize-none"
+                className="w-full rounded-2xl border-2 border-green-500/30 bg-green-500/10 px-4 py-3 text-base outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 transition resize-none"
+                style={{ color: 'var(--text-primary)' }}
               />
             </div>
           )}
@@ -172,7 +186,7 @@ export function AddPrayerModal({
           {/* Tags */}
           {!isAnswering && (
             <div>
-              <label className="block text-sm font-semibold text-white/90 mb-3">
+              <label className="block text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
                 Categories
               </label>
               <div className="flex flex-wrap gap-2 mb-3">
@@ -181,19 +195,24 @@ export function AddPrayerModal({
                     key={tag}
                     type="button"
                     onClick={() => toggleTag(tag)}
-                    className={`
-                      rounded-full px-3 py-1.5 text-sm border-2 transition-all font-medium
-                      ${selectedTags.includes(tag)
-                        ? 'bg-[#FFD966]/20 border-[#FFD966] text-[#FFD966]'
-                        : 'border-white/10 bg-white/5 text-white/60 hover:border-white/20'
-                      }
-                    `}
+                    className="rounded-full px-3 py-1.5 text-sm transition-all font-medium"
+                    style={{
+                      backgroundColor: selectedTags.includes(tag)
+                        ? 'color-mix(in srgb, var(--accent-color) 20%, transparent)'
+                        : 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
+                      border: selectedTags.includes(tag)
+                        ? '2px solid var(--accent-color)'
+                        : '2px solid var(--card-border)',
+                      color: selectedTags.includes(tag)
+                        ? 'var(--accent-color)'
+                        : 'var(--text-secondary)',
+                    }}
                   >
                     {tag}
                   </button>
                 ))}
               </div>
-              
+
               {/* Add custom tag */}
               <div className="flex gap-2">
                 <input
@@ -202,12 +221,22 @@ export function AddPrayerModal({
                   onChange={(e) => setCustomTag(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomTag())}
                   placeholder="Add custom category..."
-                  className="flex-1 rounded-2xl border-2 border-white/10 bg-white/5 px-4 py-2 text-sm outline-none text-white placeholder:text-white/40 focus:ring-2 focus:ring-[#FFD966]/50 focus:border-[#FFD966] transition"
+                  className="flex-1 rounded-2xl px-4 py-2 text-sm outline-none transition"
+                  style={{
+                    backgroundColor: 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
+                    border: '2px solid var(--card-border)',
+                    color: 'var(--text-primary)',
+                  }}
                 />
                 <button
                   type="button"
                   onClick={addCustomTag}
-                  className="btn rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80 hover:bg-white/10 transition-colors"
+                  className="rounded-2xl px-4 py-2 text-sm transition-colors"
+                  style={{
+                    backgroundColor: 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
+                    border: '1px solid var(--card-border)',
+                    color: 'var(--text-secondary)',
+                  }}
                 >
                   Add
                 </button>
@@ -218,20 +247,27 @@ export function AddPrayerModal({
           {/* ✅ NEW: Share with Community */}
           {!isAnswering && (
             <div className="pt-3">
-              <div className="bg-gradient-to-r from-yellow-400/10 to-amber-400/10 border-2 border-yellow-400/30 rounded-xl p-4">
+              <div
+                className="rounded-xl p-4"
+                style={{
+                  background: 'linear-gradient(135deg, color-mix(in srgb, var(--accent-color) 12%, transparent) 0%, transparent 100%)',
+                  border: '2px solid color-mix(in srgb, var(--accent-color) 30%, transparent)',
+                }}
+              >
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={isShared}
                     onChange={() => setIsShared(!isShared)}
-                    className="w-5 h-5 accent-yellow-400 cursor-pointer"
+                    className="w-5 h-5 cursor-pointer"
+                    style={{ accentColor: 'var(--accent-color)' }}
                   />
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-white font-semibold">Share with Community Prayer Network</span>
+                      <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>Share with Community Prayer Network</span>
                       <span className="text-lg">🙏</span>
                     </div>
-                    <p className="text-white/60 text-xs mt-1">
+                    <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
                       Let others pray alongside you and receive encouragement
                     </p>
                   </div>
@@ -243,7 +279,7 @@ export function AddPrayerModal({
           {/* Linked Passage */}
           {!isAnswering && (
             <div>
-              <label htmlFor="linkedPassage" className="block text-sm font-semibold text-white/90 mb-2 mt-4">
+              <label htmlFor="linkedPassage" className="block text-sm font-semibold mb-2 mt-4" style={{ color: 'var(--text-primary)' }}>
                 Link to Scripture (Optional)
               </label>
               <input
@@ -254,7 +290,7 @@ export function AddPrayerModal({
                 placeholder="e.g., Philippians 4:6-7, Psalm 23..."
                 className="input"
               />
-              <p className="mt-1.5 text-xs text-white/50">
+              <p className="mt-1.5 text-xs" style={{ color: 'var(--text-secondary)' }}>
                 Link this prayer to a Bible passage for context
               </p>
             </div>
@@ -265,19 +301,27 @@ export function AddPrayerModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 btn rounded-2xl border border-white/10 bg-white/5 px-6 py-3 text-white/80 hover:bg-white/10 transition-colors"
+              className="flex-1 rounded-2xl px-6 py-3 transition-colors"
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
+                border: '1px solid var(--card-border)',
+                color: 'var(--text-secondary)',
+              }}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className={`
-                flex-1 btn rounded-2xl px-6 py-3 font-semibold transition-all
-                ${isAnswering
-                  ? 'border-2 border-green-400/30 bg-green-400/10 text-green-400 hover:bg-green-400/20'
-                  : 'border-2 border-[#FFD966] bg-[#FFD966]/10 text-[#FFD966] hover:bg-[#FFD966]/20'
-                }
-              `}
+              className="flex-1 rounded-2xl px-6 py-3 font-semibold transition-all hover:scale-[1.02]"
+              style={{
+                backgroundColor: isAnswering
+                  ? 'rgba(34, 197, 94, 0.15)'
+                  : 'color-mix(in srgb, var(--accent-color) 15%, transparent)',
+                border: isAnswering
+                  ? '2px solid rgba(34, 197, 94, 0.3)'
+                  : '2px solid var(--accent-color)',
+                color: isAnswering ? '#22c55e' : 'var(--accent-color)',
+              }}
             >
               {isAnswering ? 'Mark as Answered' : editingPrayer ? 'Save Changes' : 'Add Prayer'}
             </button>

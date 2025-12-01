@@ -348,7 +348,14 @@ export const LexiconPopover = {
           width: pos?.width ?? 360,
         }}
       >
-        <div className="rounded-lg border border-white/15 bg-zinc-900 light:bg-white p-3 shadow-xl text-white light:text-black relative">
+        <div
+          className="rounded-xl p-4 shadow-xl relative"
+          style={{
+            backgroundColor: 'var(--card-bg)',
+            border: '1px solid var(--card-border)',
+            color: 'var(--text-primary)',
+          }}
+        >
           {/* Close button - always visible */}
           <button
             onClick={() => {
@@ -356,7 +363,7 @@ export const LexiconPopover = {
               ctx.setAnchor(null);
               ctx.setEntry(null);
             }}
-            className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full bg-red-500 hover:bg-red-600 text-white font-bold text-lg"
+            className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full bg-red-500 hover:bg-red-600 text-white font-bold text-lg transition-colors"
             aria-label="Close"
           >
             ✕
@@ -364,46 +371,46 @@ export const LexiconPopover = {
 
           <div className="flex items-center justify-between pr-8">
             <div className="text-sm">
-              <span className="font-semibold">Word study</span>{" "}
-              <span className="text-white/60 light:text-black/60">
+              <span className="font-semibold" style={{ color: 'var(--accent-color)' }}>Word study</span>{" "}
+              <span style={{ color: 'var(--text-secondary)' }}>
                 ({ctx.openTerm})
               </span>
               {ctx.isMobile && (
-                <span className="ml-2 text-yellow-400 font-mono text-xs">
+                <span className="ml-2 font-mono text-xs" style={{ color: 'var(--accent-color)' }}>
                   {countdown}s
                 </span>
               )}
             </div>
           </div>
 
-          <div className="mt-2 text-sm">
-            {busy && <p className="text-white/60 light:text-black/60">Looking up…</p>}
+          <div className="mt-3 text-sm">
+            {busy && <p style={{ color: 'var(--text-secondary)' }}>Looking up…</p>}
             {ctx.entry?.error && <p className="text-red-500">{ctx.entry.error}</p>}
             {showEssentials && (
-              <div className="space-y-1">
-                <p className="text-white/80 light:text-black/80">
+              <div className="space-y-2">
+                <p style={{ color: 'var(--text-secondary)' }}>
                   {ctx.entry!.language && (
-                    <span className="font-medium">{ctx.entry!.language}</span>
+                    <span className="font-medium" style={{ color: 'var(--text-primary)' }}>{ctx.entry!.language}</span>
                   )}
                   {ctx.entry!.language && ctx.entry!.strongs && <span> · </span>}
                   {ctx.entry!.strongs && (
-                    <span className="font-mono">Strong's {ctx.entry!.strongs}</span>
+                    <span className="font-mono" style={{ color: 'var(--accent-color)' }}>Strong's {ctx.entry!.strongs}</span>
                   )}
                 </p>
                 {ctx.entry!.definition && (
-                  <p>
-                    <span className="font-medium">Definition:</span>{" "}
+                  <p style={{ color: 'var(--text-primary)' }}>
+                    <span className="font-medium" style={{ color: 'var(--accent-color)' }}>Definition:</span>{" "}
                     {ctx.entry!.definition}
                   </p>
                 )}
               </div>
             )}
             {!busy && (!ctx.entry || ctx.entry.needsMoreInfo) && !ctx.entry?.error && (
-              <p className="text-white/70 light:text-black/60">No entry found.</p>
+              <p style={{ color: 'var(--text-secondary)' }}>No entry found.</p>
             )}
-            
+
             {ctx.isMobile && !busy && (
-              <p className="text-white/50 light:text-black/50 text-xs mt-3 pt-2 border-t border-white/10">
+              <p className="text-xs mt-3 pt-2" style={{ color: 'var(--text-secondary)', borderTop: '1px solid var(--card-border)' }}>
                 Auto-closes in {countdown}s • Tap outside to close now
               </p>
             )}

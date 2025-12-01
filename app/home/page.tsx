@@ -10,6 +10,7 @@ import { Playfair_Display, Nunito_Sans } from "next/font/google";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import TodaysReadingWidget from "@/components/TodaysReadingWidget";
+import DailyVerseCard from "@/components/DailyVerseCard";
 import { useStudyStyle } from "@/hooks/useStudyStyle";
 import { useStudyJourney } from "@/hooks/useStudyJourney";
 import { EnhancedOnboarding } from "@/components/EnhancedOnboarding";
@@ -434,18 +435,26 @@ useEffect(() => {
     }
   }, []);
   
+  // Check onboarding status - wait for auth to load if user is signed in
   useEffect(() => {
+    // Check localStorage first
     const savedName = localStorage.getItem("bc-user-name");
     const savedStyle = localStorage.getItem("bc-style");
     const onboardingComplete = localStorage.getItem("bc-onboarding-complete");
 
+    // If we have local preferences, use them immediately
     if ((savedName && savedStyle) || onboardingComplete === "true") {
       setUserName(savedName || "Friend");
       setIsOnboarded(true);
-    } else {
+    } else if (user?.preferences?.onboardingComplete) {
+      // If user has preferences in Firestore, skip onboarding
+      setUserName(user.firstName || "Friend");
+      setIsOnboarded(true);
+    } else if (!user) {
+      // No user and no local preferences - show onboarding
       setShowOnboarding(true);
     }
-  }, []);
+  }, [user]);
 
   // Show trial welcome modal for new trial users (only on web, not iOS app)
   useEffect(() => {
@@ -1031,20 +1040,51 @@ const handleEnhancedOnboardingComplete = async (data: {
   // Capitalize name
   const capitalizedName = capitalizeName(data.name);
 
-  // Save core preferences
+  // Save core preferences to localStorage
   localStorage.setItem("bc-user-name", capitalizedName);
   localStorage.setItem("bc-style", data.studyStyle);
   localStorage.setItem("bc-show-devotional", String(data.enableDevotional));
   localStorage.setItem("bc-show-reading-plan", String(data.enableReadingPlan));
   localStorage.setItem("bc-onboarding-complete", "true");
+  localStorage.setItem("onboarding_completed", "true");
 
   // Save new preferences
   localStorage.setItem("bc-study-goal", data.studyGoal);
   localStorage.setItem("bc-weekly-frequency", String(data.weeklyFrequency));
   localStorage.setItem("bc-enable-reminders", String(data.enableReminders));
 
-  // Handle email signup if provided
-  if (data.email && data.email.trim()) {
+  // Save preferences to Firestore (so they persist across devices/sign-ins)
+  if (user?.uid) {
+    try {
+      const { doc, setDoc } = await import('firebase/firestore');
+      const { db } = await import('@/lib/firebase');
+
+      await setDoc(
+        doc(db, 'users', user.uid),
+        {
+          firstName: capitalizedName,
+          fullName: capitalizedName,
+          preferences: {
+            studyStyle: data.studyStyle,
+            studyGoal: data.studyGoal,
+            weeklyFrequency: data.weeklyFrequency,
+            enableDevotional: data.enableDevotional,
+            enableReadingPlan: data.enableReadingPlan,
+            enableReminders: data.enableReminders,
+            onboardingComplete: true,
+          }
+        },
+        { merge: true }
+      );
+      console.log('Saved preferences to Firestore');
+    } catch (error) {
+      console.error('Failed to save preferences to Firestore:', error);
+    }
+  }
+
+  // Handle email signup if provided AND not already subscribed
+  const alreadySubscribed = localStorage.getItem("bc-subscribed") === "true";
+  if (data.email && data.email.trim() && !alreadySubscribed) {
     try {
       await fetch("/api/subscribe", {
         method: "POST",
@@ -1098,7 +1138,7 @@ const handleKeywordResultSelect = (reference: string) => {
   return (
     <RequireAuth>
     <Paywall>
-    <main className="container">
+    <main className="px-6 pt-10 pb-8 max-w-4xl mx-auto relative">
       {pastorNote && isOnboarded && (
         <EncouragingBanner message={pastorNote} />
       )}
@@ -1114,75 +1154,45 @@ const handleKeywordResultSelect = (reference: string) => {
 
 
       {isOnboarded && !passageRef && !theme && !passageOutline && !themeOutline && !combinedOutline && (
-        <section className="card card-highlight mb-8 max-w-2xl mx-auto">
-          <div className="text-center mb-6">
-            <h2 className={`${nunitoSans.className} text-3xl font-bold mb-3 text-white`}>
+        <section
+          className="rounded-2xl p-6 mb-8 relative overflow-hidden glow-hover cursor-pointer"
+          style={{
+            background: 'linear-gradient(135deg, color-mix(in srgb, var(--accent-color) 15%, transparent) 0%, color-mix(in srgb, var(--accent-color) 5%, transparent) 100%)',
+            border: '1px solid color-mix(in srgb, var(--accent-color) 30%, transparent)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
+          }}
+        >
+          {/* Decorative glow */}
+          <div
+            className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl opacity-20"
+            style={{ backgroundColor: 'var(--accent-color)' }}
+          />
+
+          <div className="relative z-10 text-center mb-6">
+            <h2 className={`${nunitoSans.className} text-2xl md:text-3xl font-bold mb-3`} style={{ color: 'var(--text-primary)' }}>
               {personalGreeting}
             </h2>
-            <p className="text-white/80 text-lg leading-relaxed mb-4">
+            <p className="text-lg leading-relaxed mb-4" style={{ color: 'var(--text-secondary)' }}>
               {userName}, {studyPrompt}
             </p>
           </div>
 
-          {/* Quick Navigation */}
-          <div
-            className="flex gap-3 overflow-x-auto py-3 mb-6 -mx-2 px-2 justify-center flex-wrap"
-            style={{
-              scrollbarWidth: 'none'
-            }}
-          >
-            <button
-              onClick={() => router.push('/pastoral-guidance')}
-              className="rounded-2xl border-2 border-yellow-400 bg-yellow-400/10 px-5 py-2 text-sm font-semibold text-yellow-400 hover:bg-yellow-400/20 transition-all whitespace-nowrap"
-            >
-              💬 Ask the Pastor
-            </button>
-            <button
-              onClick={() => router.push('/prayer')}
-              className="rounded-2xl border-2 border-yellow-400 bg-yellow-400/10 px-5 py-2 text-sm font-semibold text-yellow-400 hover:bg-yellow-400/20 transition-all whitespace-nowrap"
-            >
-              🙏 Prayer Community
-            </button>
-            <button
-              onClick={() => document.getElementById('devotion-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-              className="rounded-2xl border-2 border-yellow-400 bg-yellow-400/10 px-5 py-2 text-sm font-semibold text-yellow-400 hover:bg-yellow-400/20 transition-all whitespace-nowrap"
-            >
-              📖 Create Devotion
-            </button>
-            <button
-              onClick={() => document.getElementById('keyword-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-              className="rounded-2xl border-2 border-yellow-400 bg-yellow-400/10 px-5 py-2 text-sm font-semibold text-yellow-400 hover:bg-yellow-400/20 transition-all whitespace-nowrap"
-            >
-              🔍 Keyword Search
-            </button>
-            <button
-              onClick={() => document.getElementById('ol-study')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-              className="rounded-2xl border-2 border-yellow-400 bg-yellow-400/10 px-5 py-2 text-sm font-semibold text-yellow-400 hover:bg-yellow-400/20 transition-all whitespace-nowrap"
-            >
-              📚 Word Lookup
-            </button>
+          {/* Daily Verse Card */}
+          <div className="mb-6 relative z-10">
+            <DailyVerseCard
+              onStudyVerse={(reference) => {
+                setPassageRef(reference);
+                document.getElementById('devotion-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+            />
           </div>
 
-          {!showReadingPlan && (
-            <div className="mb-6 text-center">
-              <button
-                onClick={() => {
-                  setShowReadingPlan(true);
-                  localStorage.setItem("bc-show-reading-plan", "true");
-                }}
-                className="btn-secondary inline-flex items-center gap-2"
-              >
-                <span>📖</span>
-                Show Daily Reading Plan
-              </button>
-            </div>
-          )}
-
           {pattern && pattern.totalStudies > 0 && (
-            <div className="mb-6">
+            <div className="mb-6 relative z-10">
               <button
                 onClick={() => setShowJourney(!showJourney)}
-                className="flex items-center gap-2 text-sm text-yellow-400 hover:text-yellow-300 transition-colors mb-3"
+                className="flex items-center gap-2 text-sm transition-colors mb-3"
+                style={{ color: 'var(--accent-color)' }}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -1200,38 +1210,29 @@ const handleKeywordResultSelect = (reference: string) => {
               )}
             </div>
           )}
-
-          {/* Daily Reading Plan Widget */}
-          {showReadingPlan && (
-            <div className="mb-6 relative">
-              <button
-                onClick={handleCloseReadingPlan}
-                className="absolute top-2 right-2 z-10 text-white/50 hover:text-white/80 transition-colors p-1"
-                aria-label="Hide reading plan"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              <TodaysReadingWidget />
-            </div>
-          )}
         </section>
       )}
 
       {/* SECTION 1: Create Your Own Devotion */}
-      <div id="devotion-section" className="mb-4 max-w-2xl mx-auto scroll-mt-20">
-        <h2 className={`${nunitoSans.className} text-xl font-semibold text-yellow-400 mb-1`}>
+      <div id="devotion-section" className="mb-4 scroll-mt-20">
+        <h2 className={`${nunitoSans.className} text-xl font-semibold mb-1`} style={{ color: 'var(--accent-color)' }}>
           Create Your Own Devotion
         </h2>
-        <p className="text-white/60 text-sm">
+        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
           Generate AI-powered Bible studies with pastoral insights, practical applications, and cross-references
         </p>
       </div>
 
-      <section className="card section-spacing">
-        <div className="mb-6 pb-5 border-b border-white/10">
-          <p className="text-base text-white/80">{studyPrompt || "What's on your heart today?"}</p>
+      <section
+        className="rounded-2xl p-6 mb-8 glow-hover"
+        style={{
+          backgroundColor: 'var(--card-bg)',
+          border: '1px solid var(--card-border)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
+        }}
+      >
+        <div className="mb-6 pb-5" style={{ borderBottom: '1px solid var(--card-border)' }}>
+          <p className="text-base" style={{ color: 'var(--text-secondary)' }}>{studyPrompt || "What's on your heart today?"}</p>
         </div>
 
         {savedStudies.length > 0 && (
@@ -1596,10 +1597,10 @@ const handleKeywordResultSelect = (reference: string) => {
 
       {/* SECTION 2: Keyword Search */}
       <div id="keyword-section" className="mb-4 max-w-2xl mx-auto scroll-mt-20">
-        <h2 className={`${nunitoSans.className} text-xl font-semibold text-yellow-400 mb-1`}>
+        <h2 className={`${nunitoSans.className} text-xl font-semibold mb-1`} style={{ color: 'var(--accent-color)' }}>
           Keyword Search
         </h2>
-        <p className="text-white/60 text-sm">
+        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
           Search all of Scripture by topic, theme, or specific word to discover relevant passages
         </p>
       </div>
@@ -1675,10 +1676,10 @@ const handleKeywordResultSelect = (reference: string) => {
 
       {/* SECTION 3: Strong's Word Lookup */}
       <div className="mb-4 max-w-2xl mx-auto">
-        <h2 className={`${nunitoSans.className} text-xl font-semibold text-yellow-400 mb-1`}>
+        <h2 className={`${nunitoSans.className} text-xl font-semibold mb-1`} style={{ color: 'var(--accent-color)' }}>
           Strong's Word Lookup
         </h2>
-        <p className="text-white/60 text-sm">
+        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
           Explore Hebrew and Greek word meanings with Strong's concordance definitions
         </p>
       </div>
@@ -1715,12 +1716,6 @@ const handleKeywordResultSelect = (reference: string) => {
                 </svg>
               </button>
             )}
-            <Link
-              href={`/deep-study?passage=${encodeURIComponent(bpRef.trim())}`}
-              className={`rounded-lg bg-yellow-400/20 border border-yellow-400 px-4 py-2 text-sm hover:bg-yellow-400/30 transition-colors ${!bpRef.trim() ? "opacity-50 pointer-events-none" : ""}`}
-            >
-              Study Deeper
-            </Link>
             <button
               onClick={() => {
                 setBpRef("");
@@ -1745,8 +1740,7 @@ const handleKeywordResultSelect = (reference: string) => {
           {!bpText ? (
             <p className="text-white/60 text-sm">
               Enter a reference and click <span className="font-semibold">Get ESV</span>. Hover any word for a
-              simple, plain-English original language note; click to pin/unpin. Use{" "}
-              <span className="font-semibold">Study Deeper</span> for commentaries and cross-references.
+              simple, plain-English original language note; click to pin/unpin.
             </p>
           ) : (
             <article className="whitespace-pre-wrap text-[1.05rem] leading-7">
@@ -1773,11 +1767,13 @@ const handleKeywordResultSelect = (reference: string) => {
 {activeWord && popoverPos && !isMobile && (
         <div
           ref={popoverRef}
-          className="hover-popover pointer-events-none fixed z-50 w-[420px] max-w-[90vw] rounded-2xl shadow-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700"
+          className="hover-popover pointer-events-none fixed z-50 w-[420px] max-w-[90vw] rounded-2xl shadow-2xl"
           style={{
             left: popoverPos.x,
             top: popoverPos.y,
             cursor: popoverPinned ? (isDragging ? 'grabbing' : 'grab') : 'default',
+            backgroundColor: 'var(--card-bg)',
+            border: '1px solid var(--card-border)',
           }}
         >
           <div
@@ -1788,17 +1784,17 @@ const handleKeywordResultSelect = (reference: string) => {
             <div className="flex items-start justify-between gap-3 mb-3">
               <div className="flex-1">
                 {popoverPinned && (
-                  <div className="text-xs text-slate-500 dark:text-slate-400 mb-1 flex items-center gap-1">
+                  <div className="text-xs mb-1 flex items-center gap-1" style={{ color: 'var(--text-secondary)' }}>
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
                     </svg>
                     <span>Drag to move</span>
                   </div>
                 )}
-                <h3 className="text-2xl font-serif text-slate-900 dark:text-white mb-1">
+                <h3 className="text-2xl font-serif mb-1" style={{ color: 'var(--text-primary)' }}>
                   {hoverData?.lemma ?? activeWord}
                 </h3>
-                <div className="text-sm font-semibold text-orange-600 dark:text-orange-400">
+                <div className="text-sm font-semibold" style={{ color: 'var(--accent-color)' }}>
                   STRONG'S NUMBER: {hoverData?.strongs ?? "..."}
                 </div>
               </div>
@@ -1807,7 +1803,11 @@ const handleKeywordResultSelect = (reference: string) => {
                   e.stopPropagation();
                   setPopoverPinned((p) => !p);
                 }}
-                className="rounded-lg px-2.5 py-1 text-xs font-medium transition-colors bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 shrink-0"
+                className="rounded-lg px-2.5 py-1 text-xs font-medium transition-colors shrink-0"
+                style={{
+                  backgroundColor: 'color-mix(in srgb, var(--text-primary) 10%, transparent)',
+                  color: 'var(--text-secondary)',
+                }}
               >
                 {popoverPinned ? "📌 Pinned" : "📍 Pin"}
               </button>
@@ -1815,45 +1815,56 @@ const handleKeywordResultSelect = (reference: string) => {
 
             {/* Dictionary Definition Section */}
             <div className="mb-4">
-              <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-3 pb-2 border-b border-slate-200 dark:border-slate-700">
+              <h4
+                className="text-sm font-bold mb-3 pb-2"
+                style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--card-border)' }}
+              >
                 Dictionary Definition
               </h4>
-              <div className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+              <div className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                 {hoverData?.plain ?? (hoverLoading ? "Loading definition..." : "—")}
               </div>
             </div>
 
-            {/* Search Actions */}
+            {/* Actions */}
             {hoverData && (
-              <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
-                <div className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2">
-                  SEARCH FOR
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSearchStrongs();
-                    }}
-                    className="flex-1 px-3 py-2 text-sm font-medium rounded-lg border-2 border-indigo-600 dark:border-indigo-500 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950 transition-colors"
-                  >
-                    Search for {hoverData.strongs}
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleLookupLemma();
-                    }}
-                    className="flex-1 px-3 py-2 text-sm font-medium rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors"
-                  >
-                    Lookup {hoverData.lemma}
-                  </button>
-                </div>
+              <div className="pt-4 flex gap-2" style={{ borderTop: '1px solid var(--card-border)' }}>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const text = `${hoverData.lemma} (${hoverData.strongs}): ${hoverData.plain}`;
+                    navigator.clipboard.writeText(text);
+                  }}
+                  className="px-3 py-2.5 text-sm font-medium rounded-lg transition-colors"
+                  style={{
+                    backgroundColor: 'color-mix(in srgb, var(--text-primary) 10%, transparent)',
+                    color: 'var(--text-secondary)',
+                  }}
+                  title="Copy to clipboard"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleLookupLemma();
+                  }}
+                  className="flex-1 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors"
+                  style={{
+                    backgroundColor: 'var(--accent-color)',
+                    color: 'var(--bg-color)',
+                  }}
+                >
+                  Learn More
+                </button>
               </div>
             )}
           </div>
         </div>
       )}
+
 <EnhancedOnboarding
   isOpen={showOnboarding}
   onComplete={handleEnhancedOnboardingComplete}

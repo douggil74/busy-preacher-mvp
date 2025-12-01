@@ -87,62 +87,76 @@ export default function WordStudyModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50">
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+      style={{ backgroundColor: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}
+    >
       <div
-        className="relative w-full max-w-3xl max-h-[90vh] overflow-auto bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700"
+        className="relative w-full max-w-3xl max-h-[85vh] overflow-y-auto scrollbar-hide rounded-2xl shadow-2xl"
+        style={{
+          backgroundColor: 'var(--card-bg)',
+          border: '1px solid var(--card-border)',
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 p-6 flex items-start justify-between z-10">
+        <div
+          className="sticky top-0 p-6 flex items-start justify-between z-10"
+          style={{
+            backgroundColor: 'var(--card-bg)',
+            borderBottom: '1px solid var(--card-border)',
+          }}
+        >
           <div className="flex-1">
-            <div className="text-sm text-slate-500 dark:text-slate-400 mb-1">
+            <div className="text-sm mb-1" style={{ color: 'var(--text-secondary)' }}>
               Word Study
             </div>
-            <h2 className="text-3xl font-serif text-slate-900 dark:text-white mb-2">
+            <h2 className="text-3xl font-serif mb-2" style={{ color: 'var(--text-primary)' }}>
               {studyData?.lemma || initialData?.lemma || word}
             </h2>
-            <div className="text-sm font-semibold text-orange-600 dark:text-orange-400">
+            <div className="text-sm font-semibold" style={{ color: 'var(--accent-color)' }}>
               STRONG'S NUMBER: {studyData?.strongs || initialData?.strongs || '—'}
             </div>
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="rounded-lg p-2 transition-colors"
+            style={{ color: 'var(--text-secondary)' }}
           >
-            <X className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-slate-200 dark:border-slate-700 px-6">
+        <div className="px-6" style={{ borderBottom: '1px solid var(--card-border)' }}>
           <div className="flex gap-4">
             <button
               onClick={() => setActiveTab('definition')}
-              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'definition'
-                  ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
-                  : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-              }`}
+              className="px-4 py-3 text-sm font-medium transition-colors"
+              style={{
+                borderBottom: activeTab === 'definition' ? '2px solid var(--accent-color)' : '2px solid transparent',
+                color: activeTab === 'definition' ? 'var(--accent-color)' : 'var(--text-secondary)',
+              }}
             >
               Definition
             </button>
             <button
               onClick={() => setActiveTab('usage')}
-              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'usage'
-                  ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
-                  : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-              }`}
+              className="px-4 py-3 text-sm font-medium transition-colors"
+              style={{
+                borderBottom: activeTab === 'usage' ? '2px solid var(--accent-color)' : '2px solid transparent',
+                color: activeTab === 'usage' ? 'var(--accent-color)' : 'var(--text-secondary)',
+              }}
             >
               Biblical Usage
             </button>
             <button
               onClick={() => setActiveTab('references')}
-              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'references'
-                  ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
-                  : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-              }`}
+              className="px-4 py-3 text-sm font-medium transition-colors"
+              style={{
+                borderBottom: activeTab === 'references' ? '2px solid var(--accent-color)' : '2px solid transparent',
+                color: activeTab === 'references' ? 'var(--accent-color)' : 'var(--text-secondary)',
+              }}
             >
               Cross References
             </button>
@@ -153,7 +167,10 @@ export default function WordStudyModal({
         <div className="p-6">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+              <div
+                className="animate-spin rounded-full h-8 w-8 border-b-2"
+                style={{ borderColor: 'var(--accent-color)' }}
+              />
             </div>
           ) : (
             <>
@@ -161,20 +178,32 @@ export default function WordStudyModal({
               {activeTab === 'definition' && (
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-3">
+                    <h3
+                      className="text-sm font-bold mb-3"
+                      style={{ color: 'var(--text-primary)' }}
+                    >
                       Dictionary Definition
                     </h3>
-                    <div className="text-base leading-relaxed text-slate-700 dark:text-slate-300">
+                    <div
+                      className="text-base leading-relaxed"
+                      style={{ color: 'var(--text-secondary)' }}
+                    >
                       {studyData?.plain || initialData?.plain || 'No definition available.'}
                     </div>
                   </div>
 
                   {studyData?.etymology && (
                     <div>
-                      <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-3">
+                      <h3
+                        className="text-sm font-bold mb-3"
+                        style={{ color: 'var(--text-primary)' }}
+                      >
                         Etymology
                       </h3>
-                      <div className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+                      <div
+                        className="text-sm leading-relaxed"
+                        style={{ color: 'var(--text-secondary)' }}
+                      >
                         {studyData.etymology}
                       </div>
                     </div>
@@ -182,19 +211,32 @@ export default function WordStudyModal({
 
                   {studyData?.relatedWords && studyData.relatedWords.length > 0 && (
                     <div>
-                      <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-3">
+                      <h3
+                        className="text-sm font-bold mb-3"
+                        style={{ color: 'var(--text-primary)' }}
+                      >
                         Related Words
                       </h3>
                       <div className="flex flex-wrap gap-2">
                         {studyData.relatedWords.map((related, idx) => (
                           <div
                             key={idx}
-                            className="px-3 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-950 border border-indigo-200 dark:border-indigo-800"
+                            className="px-3 py-2 rounded-lg"
+                            style={{
+                              backgroundColor: 'color-mix(in srgb, var(--accent-color) 10%, transparent)',
+                              border: '1px solid color-mix(in srgb, var(--accent-color) 30%, transparent)',
+                            }}
                           >
-                            <div className="text-sm font-medium text-indigo-900 dark:text-indigo-200">
+                            <div
+                              className="text-sm font-medium"
+                              style={{ color: 'var(--text-primary)' }}
+                            >
                               {related.word}
                             </div>
-                            <div className="text-xs text-indigo-600 dark:text-indigo-400">
+                            <div
+                              className="text-xs"
+                              style={{ color: 'var(--accent-color)' }}
+                            >
                               {related.strongs}
                             </div>
                           </div>
@@ -208,10 +250,16 @@ export default function WordStudyModal({
               {/* Usage Tab */}
               {activeTab === 'usage' && (
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-3">
+                  <h3
+                    className="text-sm font-bold mb-3"
+                    style={{ color: 'var(--text-primary)' }}
+                  >
                     How This Word is Used in Scripture
                   </h3>
-                  <div className="text-base leading-relaxed text-slate-700 dark:text-slate-300">
+                  <div
+                    className="text-base leading-relaxed"
+                    style={{ color: 'var(--text-secondary)' }}
+                  >
                     {studyData?.usage || 'Loading biblical usage examples...'}
                   </div>
                 </div>
@@ -220,7 +268,10 @@ export default function WordStudyModal({
               {/* References Tab */}
               {activeTab === 'references' && (
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-3">
+                  <h3
+                    className="text-sm font-bold mb-3"
+                    style={{ color: 'var(--text-primary)' }}
+                  >
                     Key Verses Using This Word
                   </h3>
                   {studyData?.references && studyData.references.length > 0 ? (
@@ -228,14 +279,18 @@ export default function WordStudyModal({
                       {studyData.references.map((ref, idx) => (
                         <div
                           key={idx}
-                          className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800 text-sm text-slate-700 dark:text-slate-300"
+                          className="p-3 rounded-lg text-sm"
+                          style={{
+                            backgroundColor: 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
+                            color: 'var(--text-secondary)',
+                          }}
                         >
                           {ref}
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="text-slate-600 dark:text-slate-400">
+                    <div style={{ color: 'var(--text-secondary)' }}>
                       Loading cross references...
                     </div>
                   )}
@@ -246,7 +301,13 @@ export default function WordStudyModal({
         </div>
 
         {/* Footer Actions */}
-        <div className="sticky bottom-0 bg-slate-50 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 p-6">
+        <div
+          className="sticky bottom-0 p-6"
+          style={{
+            backgroundColor: 'var(--card-bg)',
+            borderTop: '1px solid var(--card-border)',
+          }}
+        >
           <div className="flex gap-3">
             <button
               onClick={() => {
@@ -254,13 +315,22 @@ export default function WordStudyModal({
                   window.open(`https://www.blueletterbible.org/lexicon/${studyData.strongs}/`, '_blank');
                 }
               }}
-              className="flex-1 px-4 py-2 text-sm font-medium rounded-lg border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+              className="flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors"
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
+                border: '2px solid var(--card-border)',
+                color: 'var(--text-secondary)',
+              }}
             >
               View in Blue Letter Bible →
             </button>
             <button
               onClick={onClose}
-              className="flex-1 px-4 py-2 text-sm font-medium rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors"
+              className="flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors"
+              style={{
+                backgroundColor: 'var(--accent-color)',
+                color: 'var(--bg-color)',
+              }}
             >
               Close
             </button>

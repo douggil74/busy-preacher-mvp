@@ -27,12 +27,12 @@ import {
   CreditCard,
   Clock,
   DollarSign,
-  BookOpen,
   Send,
   TrendingUp,
   Calendar,
   UserCheck,
   Trash2,
+  Pencil,
 } from 'lucide-react';
 import AdminAuth from '@/components/AdminAuth';
 import SetAdminBanner from '@/components/SetAdminBanner';
@@ -45,6 +45,14 @@ interface Stats {
   content: { sermons: number };
   promoCodes: { total: number; active: number };
   moderation: { pendingPrayers: number };
+  pastoralGuidance?: {
+    totalConversations: number;
+    totalMessages: number;
+    weeklyConversations: number;
+    weeklyMessages: number;
+    helpfulCount: number;
+    notHelpfulCount: number;
+  };
 }
 
 interface PrayerRequest {
@@ -84,18 +92,12 @@ interface ActivityItem {
   timestamp: string;
 }
 
-interface Sermon {
-  id: string;
-  title: string;
-  date: string;
-  scripture: string;
-  content: string;
-}
 
 interface WhitelistEntry {
   email: string;
   addedAt: string | null;
   note?: string;
+  role?: 'owner' | 'developer' | 'admin' | 'user';
   isBuiltIn?: boolean;
 }
 
@@ -130,18 +132,18 @@ export default function AdminConsole() {
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loadingActivity, setLoadingActivity] = useState(false);
 
-  // Sermon search
-  const [sermonQuery, setSermonQuery] = useState('');
-  const [sermons, setSermons] = useState<Sermon[]>([]);
-  const [searchingSermons, setSearchingSermons] = useState(false);
-
   // Whitelist management
   const [whitelistEmails, setWhitelistEmails] = useState<WhitelistEntry[]>([]);
   const [loadingWhitelist, setLoadingWhitelist] = useState(false);
   const [newWhitelistEmail, setNewWhitelistEmail] = useState('');
   const [newWhitelistNote, setNewWhitelistNote] = useState('');
+  const [newWhitelistRole, setNewWhitelistRole] = useState<'user' | 'admin' | 'developer' | 'owner'>('user');
   const [addingWhitelist, setAddingWhitelist] = useState(false);
   const [whitelistError, setWhitelistError] = useState('');
+  const [editingWhitelistEmail, setEditingWhitelistEmail] = useState<string | null>(null);
+  const [editWhitelistRole, setEditWhitelistRole] = useState<'user' | 'admin' | 'developer' | 'owner'>('user');
+  const [editWhitelistNote, setEditWhitelistNote] = useState('');
+  const [updatingWhitelist, setUpdatingWhitelist] = useState(false);
 
   // Settings
   const [showPasswordForm, setShowPasswordForm] = useState(false);
@@ -252,23 +254,6 @@ export default function AdminConsole() {
     }
   };
 
-  // Search sermons
-  const searchSermons = async () => {
-    setSearchingSermons(true);
-    try {
-      const url = sermonQuery
-        ? `/api/admin/sermons/search?q=${encodeURIComponent(sermonQuery)}&limit=5`
-        : '/api/admin/sermons/search?limit=5';
-      const res = await fetch(url);
-      const data = await res.json();
-      setSermons(data.sermons || []);
-    } catch (error) {
-      console.error('Error searching sermons:', error);
-    } finally {
-      setSearchingSermons(false);
-    }
-  };
-
   // Fetch whitelist
   const fetchWhitelist = async () => {
     setLoadingWhitelist(true);
@@ -295,6 +280,7 @@ export default function AdminConsole() {
         body: JSON.stringify({
           email: newWhitelistEmail.toLowerCase().trim(),
           note: newWhitelistNote.trim(),
+          role: newWhitelistRole,
         }),
       });
       const data = await res.json();
@@ -303,6 +289,7 @@ export default function AdminConsole() {
       } else {
         setNewWhitelistEmail('');
         setNewWhitelistNote('');
+        setNewWhitelistRole('user');
         fetchWhitelist();
       }
     } catch (error) {
@@ -321,6 +308,50 @@ export default function AdminConsole() {
       fetchWhitelist();
     } catch (error) {
       console.error('Error removing from whitelist:', error);
+    }
+  };
+
+  // Start editing a whitelist entry
+  const startEditingWhitelist = (entry: WhitelistEntry) => {
+    setEditingWhitelistEmail(entry.email);
+    setEditWhitelistRole((entry.role || 'user') as 'user' | 'admin' | 'developer' | 'owner');
+    setEditWhitelistNote(entry.note || '');
+  };
+
+  // Cancel editing
+  const cancelEditingWhitelist = () => {
+    setEditingWhitelistEmail(null);
+    setEditWhitelistRole('user');
+    setEditWhitelistNote('');
+  };
+
+  // Update whitelist entry
+  const updateWhitelist = async () => {
+    if (!editingWhitelistEmail) return;
+    setUpdatingWhitelist(true);
+    setWhitelistError('');
+    try {
+      const res = await fetch('/api/admin/whitelist', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: editingWhitelistEmail,
+          role: editWhitelistRole,
+          note: editWhitelistNote,
+        }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        setWhitelistError(data.error);
+      } else {
+        cancelEditingWhitelist();
+        fetchWhitelist();
+      }
+    } catch (error) {
+      setWhitelistError('Failed to update entry');
+      console.error('Error updating whitelist:', error);
+    } finally {
+      setUpdatingWhitelist(false);
     }
   };
 
@@ -489,11 +520,10 @@ export default function AdminConsole() {
 
         <div className="max-w-7xl mx-auto px-4 py-4">
           {/* Live Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
             <StatCard label="Total Users" value={stats?.users.total || 0} icon={<Users className="w-4 h-4" />} color="blue" loading={loadingStats} />
             <StatCard label="Today" value={stats?.users.recentSignups || 0} icon={<TrendingUp className="w-4 h-4" />} color="green" suffix=" new" loading={loadingStats} />
             <StatCard label="Subscriptions" value={stats?.subscriptions.total || 0} icon={<DollarSign className="w-4 h-4" />} color="purple" loading={loadingStats} />
-            <StatCard label="Sermons" value={stats?.content.sermons || 0} icon={<BookOpen className="w-4 h-4" />} color="amber" loading={loadingStats} />
             <StatCard label="Pending" value={stats?.moderation.pendingPrayers || 0} icon={<Bell className="w-4 h-4" />} color={stats?.moderation.pendingPrayers ? 'red' : 'green'} loading={loadingStats} />
             <StatCard label="Promos" value={`${stats?.promoCodes.active || 0}/${stats?.promoCodes.total || 0}`} icon={<Gift className="w-4 h-4" />} color="teal" loading={loadingStats} />
           </div>
@@ -595,6 +625,17 @@ export default function AdminConsole() {
                       className="flex-1 px-3 py-2 rounded-lg text-sm"
                       style={{ backgroundColor: 'var(--input-bg)', border: '1px solid var(--input-border)', color: 'var(--text-primary)' }}
                     />
+                    <select
+                      value={newWhitelistRole}
+                      onChange={(e) => setNewWhitelistRole(e.target.value as 'user' | 'admin' | 'developer' | 'owner')}
+                      className="px-3 py-2 rounded-lg text-sm"
+                      style={{ backgroundColor: 'var(--input-bg)', border: '1px solid var(--input-border)', color: 'var(--text-primary)' }}
+                    >
+                      <option value="user">User (Premium only)</option>
+                      <option value="admin">Admin</option>
+                      <option value="developer">Developer</option>
+                      <option value="owner">Owner</option>
+                    </select>
                     <button onClick={addToWhitelist} disabled={addingWhitelist || !newWhitelistEmail.trim()} className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg text-sm font-medium disabled:opacity-50">
                       {addingWhitelist ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Add'}
                     </button>
@@ -617,29 +658,97 @@ export default function AdminConsole() {
                   <p className="text-center py-4 text-sm" style={{ color: 'var(--text-secondary)' }}>No emails in whitelist</p>
                 ) : (
                   <div className="space-y-2">
-                    {whitelistEmails.map((entry) => (
-                      <div key={entry.email} className="flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: 'var(--card-hover)' }}>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium text-sm truncate" style={{ color: 'var(--text-primary)' }}>{entry.email}</p>
-                            {entry.isBuiltIn && <span className="text-xs px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400">built-in</span>}
+                    {whitelistEmails.map((entry) => {
+                      const roleColors: Record<string, string> = {
+                        owner: 'bg-purple-500/20 text-purple-400',
+                        developer: 'bg-blue-500/20 text-blue-400',
+                        admin: 'bg-amber-500/20 text-amber-400',
+                        user: 'bg-green-500/20 text-green-400',
+                      };
+                      const role = entry.role || 'user';
+                      const isEditing = editingWhitelistEmail === entry.email;
+
+                      // Edit mode
+                      if (isEditing) {
+                        return (
+                          <div key={entry.email} className="p-3 rounded-lg space-y-2" style={{ backgroundColor: 'var(--card-hover)', border: '1px solid var(--accent-primary, #3b82f6)' }}>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>{entry.email}</p>
+                              <span className="text-xs px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400">editing</span>
+                            </div>
+                            <div className="flex gap-2">
+                              <select
+                                value={editWhitelistRole}
+                                onChange={(e) => setEditWhitelistRole(e.target.value as 'user' | 'admin' | 'developer' | 'owner')}
+                                className="flex-1 px-2 py-1.5 rounded text-sm"
+                                style={{ backgroundColor: 'var(--input-bg)', border: '1px solid var(--input-border)', color: 'var(--text-primary)' }}
+                              >
+                                <option value="user">User (Premium only)</option>
+                                <option value="admin">Admin</option>
+                                <option value="developer">Developer</option>
+                                <option value="owner">Owner</option>
+                              </select>
+                            </div>
+                            <input
+                              type="text"
+                              value={editWhitelistNote}
+                              onChange={(e) => setEditWhitelistNote(e.target.value)}
+                              placeholder="Note (optional)"
+                              className="w-full px-2 py-1.5 rounded text-sm"
+                              style={{ backgroundColor: 'var(--input-bg)', border: '1px solid var(--input-border)', color: 'var(--text-primary)' }}
+                            />
+                            <div className="flex gap-2 justify-end">
+                              <button
+                                onClick={cancelEditingWhitelist}
+                                className="px-3 py-1 rounded text-sm"
+                                style={{ backgroundColor: 'var(--card-bg)', color: 'var(--text-primary)' }}
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                onClick={updateWhitelist}
+                                disabled={updatingWhitelist}
+                                className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm disabled:opacity-50"
+                              >
+                                {updatingWhitelist ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
+                              </button>
+                            </div>
                           </div>
-                          {entry.note && <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{entry.note}</p>}
-                          {entry.addedAt && <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>Added {new Date(entry.addedAt).toLocaleDateString()}</p>}
+                        );
+                      }
+
+                      // Display mode
+                      return (
+                        <div key={entry.email} className="flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: 'var(--card-hover)' }}>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-medium text-sm truncate" style={{ color: 'var(--text-primary)' }}>{entry.email}</p>
+                              <span className={`text-xs px-1.5 py-0.5 rounded ${roleColors[role]}`}>{role}</span>
+                              {entry.isBuiltIn && <span className="text-xs px-1.5 py-0.5 rounded bg-gray-500/20 text-gray-400">built-in</span>}
+                            </div>
+                            {entry.note && <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{entry.note}</p>}
+                            {entry.addedAt && <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>Added {new Date(entry.addedAt).toLocaleDateString()}</p>}
+                          </div>
+                          {!entry.isBuiltIn && (
+                            <div className="flex gap-1 ml-2">
+                              <button onClick={() => startEditingWhitelist(entry)} className="p-2 rounded-lg bg-blue-500/10 hover:bg-blue-500/20" title="Edit">
+                                <Pencil className="w-4 h-4 text-blue-500" />
+                              </button>
+                              <button onClick={() => removeFromWhitelist(entry.email)} className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20" title="Remove">
+                                <Trash2 className="w-4 h-4 text-red-500" />
+                              </button>
+                            </div>
+                          )}
                         </div>
-                        {!entry.isBuiltIn && (
-                          <button onClick={() => removeFromWhitelist(entry.email)} className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 ml-2" title="Remove">
-                            <Trash2 className="w-4 h-4 text-red-500" />
-                          </button>
-                        )}
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
 
-                <p className="text-xs text-center" style={{ color: 'var(--text-secondary)' }}>
-                  Whitelisted users get premium access without subscription
-                </p>
+                <div className="text-xs text-center space-y-1" style={{ color: 'var(--text-secondary)' }}>
+                  <p>Roles: <span className="text-purple-400">owner</span>, <span className="text-blue-400">developer</span>, <span className="text-amber-400">admin</span> = Admin access</p>
+                  <p><span className="text-green-400">user</span> = Premium only (no admin)</p>
+                </div>
               </div>
             </ConsolePanel>
 
@@ -719,33 +828,37 @@ export default function AdminConsole() {
               )}
             </ConsolePanel>
 
-            {/* Sermon Search */}
-            <ConsolePanel title="Sermon Search" icon={<BookOpen className="w-5 h-5" />} expanded={expandedPanel === 'sermons'} onToggle={() => togglePanel('sermons')}>
-              <div className="flex gap-2 mb-4">
-                <input type="text" value={sermonQuery} onChange={(e) => setSermonQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && searchSermons()} placeholder="Search sermons..." className="flex-1 px-3 py-2 rounded-lg text-sm" style={{ backgroundColor: 'var(--input-bg)', border: '1px solid var(--input-border)', color: 'var(--text-primary)' }} />
-                <button onClick={searchSermons} disabled={searchingSermons} className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-medium disabled:opacity-50">
-                  {searchingSermons ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Search'}
-                </button>
-              </div>
-              {sermons.length > 0 && (
-                <div className="space-y-2">
-                  {sermons.map((sermon) => (
-                    <div key={sermon.id} className="p-3 rounded-lg" style={{ backgroundColor: 'var(--card-hover)' }}>
-                      <p className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>{sermon.title}</p>
-                      <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{sermon.scripture} • {sermon.date}</p>
-                      <p className="text-xs mt-1 line-clamp-2" style={{ color: 'var(--text-secondary)' }}>{sermon.content}</p>
+            {/* Pastoral Guidance Usage */}
+            <ConsolePanel title="Pastoral Guidance" icon={<MessageCircle className="w-5 h-5" />} expanded={expandedPanel === 'messages'} onToggle={() => togglePanel('messages')}>
+              <div className="space-y-4">
+                {/* Usage Stats Grid */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--card-hover)' }}>
+                    <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>Total Conversations</p>
+                    <p className="text-2xl font-bold text-blue-400">{stats?.pastoralGuidance?.totalConversations || 0}</p>
+                  </div>
+                  <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--card-hover)' }}>
+                    <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>Total Messages</p>
+                    <p className="text-2xl font-bold text-purple-400">{stats?.pastoralGuidance?.totalMessages || 0}</p>
+                  </div>
+                  <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--card-hover)' }}>
+                    <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>This Week</p>
+                    <p className="text-2xl font-bold text-green-400">{stats?.pastoralGuidance?.weeklyConversations || 0} <span className="text-sm font-normal">convos</span></p>
+                  </div>
+                  <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--card-hover)' }}>
+                    <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>User Feedback</p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-green-400">👍 {stats?.pastoralGuidance?.helpfulCount || 0}</span>
+                      <span className="text-red-400">👎 {stats?.pastoralGuidance?.notHelpfulCount || 0}</span>
                     </div>
-                  ))}
+                  </div>
                 </div>
-              )}
-            </ConsolePanel>
-
-            {/* Pastoral Messages */}
-            <ConsolePanel title="Pastoral Messages" icon={<MessageCircle className="w-5 h-5" />} expanded={expandedPanel === 'messages'} onToggle={() => togglePanel('messages')}>
-              <div className="text-center py-6">
-                <MessageCircle className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--text-secondary)' }} />
-                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>View and respond to pastoral conversations</p>
-                <Link href="/admin/pastoral-messages" className="inline-block mt-3 px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white rounded-lg text-sm font-medium">Open Messages</Link>
+                <p className="text-xs text-center" style={{ color: 'var(--text-secondary)' }}>
+                  Anonymous usage stats only - content not visible
+                </p>
+                <Link href="/admin/pastoral-messages" className="block text-center px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white rounded-lg text-sm font-medium">
+                  View Flagged Messages
+                </Link>
               </div>
             </ConsolePanel>
 

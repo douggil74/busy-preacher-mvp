@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Playfair_Display } from 'next/font/google';
 import { isFromIOSApp } from '@/lib/platform-detector';
+import { Check, Gift, X } from 'lucide-react';
 
 // RevenueCat types - define inline to avoid import issues on web
 interface RevenueCatPackage {
@@ -12,12 +12,6 @@ interface RevenueCatPackage {
     priceString: string;
   };
 }
-
-const playfair = Playfair_Display({
-  weight: ['600', '700'],
-  subsets: ['latin'],
-  display: 'swap',
-});
 
 interface TrialWelcomeModalProps {
   isOpen: boolean;
@@ -133,57 +127,72 @@ export function TrialWelcomeModal({ isOpen, onClose, trialDaysRemaining }: Trial
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="bg-slate-900 rounded-2xl border-2 border-yellow-400/30 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)' }}
+    >
+      <div
+        className="rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto scrollbar-hide"
+        style={{
+          backgroundColor: 'var(--card-bg)',
+          border: '1px solid var(--card-border)',
+        }}
+      >
         {/* Header */}
         <div className="p-8 text-center">
-          <div className="text-6xl mb-4">7</div>
-          <h2 className={`${playfair.className} text-2xl font-bold text-yellow-400 mb-2`}>
+          <div
+            className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4"
+            style={{
+              backgroundColor: 'color-mix(in srgb, var(--accent-color) 15%, transparent)',
+              border: '2px solid var(--accent-color)',
+            }}
+          >
+            <Gift className="w-10 h-10" style={{ color: 'var(--accent-color)' }} />
+          </div>
+          <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--accent-color)' }}>
             Welcome to Your Free Trial!
           </h2>
-          <p className="text-white/70">
-            You have <span className="text-yellow-400 font-bold">{trialDaysRemaining} days</span> of full access.
+          <p style={{ color: 'var(--text-secondary)' }}>
+            You have <span className="font-bold" style={{ color: 'var(--accent-color)' }}>{trialDaysRemaining} days</span> of full access.
           </p>
         </div>
 
         {/* Features */}
         <div className="px-8 pb-6">
-          <div className="bg-white/5 rounded-xl p-4 mb-6">
-            <h3 className="text-white font-semibold mb-3">During your trial, enjoy:</h3>
+          <div
+            className="rounded-xl p-4 mb-6"
+            style={{
+              backgroundColor: 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
+            }}
+          >
+            <h3 className="font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>During your trial, enjoy:</h3>
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-white/80 text-sm">
-                <svg className="w-5 h-5 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                <span>Daily devotionals & personalized Bible study</span>
-              </div>
-              <div className="flex items-center gap-2 text-white/80 text-sm">
-                <svg className="w-5 h-5 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                <span>Ask the Pastor - compassionate AI guidance</span>
-              </div>
-              <div className="flex items-center gap-2 text-white/80 text-sm">
-                <svg className="w-5 h-5 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                <span>Deep study tools, courses & sermons</span>
-              </div>
-              <div className="flex items-center gap-2 text-white/80 text-sm">
-                <svg className="w-5 h-5 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                <span>Prayer community & spiritual support</span>
-              </div>
+              {[
+                'Daily devotionals & personalized Bible study',
+                'Ask the Pastor - compassionate AI guidance',
+                'Deep study tools, courses & sermons',
+                'Prayer community & spiritual support',
+              ].map((feature, i) => (
+                <div key={i} className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span>{feature}</span>
+                </div>
+              ))}
             </div>
           </div>
 
           {/* Subscription Info */}
-          <div className="bg-gradient-to-br from-yellow-400/10 to-orange-400/10 border border-yellow-400/30 rounded-xl p-4 mb-6">
-            <h3 className="text-yellow-400 font-semibold mb-2">
+          <div
+            className="rounded-xl p-4 mb-6"
+            style={{
+              background: 'linear-gradient(135deg, color-mix(in srgb, var(--accent-color) 12%, transparent) 0%, transparent 100%)',
+              border: '1px solid color-mix(in srgb, var(--accent-color) 30%, transparent)',
+            }}
+          >
+            <h3 className="font-semibold mb-2" style={{ color: 'var(--accent-color)' }}>
               {isNative ? 'Subscribe Now' : 'Add Payment Method (Optional)'}
             </h3>
-            <p className="text-white/70 text-sm mb-4">
+            <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
               {isNative
                 ? 'Subscribe to continue using all premium features.'
                 : 'Subscribe now and you won\'t be charged until your trial ends. Cancel anytime during the trial at no cost!'}
@@ -194,12 +203,15 @@ export function TrialWelcomeModal({ isOpen, onClose, trialDaysRemaining }: Trial
               <>
                 {isLoadingPackages ? (
                   <div className="flex justify-center py-4">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-yellow-400"></div>
+                    <div
+                      className="animate-spin rounded-full h-6 w-6 border-b-2"
+                      style={{ borderColor: 'var(--accent-color)' }}
+                    />
                   </div>
                 ) : packages.length === 0 ? (
                   <div className="text-center py-2">
-                    <p className="text-white/60 text-sm mb-2">Unable to load subscription options.</p>
-                    <button onClick={loadRevenueCatPackages} className="text-yellow-400 text-sm underline">Retry</button>
+                    <p className="text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>Unable to load subscription options.</p>
+                    <button onClick={loadRevenueCatPackages} className="text-sm underline" style={{ color: 'var(--accent-color)' }}>Retry</button>
                   </div>
                 ) : (
                   <>
@@ -209,20 +221,24 @@ export function TrialWelcomeModal({ isOpen, onClose, trialDaysRemaining }: Trial
                         <button
                           type="button"
                           onClick={() => setSelectedPlan('annual')}
-                          className={`w-full p-3 rounded-lg border transition-all text-left cursor-pointer ${
-                            selectedPlan === 'annual'
-                              ? 'border-yellow-400 bg-yellow-400/10'
-                              : 'border-white/20 bg-white/5 hover:bg-white/10'
-                          }`}
+                          className="w-full p-3 rounded-lg transition-all text-left"
+                          style={{
+                            backgroundColor: selectedPlan === 'annual'
+                              ? 'color-mix(in srgb, var(--accent-color) 15%, transparent)'
+                              : 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
+                            border: selectedPlan === 'annual'
+                              ? '2px solid var(--accent-color)'
+                              : '2px solid var(--card-border)',
+                          }}
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <span className="font-semibold text-white">Annual</span>
-                              <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full">
+                              <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>Annual</span>
+                              <span className="px-2 py-0.5 bg-green-500/20 text-green-500 text-xs rounded-full">
                                 BEST VALUE
                               </span>
                             </div>
-                            <span className="text-yellow-400 font-bold">{formatPrice(annualPackage)}/yr</span>
+                            <span className="font-bold" style={{ color: 'var(--accent-color)' }}>{formatPrice(annualPackage)}/yr</span>
                           </div>
                         </button>
                       )}
@@ -231,15 +247,19 @@ export function TrialWelcomeModal({ isOpen, onClose, trialDaysRemaining }: Trial
                         <button
                           type="button"
                           onClick={() => setSelectedPlan('monthly')}
-                          className={`w-full p-3 rounded-lg border transition-all text-left cursor-pointer ${
-                            selectedPlan === 'monthly'
-                              ? 'border-yellow-400 bg-yellow-400/10'
-                              : 'border-white/20 bg-white/5 hover:bg-white/10'
-                          }`}
+                          className="w-full p-3 rounded-lg transition-all text-left"
+                          style={{
+                            backgroundColor: selectedPlan === 'monthly'
+                              ? 'color-mix(in srgb, var(--accent-color) 15%, transparent)'
+                              : 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
+                            border: selectedPlan === 'monthly'
+                              ? '2px solid var(--accent-color)'
+                              : '2px solid var(--card-border)',
+                          }}
                         >
                           <div className="flex items-center justify-between">
-                            <span className="font-semibold text-white">Monthly</span>
-                            <span className="text-white font-bold">{formatPrice(monthlyPackage)}/mo</span>
+                            <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>Monthly</span>
+                            <span className="font-bold" style={{ color: 'var(--text-primary)' }}>{formatPrice(monthlyPackage)}/mo</span>
                           </div>
                         </button>
                       )}
@@ -251,11 +271,15 @@ export function TrialWelcomeModal({ isOpen, onClose, trialDaysRemaining }: Trial
                         if (pkg) handleIOSPurchase(pkg);
                       }}
                       disabled={isCheckingOut}
-                      className="w-full bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-slate-900 font-bold py-3 px-6 rounded-xl transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full font-bold py-3 px-6 rounded-xl transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{
+                        backgroundColor: 'var(--accent-color)',
+                        color: 'var(--bg-color)',
+                      }}
                     >
                       {isCheckingOut ? (
                         <span className="flex items-center justify-center gap-2">
-                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-900"></div>
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2" style={{ borderColor: 'var(--bg-color)' }} />
                           Processing...
                         </span>
                       ) : (
@@ -277,20 +301,24 @@ export function TrialWelcomeModal({ isOpen, onClose, trialDaysRemaining }: Trial
                       e.stopPropagation();
                       setSelectedPlan('annual');
                     }}
-                    className={`w-full p-3 rounded-lg border transition-all text-left cursor-pointer ${
-                      selectedPlan === 'annual'
-                        ? 'border-yellow-400 bg-yellow-400/10'
-                        : 'border-white/20 bg-white/5 hover:bg-white/10'
-                    }`}
+                    className="w-full p-3 rounded-lg transition-all text-left"
+                    style={{
+                      backgroundColor: selectedPlan === 'annual'
+                        ? 'color-mix(in srgb, var(--accent-color) 15%, transparent)'
+                        : 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
+                      border: selectedPlan === 'annual'
+                        ? '2px solid var(--accent-color)'
+                        : '2px solid var(--card-border)',
+                    }}
                   >
                     <div className="flex items-center justify-between pointer-events-none">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-white">Annual</span>
-                        <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full">
+                        <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>Annual</span>
+                        <span className="px-2 py-0.5 bg-green-500/20 text-green-500 text-xs rounded-full">
                           SAVE 25%
                         </span>
                       </div>
-                      <span className="text-yellow-400 font-bold">$2.99/mo</span>
+                      <span className="font-bold" style={{ color: 'var(--accent-color)' }}>$2.99/mo</span>
                     </div>
                   </button>
 
@@ -301,15 +329,19 @@ export function TrialWelcomeModal({ isOpen, onClose, trialDaysRemaining }: Trial
                       e.stopPropagation();
                       setSelectedPlan('monthly');
                     }}
-                    className={`w-full p-3 rounded-lg border transition-all text-left cursor-pointer ${
-                      selectedPlan === 'monthly'
-                        ? 'border-yellow-400 bg-yellow-400/10'
-                        : 'border-white/20 bg-white/5 hover:bg-white/10'
-                    }`}
+                    className="w-full p-3 rounded-lg transition-all text-left"
+                    style={{
+                      backgroundColor: selectedPlan === 'monthly'
+                        ? 'color-mix(in srgb, var(--accent-color) 15%, transparent)'
+                        : 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
+                      border: selectedPlan === 'monthly'
+                        ? '2px solid var(--accent-color)'
+                        : '2px solid var(--card-border)',
+                    }}
                   >
                     <div className="flex items-center justify-between pointer-events-none">
-                      <span className="font-semibold text-white">Monthly</span>
-                      <span className="text-white font-bold">$3.99/mo</span>
+                      <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>Monthly</span>
+                      <span className="font-bold" style={{ color: 'var(--text-primary)' }}>$3.99/mo</span>
                     </div>
                   </button>
                 </div>
@@ -317,15 +349,15 @@ export function TrialWelcomeModal({ isOpen, onClose, trialDaysRemaining }: Trial
                 <button
                   onClick={handleSubscribe}
                   disabled={isCheckingOut}
-                  className="w-full py-3 px-6 rounded-xl transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed font-bold"
+                  className="w-full py-3 px-6 rounded-xl transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed font-bold"
                   style={{
-                    background: 'linear-gradient(to right, #facc15, #f59e0b)',
-                    color: '#0f172a',
+                    backgroundColor: 'var(--accent-color)',
+                    color: 'var(--bg-color)',
                   }}
                 >
                   {isCheckingOut ? (
                     <span className="flex items-center justify-center gap-2">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-900"></div>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2" style={{ borderColor: 'var(--bg-color)' }} />
                       Loading...
                     </span>
                   ) : (
@@ -339,13 +371,14 @@ export function TrialWelcomeModal({ isOpen, onClose, trialDaysRemaining }: Trial
           {/* Continue Button */}
           <button
             onClick={handleContinueTrial}
-            className="w-full py-3 text-white/60 hover:text-white transition-colors text-sm"
+            className="w-full py-3 transition-colors text-sm"
+            style={{ color: 'var(--text-secondary)' }}
           >
             Continue with trial (decide later)
           </button>
 
           {/* Disclaimer */}
-          <p className="text-white/40 text-xs text-center mt-4">
+          <p className="text-xs text-center mt-4" style={{ color: 'var(--text-secondary)' }}>
             By adding payment, you agree to be charged after your trial ends. Cancel anytime from your account settings.
           </p>
         </div>

@@ -103,8 +103,9 @@ export async function POST(request: NextRequest) {
             applePay: true,
             googlePay: true,
           },
-          merchantSupportEmail: 'support@busypreacher.com',
+          merchantSupportEmail: 'thebusychristianapp@gmail.com',
         },
+        description: 'Start your spiritual journey with The Busy Christian - access daily devotionals, Bible study tools, and pastoral guidance.',
         prePopulatedData: {
           buyerEmail: userEmail,
         },
@@ -149,7 +150,9 @@ export async function POST(request: NextRequest) {
             applePay: true,
             googlePay: true,
           },
+          merchantSupportEmail: 'thebusychristianapp@gmail.com',
         },
+        description: 'Start your spiritual journey with The Busy Christian - access daily devotionals, Bible study tools, and pastoral guidance.',
         prePopulatedData: {
           buyerEmail: userEmail,
         },

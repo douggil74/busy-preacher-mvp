@@ -2,6 +2,7 @@
 "use client";
 
 import { Playfair_Display } from "next/font/google";
+import { useRouter } from "next/navigation";
 import { useStudyStyle } from "../hooks/useStudyStyle";
 
 const playfair = Playfair_Display({
@@ -37,6 +38,7 @@ const studyStyles = {
 type StyleKey = keyof typeof studyStyles;
 
 export default function PersonalizePage() {
+  const router = useRouter();
   const { style: savedStyle, saveStyle } = useStudyStyle();
 
   const onSelect = (name: StyleKey) => {
@@ -47,7 +49,7 @@ export default function PersonalizePage() {
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-8">
-      <div className="mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <button
           onClick={() => window.history.back()}
           className="flex items-center gap-2 text-sm text-white/60 hover:text-yellow-400 transition-colors"
@@ -56,6 +58,15 @@ export default function PersonalizePage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
           Back
+        </button>
+        <button
+          onClick={() => router.push('/home')}
+          className="flex items-center gap-2 text-sm text-white/60 hover:text-yellow-400 transition-colors"
+        >
+          Skip
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+          </svg>
         </button>
       </div>
 
@@ -141,13 +152,27 @@ export default function PersonalizePage() {
         )}
       </div>
 
-      {/* Bottom "Save" removed; selection saves instantly */}
-      <div className="mt-8 rounded-2xl border border-blue-500/30 bg-blue-500/10 p-6">
+      {/* Continue Button */}
+      <div className="mt-8 flex justify-center">
+        <button
+          onClick={() => router.push('/home')}
+          className="rounded-xl px-8 py-3 font-semibold text-lg transition-all hover:scale-105"
+          style={{
+            backgroundColor: 'var(--accent-color)',
+            color: 'var(--bg-color)'
+          }}
+        >
+          Continue →
+        </button>
+      </div>
+
+      {/* Info Box */}
+      <div className="mt-8 rounded-2xl p-6" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
         <div className="flex gap-3">
           <div className="text-2xl">💡</div>
           <div>
-            <h3 className="font-semibold mb-2">How This Works</h3>
-            <ul className="text-sm text-white/80 space-y-1">
+            <h3 className="font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>How This Works</h3>
+            <ul className="text-sm space-y-1" style={{ color: 'var(--text-secondary)' }}>
               <li>• Your choice adjusts how AI generates study outlines</li>
               <li>• More casual styles = shorter, practical insights</li>
               <li>• More academic styles = deeper language and context</li>

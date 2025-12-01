@@ -11,8 +11,8 @@
 
   /* Theme Customizer Variables (defaults - dark mode) */
   --bg-color: #020617;
-  --card-bg: rgba(255, 255, 255, 0.05);
-  --card-border: rgba(255, 255, 255, 0.1);
+  --card-bg: rgba(255, 255, 255, 0.04);
+  --card-border: rgba(255, 255, 255, 0.06);
   --text-primary: #ffffff;
   --text-secondary: rgba(255, 255, 255, 0.7);
   --text-tertiary: rgba(255, 255, 255, 0.6);
@@ -97,8 +97,8 @@ html.dark {
 html.light {
   color-scheme: light;
   --bg-color: #f8fafc;
-  --card-bg: #ffffff;
-  --card-border: rgba(0, 0, 0, 0.1);
+  --card-bg: rgba(255, 255, 255, 0.25);
+  --card-border: rgba(0, 0, 0, 0.04);
   --text-primary: #0f172a;
   --text-secondary: rgba(15, 23, 42, 0.8);
   --text-tertiary: rgba(15, 23, 42, 0.6);
@@ -190,17 +190,34 @@ html.light .bg-black\/50 {
 
 @keyframes glow-pulse {
   0%, 100% {
-    box-shadow: 
+    box-shadow:
       0 8px 32px rgba(0, 0, 0, 0.3),
       0 0 40px rgba(255, 217, 102, 0.15),
       inset 0 1px 0 rgba(255, 255, 255, 0.1);
   }
   50% {
-    box-shadow: 
+    box-shadow:
       0 8px 32px rgba(0, 0, 0, 0.3),
       0 0 60px rgba(255, 217, 102, 0.25),
       inset 0 1px 0 rgba(255, 255, 255, 0.1);
   }
+}
+
+/* Hover glow effect for cards */
+.glow-hover {
+  transition: all 0.3s ease-out, z-index 0s;
+  position: relative;
+}
+
+.glow-hover:hover {
+  transform: scale(1.02);
+  z-index: 50;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 60px color-mix(in srgb, var(--accent-color) 30%, transparent),
+    0 0 100px color-mix(in srgb, var(--accent-color) 15%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--accent-color) 10%, transparent) !important;
+  border-color: color-mix(in srgb, var(--accent-color) 50%, transparent) !important;
 }
 
 .animate-fade-in {
@@ -217,13 +234,14 @@ html.light .bg-black\/50 {
 .input {
   width: 100%;
   border-radius: 1rem;
-  border: 2px solid var(--accent-color);
-  background: var(--card-bg);
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
   padding: 0.75rem 1rem;
   font-size: 1rem;
   outline: none;
   color: var(--text-primary);
   transition: all 0.2s;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .input::placeholder {
@@ -232,9 +250,23 @@ html.light .bg-black\/50 {
 }
 
 .input:focus {
-  ring: 2px;
-  ring-color: var(--accent-color);
-  border-color: var(--accent-color);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow:
+    inset 0 1px 3px rgba(0, 0, 0, 0.2),
+    0 0 0 2px color-mix(in srgb, var(--accent-color) 40%, transparent);
+}
+
+/* Light mode inputs */
+html.light .input {
+  background: rgba(0, 0, 0, 0.04);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+html.light .input:focus {
+  background: rgba(0, 0, 0, 0.06);
+  box-shadow:
+    inset 0 1px 3px rgba(0, 0, 0, 0.08),
+    0 0 0 2px color-mix(in srgb, var(--accent-color) 30%, transparent);
 }
 
 /* ========================================
@@ -271,46 +303,25 @@ html.light .bg-black\/50 {
   margin-left: auto;
   margin-right: auto;
   border-radius: 1rem;
-  border: 1px solid var(--card-border);
+  border: none;
   background-color: var(--card-bg);
   padding: 1.5rem;
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
   position: relative;
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    0 0 50px color-mix(in srgb, var(--accent-color) 20%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.25),
+    0 8px 48px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
   transition: all 0.3s ease;
 }
 
-.card::before {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(135deg, 
-    color-mix(in srgb, var(--accent-color) 30%, transparent), 
-    color-mix(in srgb, var(--accent-color) 10%, transparent), 
-    transparent);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
 .card:hover {
-  box-shadow: 
-    0 12px 40px rgba(0, 0, 0, 0.4),
-    0 0 70px color-mix(in srgb, var(--accent-color) 30%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
-  border-color: color-mix(in srgb, var(--accent-color) 25%, var(--card-border));
-}
-
-.card:hover::before {
-  opacity: 1;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.35),
+    0 16px 64px rgba(0, 0, 0, 0.2),
+    0 0 60px color-mix(in srgb, var(--accent-color) 15%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
 }
 
 .deep-study-card {
@@ -319,46 +330,25 @@ html.light .bg-black\/50 {
   margin-left: auto;
   margin-right: auto;
   border-radius: 1rem;
-  border: 1px solid var(--card-border);
+  border: none;
   background-color: var(--card-bg);
   padding: 1.5rem;
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
   position: relative;
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    0 0 50px color-mix(in srgb, var(--accent-color) 20%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.25),
+    0 8px 48px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
   transition: all 0.3s ease;
 }
 
-.deep-study-card::before {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(135deg, 
-    color-mix(in srgb, var(--accent-color) 30%, transparent), 
-    color-mix(in srgb, var(--accent-color) 10%, transparent), 
-    transparent);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
 .deep-study-card:hover {
-  box-shadow: 
-    0 12px 40px rgba(0, 0, 0, 0.4),
-    0 0 70px color-mix(in srgb, var(--accent-color) 30%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
-  border-color: color-mix(in srgb, var(--accent-color) 25%, var(--card-border));
-}
-
-.deep-study-card:hover::before {
-  opacity: 1;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.35),
+    0 16px 64px rgba(0, 0, 0, 0.2),
+    0 0 60px color-mix(in srgb, var(--accent-color) 15%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
 }
 
 /* ========================================
@@ -412,6 +402,36 @@ html.light .bg-black\/50 {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent-color);
+}
+
+/* Auto-hiding scrollbar utility */
+.scrollbar-hide {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Scrollbar that appears on hover */
+.scrollbar-auto {
+  scrollbar-width: thin;
+  -ms-overflow-style: auto;
+}
+
+.scrollbar-auto::-webkit-scrollbar {
+  width: 6px;
+  background: transparent;
+}
+
+.scrollbar-auto::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--text-secondary) 30%, transparent);
+  border-radius: 3px;
+}
+
+.scrollbar-auto:hover::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--text-secondary) 50%, transparent);
 }
 
 /* ========================================

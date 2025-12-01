@@ -2,38 +2,66 @@
 "use client";
 
 import Link from "next/link";
-import { Playfair_Display } from "next/font/google";
-
-const playfair = Playfair_Display({
-  weight: ["600", "700"],
-  subsets: ["latin"],
-  display: "swap",
-});
 
 import { APP_VERSION } from "@/lib/version";
 import { card, typography, cn } from '@/lib/ui-constants';
 
 export default function HelpPage() {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8">
+    <main className="mx-auto max-w-3xl px-4 py-10">
       <button
         onClick={() => window.history.back()}
-        className="mb-6 flex items-center gap-2 text-sm text-white/60 hover:text-white/90 transition-colors"
+        className="mb-6 flex items-center gap-2 text-sm transition-colors"
+        style={{ color: 'var(--text-secondary)' }}
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>
         Back
       </button>
-      
-      <h1 className={cn(playfair.className, typography.h1, 'text-center mb-3')}>
+
+      <h1 className="text-3xl font-bold text-center mb-3" style={{ color: 'var(--text-primary)' }}>
         Help & Guide
       </h1>
-      <p className={cn(typography.body, 'text-white/80 mb-8 text-center')}>
+      <p className="text-center mb-8" style={{ color: 'var(--text-secondary)' }}>
         Everything you need to know to get the most out of The Busy Christian
       </p>
 
       <section className="space-y-6">
+        {/* Subscription & Billing */}
+        <div className="card bg-green-500/10 border-green-500/30">
+          <h2 className="text-xl font-semibold mb-4 text-white/90 light:text-black/90">💳 Subscription & Billing</h2>
+          <div className="space-y-4 text-white/80 light:text-black/80">
+            <div>
+              <h3 className="font-semibold text-white light:text-black mb-2">Pricing</h3>
+              <ul className="ml-4 space-y-1 text-sm text-white/70 light:text-black/70">
+                <li>• <strong>7-day free trial</strong> for all new users</li>
+                <li>• <strong>Annual:</strong> $35.88/year ($2.99/mo) - Best Value!</li>
+                <li>• <strong>Monthly:</strong> $3.99/month</li>
+                <li>• <strong>iOS App:</strong> Same pricing through App Store</li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-white light:text-black mb-2">Promo Codes</h3>
+              <ul className="ml-4 space-y-1 text-sm text-white/70 light:text-black/70">
+                <li>• Enter promo codes on the <strong>paywall screen</strong> before subscribing</li>
+                <li>• Or go to <strong>Account</strong> page to redeem codes</li>
+                <li>• Some codes grant lifetime access, others extend trials</li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-white light:text-black mb-2">Managing Your Subscription</h3>
+              <ul className="ml-4 space-y-1 text-sm text-white/70 light:text-black/70">
+                <li>• <strong>Web users:</strong> Go to Account page to view status or cancel</li>
+                <li>• <strong>iOS users:</strong> Manage in Settings → Apple ID → Subscriptions</li>
+                <li>• Cancellations take effect at end of billing period</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
         <div className={card.default}>
           <h2 className={cn(typography.h2, 'mb-3')}>Getting Started</h2>
           <p className="text-white/80 light:text-black/80 mb-4">

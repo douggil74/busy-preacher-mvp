@@ -16,6 +16,16 @@ import {
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 
+export interface UserPreferences {
+  studyStyle?: string;
+  studyGoal?: string;
+  weeklyFrequency?: number;
+  enableDevotional?: boolean;
+  enableReadingPlan?: boolean;
+  enableReminders?: boolean;
+  onboardingComplete?: boolean;
+}
+
 export interface UserProfile {
   uid: string;
   firstName: string;
@@ -28,6 +38,7 @@ export interface UserProfile {
     state?: string;
     country?: string;
   };
+  preferences?: UserPreferences;
   createdAt: any;
   lastSignIn: any;
 }
@@ -43,6 +54,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   updateUserLocation: (city: string, state: string, country?: string) => Promise<void>;
   updateUserPhone: (phone: string) => Promise<void>;
+  updateUserPreferences: (preferences: UserPreferences) => Promise<void>;
   // Phone auth
   sendPhoneCode: (phoneNumber: string, recaptchaContainerId: string) => Promise<ConfirmationResult>;
   verifyPhoneCode: (confirmationResult: ConfirmationResult, code: string, firstName?: string) => Promise<void>;
@@ -65,47 +77,90 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (firebaseUser) {
         // Load user profile from Firestore
-        const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-        if (userDoc.exists()) {
-          const profileData = userDoc.data();
-          const userWithId = {
-            uid: firebaseUser.uid,
-            ...profileData
-          } as UserProfile;
+        try {
+          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+          if (userDoc.exists()) {
+            const profileData = userDoc.data();
+            const userWithId = {
+              uid: firebaseUser.uid,
+              ...profileData
+            } as UserProfile;
 
-          console.log('User loaded:', userWithId.firstName, userWithId.uid);
-          setUser(userWithId);
+            console.log('User loaded:', userWithId.firstName, userWithId.uid);
+            setUser(userWithId);
 
-          // Save to localStorage for email transcripts
-          if (typeof window !== 'undefined' && userWithId.email) {
-            localStorage.setItem('bc-user-email', userWithId.email);
-            localStorage.setItem('bc-user-name', userWithId.firstName || userWithId.fullName);
+            // Save to localStorage for email transcripts and preferences
+            if (typeof window !== 'undefined') {
+              if (userWithId.email) {
+                localStorage.setItem('bc-user-email', userWithId.email);
+              }
+              localStorage.setItem('bc-user-name', userWithId.firstName || userWithId.fullName);
+
+              // Restore preferences from Firestore to localStorage
+              if (userWithId.preferences) {
+                const prefs = userWithId.preferences;
+                if (prefs.onboardingComplete) {
+                  localStorage.setItem('bc-onboarding-complete', 'true');
+                  localStorage.setItem('onboarding_completed', 'true');
+                }
+                if (prefs.studyStyle) {
+                  localStorage.setItem('bc-style', prefs.studyStyle);
+                }
+                if (prefs.studyGoal) {
+                  localStorage.setItem('bc-study-goal', prefs.studyGoal);
+                }
+                if (prefs.weeklyFrequency !== undefined) {
+                  localStorage.setItem('bc-weekly-frequency', String(prefs.weeklyFrequency));
+                }
+                if (prefs.enableDevotional !== undefined) {
+                  localStorage.setItem('bc-show-devotional', String(prefs.enableDevotional));
+                }
+                if (prefs.enableReadingPlan !== undefined) {
+                  localStorage.setItem('bc-show-reading-plan', String(prefs.enableReadingPlan));
+                }
+                if (prefs.enableReminders !== undefined) {
+                  localStorage.setItem('bc-enable-reminders', String(prefs.enableReminders));
+                }
+                console.log('Restored preferences from Firestore:', prefs);
+              }
+            }
+
+            // Update last sign in
+            await setDoc(
+              doc(db, 'users', firebaseUser.uid),
+              { lastSignIn: serverTimestamp() },
+              { merge: true }
+            );
+          } else {
+            // Profile doesn't exist - create one with email info
+            const profile: UserProfile = {
+              uid: firebaseUser.uid,
+              firstName: firebaseUser.email?.split('@')[0] || 'User',
+              fullName: firebaseUser.email?.split('@')[0] || 'User',
+              email: firebaseUser.email || '',
+              createdAt: serverTimestamp(),
+              lastSignIn: serverTimestamp()
+            };
+
+            await setDoc(doc(db, 'users', firebaseUser.uid), profile);
+            setUser(profile);
+
+            if (typeof window !== 'undefined' && profile.email) {
+              localStorage.setItem('bc-user-email', profile.email);
+              localStorage.setItem('bc-user-name', profile.firstName);
+            }
           }
-
-          // Update last sign in
-          await setDoc(
-            doc(db, 'users', firebaseUser.uid),
-            { lastSignIn: serverTimestamp() },
-            { merge: true }
-          );
-        } else {
-          // Profile doesn't exist - create one with email info
-          const profile: UserProfile = {
+        } catch (error) {
+          console.error('Failed to load user profile:', error);
+          // Still set basic user info even if Firestore fails
+          setUser({
             uid: firebaseUser.uid,
             firstName: firebaseUser.email?.split('@')[0] || 'User',
             fullName: firebaseUser.email?.split('@')[0] || 'User',
             email: firebaseUser.email || '',
-            createdAt: serverTimestamp(),
-            lastSignIn: serverTimestamp()
-          };
-
-          await setDoc(doc(db, 'users', firebaseUser.uid), profile);
-          setUser(profile);
-
-          if (typeof window !== 'undefined' && profile.email) {
-            localStorage.setItem('bc-user-email', profile.email);
-            localStorage.setItem('bc-user-name', profile.firstName);
-          }
+            createdAt: null,
+            lastSignIn: null
+          });
         }
       } else {
         console.log('Clearing user state');
@@ -167,13 +222,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
       setFirebaseUser(null);
 
-      // Clear all auth-related localStorage
+      // Clear auth-related localStorage (but keep onboarding/preferences)
       if (typeof window !== 'undefined') {
         localStorage.removeItem('bc-user-email');
         localStorage.removeItem('bc-user-name');
-        localStorage.removeItem('bc-onboarding-complete');
-        localStorage.removeItem('bc-style');
-        localStorage.removeItem('bc-study-style');
+        // Don't clear onboarding - user shouldn't redo it when signing back in
+        // localStorage.removeItem('bc-onboarding-complete');
+        // Don't clear preferences either - keep style settings
+        // localStorage.removeItem('bc-style');
+        // localStorage.removeItem('bc-study-style');
         window.location.href = '/';
       }
     } catch (error) {
@@ -210,6 +267,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
 
     setUser({ ...user, phone });
+  };
+
+  const updateUserPreferences = async (preferences: UserPreferences) => {
+    if (!user) return;
+
+    try {
+      await setDoc(
+        doc(db, 'users', user.uid),
+        { preferences },
+        { merge: true }
+      );
+
+      setUser({ ...user, preferences: { ...user.preferences, ...preferences } });
+      console.log('Saved preferences to Firestore:', preferences);
+    } catch (error) {
+      console.error('Failed to save preferences:', error);
+      // Still update local state even if Firestore fails
+      setUser({ ...user, preferences: { ...user.preferences, ...preferences } });
+    }
   };
 
   // Phone authentication - Step 1: Send verification code
@@ -282,6 +358,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signOut,
     updateUserLocation,
     updateUserPhone,
+    updateUserPreferences,
     sendPhoneCode,
     verifyPhoneCode
   };

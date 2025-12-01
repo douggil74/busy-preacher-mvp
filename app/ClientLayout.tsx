@@ -4,23 +4,33 @@ import { useEffect } from "react";
 import { startBackgroundSync } from "@/lib/backgroundSync";
 import { StudyStyleProvider } from './hooks/useStudyStyle';
 import { AuthProvider } from '@/contexts/AuthContext';
-import HeaderBar from './HeaderBar';
+import Sidebar from '@/components/Sidebar';
 import AdminBanner from '@/components/AdminBanner';
+import BackgroundGradient from '@/components/BackgroundGradient';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    startBackgroundSync(); // starts background sync
-    // Note: Native splash disabled (0ms), web splash handles all animation
+    startBackgroundSync();
   }, []);
 
   return (
     <AuthProvider>
       <StudyStyleProvider>
-        <HeaderBar />
-        <AdminBanner />
-        <main className="pt-16" style={{ backgroundColor: 'var(--bg-color)' }}>
-          {children}
-        </main>
+        {/* Global background gradient */}
+        <BackgroundGradient />
+
+        <div className="flex min-h-screen relative" style={{ backgroundColor: 'transparent', zIndex: 1 }}>
+          {/* Left Sidebar */}
+          <Sidebar />
+
+          {/* Main Content Area */}
+          <div className="flex-1 ml-16 transition-all duration-300">
+            <AdminBanner />
+            <main style={{ backgroundColor: 'transparent', minHeight: '100vh' }}>
+              {children}
+            </main>
+          </div>
+        </div>
       </StudyStyleProvider>
     </AuthProvider>
   );

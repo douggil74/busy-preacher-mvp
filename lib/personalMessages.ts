@@ -54,13 +54,15 @@ export function getTimeBasedGreeting(): string {
     return greetings[Math.floor(Math.random() * greetings.length)];
   } else {
     const greetings = [
-      "Late night? Perfect time for just you and God.",
-      "Late night study session? I'm here for it.",
-      "Can't sleep? God's got something good for you.",
-      "Burning the midnight oil? Let me help.",
-      "Night owl? These quiet moments are precious.",
-      "Still up? So is He. Always has been, always will be.",
-      "Late night with God — some of the best conversations happen now."
+      "Late night? You know, these are often the best times with God.",
+      "Hey friend, late night study sessions are some of my favorites too.",
+      "Can't sleep? I get it. God's got something good for you right now.",
+      "Burning the midnight oil? I'm so glad you're here. Let me help.",
+      "Night owl? You know, these quiet moments with God are so precious.",
+      "Still up? So is He. He never sleeps, and He's been thinking about you.",
+      "Late nights with God — honestly, some of my best conversations happen now too.",
+      "Hey, the house is quiet, and it's just you and God. I love this for you.",
+      "Late night crew! There's something special about seeking God when the world is asleep."
     ];
     return greetings[Math.floor(Math.random() * greetings.length)];
   }

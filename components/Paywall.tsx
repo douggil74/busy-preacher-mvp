@@ -4,6 +4,7 @@ import { usePlatform } from '@/hooks/usePlatform';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect } from 'react';
 import { isFromIOSApp } from '@/lib/platform-detector';
+import { X, Check, CreditCard, Sparkles } from 'lucide-react';
 
 interface PaywallProps {
   children: React.ReactNode;
@@ -212,58 +213,76 @@ export function Paywall({ children, showPreview = false }: PaywallProps) {
       )}
 
       {/* Paywall overlay */}
-      <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 p-4 overflow-y-auto">
-        <div className="max-w-lg w-full p-8 bg-white/5 border border-white/10 rounded-2xl shadow-2xl backdrop-blur my-8">
+      <div
+        className="absolute inset-0 flex items-center justify-center p-4 overflow-y-auto"
+        style={{ backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)' }}
+      >
+        <div
+          className="max-w-lg w-full p-8 rounded-2xl shadow-2xl my-8 max-h-[90vh] overflow-y-auto scrollbar-hide"
+          style={{
+            backgroundColor: 'var(--card-bg)',
+            border: '1px solid var(--card-border)',
+          }}
+        >
           {/* Icon */}
           <div className="flex justify-center mb-4">
-            <div className="text-5xl">📖</div>
+            <div
+              className="w-16 h-16 rounded-full flex items-center justify-center"
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--accent-color) 15%, transparent)',
+                border: '2px solid var(--accent-color)',
+              }}
+            >
+              <Sparkles className="w-8 h-8" style={{ color: 'var(--accent-color)' }} />
+            </div>
           </div>
 
-          <h2 className="text-3xl font-bold text-white text-center mb-2">
+          <h2
+            className="text-3xl font-bold text-center mb-2"
+            style={{ color: 'var(--text-primary)' }}
+          >
             Continue Your Journey
           </h2>
-          <p className="text-white/70 text-center mb-6">
+          <p className="text-center mb-6" style={{ color: 'var(--text-secondary)' }}>
             Your free trial has ended. Subscribe to keep growing in faith with full access to all features.
           </p>
 
           {/* Features */}
           <div className="space-y-2 mb-6">
-            <div className="flex items-center gap-2 text-white/80">
-              <svg className="w-5 h-5 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              <span>Daily devotionals & personalized Bible study</span>
-            </div>
-            <div className="flex items-center gap-2 text-white/80">
-              <svg className="w-5 h-5 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              <span>Prayer community & spiritual support</span>
-            </div>
-            <div className="flex items-center gap-2 text-white/80">
-              <svg className="w-5 h-5 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              <span>Ask the Pastor - compassionate AI guidance</span>
-            </div>
-            <div className="flex items-center gap-2 text-white/80">
-              <svg className="w-5 h-5 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              <span>Deep study tools, courses & sermons</span>
-            </div>
+            {[
+              'Daily devotionals & personalized Bible study',
+              'Prayer community & spiritual support',
+              'Ask the Pastor - compassionate AI guidance',
+              'Deep study tools, courses & sermons',
+            ].map((feature, i) => (
+              <div key={i} className="flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
+                <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                <span>{feature}</span>
+              </div>
+            ))}
           </div>
 
-          {/* Promo Code Section - Prominent placement */}
-          <div className="mb-6 p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-xl">
-            <p className="text-sm text-green-400 font-medium mb-3">Have a promo code?</p>
+          {/* Promo Code Section */}
+          <div
+            className="mb-6 p-4 rounded-xl"
+            style={{
+              background: 'linear-gradient(to right, rgba(34, 197, 94, 0.1), rgba(16, 185, 129, 0.1))',
+              border: '1px solid rgba(34, 197, 94, 0.3)',
+            }}
+          >
+            <p className="text-sm font-medium mb-3 text-green-500">Have a promo code?</p>
             <div className="flex gap-2">
               <input
                 type="text"
                 value={promoCode}
                 onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
                 placeholder="Enter code"
-                className="flex-1 bg-white/10 border border-white/20 rounded-lg px-4 py-2.5 text-white placeholder-white/40 focus:border-green-400 focus:outline-none text-sm uppercase"
+                className="flex-1 px-4 py-2.5 rounded-lg text-sm uppercase outline-none transition-all"
+                style={{
+                  backgroundColor: 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
+                  border: '2px solid var(--card-border)',
+                  color: 'var(--text-primary)',
+                }}
                 disabled={promoLoading}
                 onKeyDown={(e) => e.key === 'Enter' && handlePromoCode()}
               />
@@ -276,7 +295,7 @@ export function Paywall({ children, showPreview = false }: PaywallProps) {
               </button>
             </div>
             {promoError && (
-              <p className="text-red-400 text-sm mt-2">{promoError}</p>
+              <p className="text-red-500 text-sm mt-2">{promoError}</p>
             )}
           </div>
 
@@ -285,14 +304,18 @@ export function Paywall({ children, showPreview = false }: PaywallProps) {
             <>
               {isLoadingPackages ? (
                 <div className="flex justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-400"></div>
+                  <div
+                    className="animate-spin rounded-full h-8 w-8 border-b-2"
+                    style={{ borderColor: 'var(--accent-color)' }}
+                  />
                 </div>
               ) : packages.length === 0 ? (
                 <div className="text-center py-4">
-                  <p className="text-white/60 mb-4">Unable to load subscription options.</p>
+                  <p className="mb-4" style={{ color: 'var(--text-secondary)' }}>Unable to load subscription options.</p>
                   <button
                     onClick={loadRevenueCatPackages}
-                    className="text-yellow-400 underline"
+                    className="underline"
+                    style={{ color: 'var(--accent-color)' }}
                   >
                     Retry
                   </button>
@@ -306,32 +329,37 @@ export function Paywall({ children, showPreview = false }: PaywallProps) {
                       <button
                         type="button"
                         onClick={() => setSelectedPlan('annual')}
-                        className={`w-full p-4 rounded-xl border-2 transition-all text-left relative ${
-                          selectedPlan === 'annual'
-                            ? 'border-yellow-400 bg-yellow-400/20 ring-2 ring-yellow-400/50'
-                            : 'border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/30'
-                        }`}
+                        className="w-full p-4 rounded-xl transition-all text-left relative"
+                        style={{
+                          backgroundColor: selectedPlan === 'annual'
+                            ? 'color-mix(in srgb, var(--accent-color) 15%, transparent)'
+                            : 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
+                          border: selectedPlan === 'annual'
+                            ? '2px solid var(--accent-color)'
+                            : '2px solid var(--card-border)',
+                        }}
                       >
                         {selectedPlan === 'annual' && (
-                          <div className="absolute top-2 right-2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
-                            <svg className="w-4 h-4 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                            </svg>
+                          <div
+                            className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center"
+                            style={{ backgroundColor: 'var(--accent-color)' }}
+                          >
+                            <Check className="w-4 h-4" style={{ color: 'var(--bg-color)' }} />
                           </div>
                         )}
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="flex items-center gap-2">
-                              <span className="font-bold text-white text-lg">Annual</span>
-                              <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full font-semibold">
+                              <span className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Annual</span>
+                              <span className="px-2 py-0.5 bg-green-500/20 text-green-500 text-xs rounded-full font-semibold">
                                 BEST VALUE
                               </span>
                             </div>
-                            <p className="text-white/60 text-sm">Billed annually</p>
+                            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Billed annually</p>
                           </div>
                           <div className="text-right">
-                            <div className="text-2xl font-bold text-yellow-400">{formatPrice(annualPackage)}</div>
-                            <div className="text-white/50 text-sm">/year</div>
+                            <div className="text-2xl font-bold" style={{ color: 'var(--accent-color)' }}>{formatPrice(annualPackage)}</div>
+                            <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>/year</div>
                           </div>
                         </div>
                       </button>
@@ -342,27 +370,32 @@ export function Paywall({ children, showPreview = false }: PaywallProps) {
                       <button
                         type="button"
                         onClick={() => setSelectedPlan('monthly')}
-                        className={`w-full p-4 rounded-xl border-2 transition-all text-left relative ${
-                          selectedPlan === 'monthly'
-                            ? 'border-yellow-400 bg-yellow-400/20 ring-2 ring-yellow-400/50'
-                            : 'border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/30'
-                        }`}
+                        className="w-full p-4 rounded-xl transition-all text-left relative"
+                        style={{
+                          backgroundColor: selectedPlan === 'monthly'
+                            ? 'color-mix(in srgb, var(--accent-color) 15%, transparent)'
+                            : 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
+                          border: selectedPlan === 'monthly'
+                            ? '2px solid var(--accent-color)'
+                            : '2px solid var(--card-border)',
+                        }}
                       >
                         {selectedPlan === 'monthly' && (
-                          <div className="absolute top-2 right-2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
-                            <svg className="w-4 h-4 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                            </svg>
+                          <div
+                            className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center"
+                            style={{ backgroundColor: 'var(--accent-color)' }}
+                          >
+                            <Check className="w-4 h-4" style={{ color: 'var(--bg-color)' }} />
                           </div>
                         )}
                         <div className="flex items-center justify-between">
                           <div>
-                            <span className="font-bold text-white text-lg">Monthly</span>
-                            <p className="text-white/60 text-sm">Cancel anytime</p>
+                            <span className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Monthly</span>
+                            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Cancel anytime</p>
                           </div>
                           <div className="text-right">
-                            <div className="text-2xl font-bold text-white">{formatPrice(monthlyPackage)}</div>
-                            <div className="text-white/50 text-sm">/month</div>
+                            <div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{formatPrice(monthlyPackage)}</div>
+                            <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>/month</div>
                           </div>
                         </div>
                       </button>
@@ -376,11 +409,15 @@ export function Paywall({ children, showPreview = false }: PaywallProps) {
                       if (pkg) handleIOSPurchase(pkg);
                     }}
                     disabled={isCheckingOut}
-                    className="w-full bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-slate-900 font-bold py-4 px-6 rounded-xl transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed mb-4"
+                    className="w-full font-bold py-4 px-6 rounded-xl transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed mb-4"
+                    style={{
+                      backgroundColor: 'var(--accent-color)',
+                      color: 'var(--bg-color)',
+                    }}
                   >
                     {isCheckingOut ? (
                       <span className="flex items-center justify-center gap-2">
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-900"></div>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2" style={{ borderColor: 'var(--bg-color)' }} />
                         Processing...
                       </span>
                     ) : (
@@ -392,7 +429,8 @@ export function Paywall({ children, showPreview = false }: PaywallProps) {
                   <button
                     onClick={handleRestorePurchases}
                     disabled={isRestoring}
-                    className="w-full text-white/60 hover:text-white text-sm py-2 transition-colors mb-4"
+                    className="w-full text-sm py-2 transition-colors mb-4"
+                    style={{ color: 'var(--text-secondary)' }}
                   >
                     {isRestoring ? 'Restoring...' : 'Restore Purchases'}
                   </button>
@@ -401,7 +439,7 @@ export function Paywall({ children, showPreview = false }: PaywallProps) {
 
               {/* iOS disclaimers */}
               <div className="space-y-3 text-center">
-                <p className="text-white/40 text-xs leading-relaxed max-w-sm mx-auto">
+                <p className="text-xs leading-relaxed max-w-sm mx-auto" style={{ color: 'var(--text-secondary)' }}>
                   Payment will be charged to your Apple ID account. Subscription automatically renews unless cancelled at least 24 hours before the end of the current period.
                 </p>
               </div>
@@ -415,32 +453,37 @@ export function Paywall({ children, showPreview = false }: PaywallProps) {
                 <button
                   type="button"
                   onClick={() => setSelectedPlan('annual')}
-                  className={`w-full p-4 rounded-xl border-2 transition-all text-left relative ${
-                    selectedPlan === 'annual'
-                      ? 'border-yellow-400 bg-yellow-400/20 ring-2 ring-yellow-400/50'
-                      : 'border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/30'
-                  }`}
+                  className="w-full p-4 rounded-xl transition-all text-left relative"
+                  style={{
+                    backgroundColor: selectedPlan === 'annual'
+                      ? 'color-mix(in srgb, var(--accent-color) 15%, transparent)'
+                      : 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
+                    border: selectedPlan === 'annual'
+                      ? '2px solid var(--accent-color)'
+                      : '2px solid var(--card-border)',
+                  }}
                 >
                   {selectedPlan === 'annual' && (
-                    <div className="absolute top-2 right-2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
-                      <svg className="w-4 h-4 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                      </svg>
+                    <div
+                      className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center"
+                      style={{ backgroundColor: 'var(--accent-color)' }}
+                    >
+                      <Check className="w-4 h-4" style={{ color: 'var(--bg-color)' }} />
                     </div>
                   )}
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-white text-lg">Annual</span>
-                        <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full font-semibold">
+                        <span className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Annual</span>
+                        <span className="px-2 py-0.5 bg-green-500/20 text-green-500 text-xs rounded-full font-semibold">
                           SAVE 25%
                         </span>
                       </div>
-                      <p className="text-white/60 text-sm">$35.88 billed annually</p>
+                      <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>$35.88 billed annually</p>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-yellow-400">$2.99</div>
-                      <div className="text-white/50 text-sm">/month</div>
+                      <div className="text-2xl font-bold" style={{ color: 'var(--accent-color)' }}>$2.99</div>
+                      <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>/month</div>
                     </div>
                   </div>
                 </button>
@@ -449,27 +492,32 @@ export function Paywall({ children, showPreview = false }: PaywallProps) {
                 <button
                   type="button"
                   onClick={() => setSelectedPlan('monthly')}
-                  className={`w-full p-4 rounded-xl border-2 transition-all text-left relative ${
-                    selectedPlan === 'monthly'
-                      ? 'border-yellow-400 bg-yellow-400/20 ring-2 ring-yellow-400/50'
-                      : 'border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/30'
-                  }`}
+                  className="w-full p-4 rounded-xl transition-all text-left relative"
+                  style={{
+                    backgroundColor: selectedPlan === 'monthly'
+                      ? 'color-mix(in srgb, var(--accent-color) 15%, transparent)'
+                      : 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
+                    border: selectedPlan === 'monthly'
+                      ? '2px solid var(--accent-color)'
+                      : '2px solid var(--card-border)',
+                  }}
                 >
                   {selectedPlan === 'monthly' && (
-                    <div className="absolute top-2 right-2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
-                      <svg className="w-4 h-4 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                      </svg>
+                    <div
+                      className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center"
+                      style={{ backgroundColor: 'var(--accent-color)' }}
+                    >
+                      <Check className="w-4 h-4" style={{ color: 'var(--bg-color)' }} />
                     </div>
                   )}
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="font-bold text-white text-lg">Monthly</span>
-                      <p className="text-white/60 text-sm">Flexible, cancel anytime</p>
+                      <span className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Monthly</span>
+                      <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Flexible, cancel anytime</p>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-white">$3.99</div>
-                      <div className="text-white/50 text-sm">/month</div>
+                      <div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>$3.99</div>
+                      <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>/month</div>
                     </div>
                   </div>
                 </button>
@@ -479,11 +527,15 @@ export function Paywall({ children, showPreview = false }: PaywallProps) {
               <button
                 onClick={() => handleSubscribe(selectedPlan)}
                 disabled={isCheckingOut}
-                className="w-full bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-slate-900 font-bold py-4 px-6 rounded-xl transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed mb-4"
+                className="w-full font-bold py-4 px-6 rounded-xl transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed mb-4"
+                style={{
+                  backgroundColor: 'var(--accent-color)',
+                  color: 'var(--bg-color)',
+                }}
               >
                 {isCheckingOut ? (
                   <span className="flex items-center justify-center gap-2">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-900"></div>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2" style={{ borderColor: 'var(--bg-color)' }} />
                     Loading checkout...
                   </span>
                 ) : (
@@ -495,20 +547,18 @@ export function Paywall({ children, showPreview = false }: PaywallProps) {
 
               {/* Payment info & disclaimers - Web */}
               <div className="space-y-3 text-center">
-                <div className="flex items-center justify-center gap-2 text-white/60 text-sm">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
+                <div className="flex items-center justify-center gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  <CreditCard className="w-4 h-4" />
                   Secure payment via Square
                 </div>
-                <div className="flex items-center justify-center gap-4 text-white/40">
-                  <span className="text-xs">Credit/Debit Cards</span>
+                <div className="flex items-center justify-center gap-4 text-xs" style={{ color: 'var(--text-secondary)' }}>
+                  <span>Credit/Debit Cards</span>
                   <span>•</span>
-                  <span className="text-xs">Apple Pay</span>
+                  <span>Apple Pay</span>
                   <span>•</span>
-                  <span className="text-xs">Google Pay</span>
+                  <span>Google Pay</span>
                 </div>
-                <p className="text-white/40 text-xs leading-relaxed max-w-sm mx-auto">
+                <p className="text-xs leading-relaxed max-w-sm mx-auto" style={{ color: 'var(--text-secondary)' }}>
                   Your subscription will auto-renew. Cancel anytime from your account settings.
                   No refunds for partial billing periods. By subscribing, you agree to our Terms of Service.
                 </p>

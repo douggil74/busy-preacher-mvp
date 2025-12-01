@@ -2,24 +2,18 @@
 "use client";
 
 import Link from "next/link";
-import { Playfair_Display } from "next/font/google";
-
-const playfair = Playfair_Display({
-  weight: ["600", "700"],
-  subsets: ["latin"],
-  display: "swap",
-});
 
 import { APP_VERSION } from "@/lib/version";
 import { card, button, typography, cn } from '@/lib/ui-constants';
 
 export default function AboutPage() {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8">
+    <main className="mx-auto max-w-3xl px-4 py-10">
       <div className="mb-6">
         <button
           onClick={() => window.history.back()}
-          className="flex items-center gap-2 text-sm text-white/60 hover:text-yellow-400 transition-colors"
+          className="flex items-center gap-2 text-sm transition-colors"
+          style={{ color: 'var(--text-secondary)' }}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -28,10 +22,10 @@ export default function AboutPage() {
         </button>
       </div>
 
-      <h1 className={cn(playfair.className, typography.h1, 'text-center mb-3')}>
+      <h1 className="text-3xl font-bold text-center mb-3" style={{ color: 'var(--text-primary)' }}>
         About The Busy Christian
       </h1>
-      <p className={cn(typography.body, 'text-white/80 mb-8 text-center')}>
+      <p className="text-center mb-8" style={{ color: 'var(--text-secondary)' }}>
         Modern Bible study tools combining cutting-edge technology with pastoral care—built for pastors, teachers, and serious students
       </p>
 
@@ -49,6 +43,37 @@ export default function AboutPage() {
             Every feature is designed to help you prepare faithful, clear messages that honor God's Word while 
             caring for the spiritual needs of your community.
           </p>
+        </div>
+
+        {/* Pricing Card */}
+        <div className="card bg-green-500/10 border-green-500/30">
+          <h2 className="text-xl font-semibold mb-4 text-white/90 light:text-black/90">💰 Simple, Affordable Pricing</h2>
+          <div className="grid md:grid-cols-2 gap-4 mb-4">
+            <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+              <div className="text-lg font-bold text-yellow-400 mb-1">$2.99/mo</div>
+              <div className="text-sm text-white/60 light:text-black/60">Annual plan - $35.88/year</div>
+              <div className="text-xs text-green-400 mt-1">Save 25%</div>
+            </div>
+            <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+              <div className="text-lg font-bold text-white/90 light:text-black/90 mb-1">$3.99/mo</div>
+              <div className="text-sm text-white/60 light:text-black/60">Monthly plan</div>
+              <div className="text-xs text-white/40 light:text-black/40 mt-1">Cancel anytime</div>
+            </div>
+          </div>
+          <ul className="space-y-2 text-sm text-white/70 light:text-black/70">
+            <li className="flex items-center gap-2">
+              <span className="text-green-400">✓</span>
+              7-day free trial for all new users
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-green-400">✓</span>
+              Full access to all features
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-green-400">✓</span>
+              Available on web and iOS app
+            </li>
+          </ul>
         </div>
 
         <div className={card.highlight}>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { isFromIOSApp, isPaidAppUser, shouldShowPaywall, getPlatform } from '@/lib/platform-detector';
-import { isWhitelisted } from '@/lib/whitelist';
+import { isWhitelistedAsync } from '@/lib/whitelist';
 import { useAuth } from '@/contexts/AuthContext';
 import { hasActiveSubscription, hasActiveIosSubscription, hasActivePromoAccess } from '@/lib/subscription';
 
@@ -81,7 +81,7 @@ export function usePlatform() {
       const detectedPlatform = getPlatform();
       const fromApp = isFromIOSApp();
       const paidUser = isPaidAppUser();
-      const whitelisted = user?.email ? isWhitelisted(user.email) : false;
+      const whitelisted = user?.email ? await isWhitelistedAsync(user.email) : false;
 
       // Check for active web subscription (Square)
       let hasWebSubscription = false;

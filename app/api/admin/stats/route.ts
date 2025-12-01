@@ -82,6 +82,58 @@ export async function GET() {
       console.error('Error fetching prayer count:', e);
     }
 
+    // Get pastoral guidance usage stats (anonymous counts only - no content)
+    let pastoralStats = {
+      totalConversations: 0,
+      totalMessages: 0,
+      weeklyConversations: 0,
+      weeklyMessages: 0,
+      helpfulCount: 0,
+      notHelpfulCount: 0,
+    };
+    try {
+      // Count conversations
+      const { count: totalConvs } = await supabase
+        .from('pastoral_conversations')
+        .select('*', { count: 'exact', head: true });
+      pastoralStats.totalConversations = totalConvs || 0;
+
+      // Count messages
+      const { count: totalMsgs } = await supabase
+        .from('pastoral_messages')
+        .select('*', { count: 'exact', head: true });
+      pastoralStats.totalMessages = totalMsgs || 0;
+
+      // Weekly conversations
+      const { count: weeklyConvs } = await supabase
+        .from('pastoral_conversations')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', oneWeekAgo.toISOString());
+      pastoralStats.weeklyConversations = weeklyConvs || 0;
+
+      // Weekly messages
+      const { count: weeklyMsgs } = await supabase
+        .from('pastoral_messages')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', oneWeekAgo.toISOString());
+      pastoralStats.weeklyMessages = weeklyMsgs || 0;
+
+      // Feedback counts
+      const { count: helpful } = await supabase
+        .from('pastoral_feedback')
+        .select('*', { count: 'exact', head: true })
+        .eq('helpful', true);
+      pastoralStats.helpfulCount = helpful || 0;
+
+      const { count: notHelpful } = await supabase
+        .from('pastoral_feedback')
+        .select('*', { count: 'exact', head: true })
+        .eq('helpful', false);
+      pastoralStats.notHelpfulCount = notHelpful || 0;
+    } catch (e) {
+      console.error('Error fetching pastoral stats:', e);
+    }
+
     return NextResponse.json({
       users: {
         total: totalUsers,
@@ -104,6 +156,7 @@ export async function GET() {
       moderation: {
         pendingPrayers,
       },
+      pastoralGuidance: pastoralStats,
       generatedAt: new Date().toISOString(),
     });
   } catch (error) {

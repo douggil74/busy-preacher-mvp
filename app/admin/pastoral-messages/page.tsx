@@ -41,7 +41,7 @@ export default function PastoralMessagesPage() {
   const [reply, setReply] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [filter, setFilter] = useState<'all' | 'flagged' | 'contact'>('all');
+  const [filter, setFilter] = useState<'flagged' | 'contact'>('flagged');
 
   useEffect(() => {
     fetchConversations();
@@ -51,6 +51,8 @@ export default function PastoralMessagesPage() {
 
   const fetchConversations = async () => {
     try {
+      // Only fetch flagged or contact-provided conversations - never all
+      // This respects user privacy while allowing pastoral care for those who need it
       let url = '/api/pastoral-conversations?limit=100';
       if (filter === 'flagged') url += '&flaggedOnly=true';
       if (filter === 'contact') url += '&hasContact=true';
@@ -148,21 +150,8 @@ export default function PastoralMessagesPage() {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 py-6">
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-4 mb-6">
-            <div className="rounded-lg p-4" style={{
-              backgroundColor: 'var(--card-bg)',
-              borderWidth: '1px',
-              borderStyle: 'solid',
-              borderColor: 'var(--card-border)'
-            }}>
-              <div className="flex items-center gap-2 mb-2">
-                <MessageCircle className="w-5 h-5 text-blue-400" />
-                <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Total Conversations</h3>
-              </div>
-              <p className="text-3xl font-bold text-blue-400">{conversations.length}</p>
-            </div>
-
+          {/* Stats - Only shows flagged and contact-provided (privacy-respecting) */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="rounded-lg p-4" style={{
               backgroundColor: 'var(--card-bg)',
               borderWidth: '1px',
@@ -171,9 +160,10 @@ export default function PastoralMessagesPage() {
             }}>
               <div className="flex items-center gap-2 mb-2">
                 <AlertTriangle className="w-5 h-5 text-red-400" />
-                <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Flagged</h3>
+                <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Needs Attention</h3>
               </div>
               <p className="text-3xl font-bold text-red-400">{flaggedCount}</p>
+              <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>Flagged for crisis/serious concern</p>
             </div>
 
             <div className="rounded-lg p-4" style={{
@@ -187,26 +177,12 @@ export default function PastoralMessagesPage() {
                 <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Contact Provided</h3>
               </div>
               <p className="text-3xl font-bold text-green-400">{contactProvidedCount}</p>
+              <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>Users who shared contact info</p>
             </div>
           </div>
 
-          {/* Filters */}
+          {/* Filters - Only flagged or contact-provided (respects privacy) */}
           <div className="flex gap-2 mb-4">
-            <button
-              onClick={() => setFilter('all')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                filter === 'all' ? 'bg-blue-500 text-white' : ''
-              }`}
-              style={filter !== 'all' ? {
-                backgroundColor: 'var(--card-bg)',
-                color: 'var(--text-secondary)',
-                borderWidth: '1px',
-                borderStyle: 'solid',
-                borderColor: 'var(--card-border)'
-              } : undefined}
-            >
-              All ({conversations.length})
-            </button>
             <button
               onClick={() => setFilter('flagged')}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
@@ -235,7 +211,7 @@ export default function PastoralMessagesPage() {
                 borderColor: 'var(--card-border)'
               } : undefined}
             >
-              Has Contact ({contactProvidedCount})
+              Contact Provided ({contactProvidedCount})
             </button>
           </div>
 

@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { ConfirmationResult } from 'firebase/auth';
+import { X, Mail, Phone, ArrowRight } from 'lucide-react';
 
 interface SignInModalProps {
   isOpen: boolean;
@@ -14,10 +15,7 @@ interface SignInModalProps {
 export function SignInModal({ isOpen, onClose, message }: SignInModalProps) {
   const { signInWithEmail, signUpWithEmail, resetPassword, sendPhoneCode, verifyPhoneCode } = useAuth();
 
-  // Auth method toggle
   const [authMethod, setAuthMethod] = useState<'email' | 'phone'>('email');
-
-  // Email auth state
   const [mode, setMode] = useState<'signin' | 'signup' | 'reset'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -30,14 +28,12 @@ export function SignInModal({ isOpen, onClose, message }: SignInModalProps) {
   const [phoneStep, setPhoneStep] = useState<'enter' | 'verify'>('enter');
   const [phoneFirstName, setPhoneFirstName] = useState('');
 
-  // Common state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
-  // Format phone number as user types
   const formatPhoneDisplay = (value: string) => {
     const numbers = value.replace(/\D/g, '');
     if (numbers.length <= 3) return numbers;
@@ -54,6 +50,9 @@ export function SignInModal({ isOpen, onClose, message }: SignInModalProps) {
     try {
       if (mode === 'signin') {
         await signInWithEmail(email, password);
+        // Mark onboarding as complete for returning users
+        localStorage.setItem('bc-onboarding-complete', 'true');
+        localStorage.setItem('onboarding_completed', 'true');
         onClose();
       } else if (mode === 'signup') {
         if (!firstName.trim()) {
@@ -62,6 +61,10 @@ export function SignInModal({ isOpen, onClose, message }: SignInModalProps) {
           return;
         }
         await signUpWithEmail(email, password, firstName.trim(), firstName.trim());
+        // Set onboarding complete for new users too - they don't need slides
+        localStorage.setItem('bc-onboarding-complete', 'true');
+        localStorage.setItem('onboarding_completed', 'true');
+        localStorage.setItem('bc-user-name', firstName.trim());
         onClose();
       } else if (mode === 'reset') {
         await resetPassword(email);
@@ -69,42 +72,43 @@ export function SignInModal({ isOpen, onClose, message }: SignInModalProps) {
         setMode('signin');
       }
     } catch (err: any) {
-      console.error('Auth error:', err.code, err.message);
-      switch (err.code) {
-        case 'auth/invalid-email':
-          setError('Please enter a valid email address');
-          break;
-        case 'auth/user-not-found':
-          setError('No account found with this email');
-          break;
-        case 'auth/wrong-password':
-          setError('Incorrect password');
-          break;
-        case 'auth/invalid-credential':
-        case 'auth/invalid-login-credentials':
-          setError('Invalid email or password. Please try again.');
-          break;
-        case 'auth/email-already-in-use':
-          setError('An account already exists with this email');
-          break;
-        case 'auth/weak-password':
-          setError('Password must be at least 6 characters');
-          break;
-        case 'auth/too-many-requests':
-          setError('Too many attempts. Please try again later.');
-          break;
-        default:
-          setError(err.message || 'Something went wrong');
-      }
+      handleAuthError(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAuthError = (err: any) => {
+    console.error('Auth error:', err.code, err.message);
+    switch (err.code) {
+      case 'auth/invalid-email':
+        setError('Please enter a valid email address');
+        break;
+      case 'auth/user-not-found':
+        setError('No account found with this email');
+        break;
+      case 'auth/wrong-password':
+      case 'auth/invalid-credential':
+      case 'auth/invalid-login-credentials':
+        setError('Invalid email or password');
+        break;
+      case 'auth/email-already-in-use':
+        setError('An account already exists with this email');
+        break;
+      case 'auth/weak-password':
+        setError('Password must be at least 6 characters');
+        break;
+      case 'auth/too-many-requests':
+        setError('Too many attempts. Please try again later.');
+        break;
+      default:
+        setError(err.message || 'Something went wrong');
     }
   };
 
   const handleSendPhoneCode = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setSuccessMessage(null);
     setLoading(true);
 
     try {
@@ -124,15 +128,14 @@ export function SignInModal({ isOpen, onClose, message }: SignInModalProps) {
       const result = await sendPhoneCode(numbers, 'modal-recaptcha-container');
       setConfirmationResult(result);
       setPhoneStep('verify');
-      setSuccessMessage('Verification code sent! Check your text messages.');
+      setSuccessMessage('Code sent! Check your messages.');
     } catch (err: any) {
-      console.error('Phone auth error:', err);
       if (err.code === 'auth/invalid-phone-number') {
-        setError('Invalid phone number. Please check and try again.');
+        setError('Invalid phone number');
       } else if (err.code === 'auth/too-many-requests') {
-        setError('Too many attempts. Please try again later.');
+        setError('Too many attempts. Try again later.');
       } else {
-        setError(err.message || 'Failed to send code. Please try again.');
+        setError('Failed to send code');
       }
     } finally {
       setLoading(false);
@@ -142,7 +145,6 @@ export function SignInModal({ isOpen, onClose, message }: SignInModalProps) {
   const handleVerifyCode = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setSuccessMessage(null);
     setLoading(true);
 
     try {
@@ -152,23 +154,16 @@ export function SignInModal({ isOpen, onClose, message }: SignInModalProps) {
         return;
       }
 
-      if (verificationCode.length !== 6) {
-        setError('Please enter the 6-digit code');
-        setLoading(false);
-        return;
-      }
-
       await verifyPhoneCode(confirmationResult, verificationCode, phoneFirstName.trim());
+      localStorage.setItem('bc-onboarding-complete', 'true');
+      localStorage.setItem('onboarding_completed', 'true');
+      localStorage.setItem('bc-user-name', phoneFirstName.trim());
       onClose();
     } catch (err: any) {
-      console.error('Verification error:', err);
       if (err.code === 'auth/invalid-verification-code') {
-        setError('Invalid code. Please check and try again.');
-      } else if (err.code === 'auth/code-expired') {
-        setError('Code expired. Please request a new one.');
-        setPhoneStep('enter');
+        setError('Invalid code');
       } else {
-        setError(err.message || 'Verification failed. Please try again.');
+        setError('Verification failed');
       }
     } finally {
       setLoading(false);
@@ -180,86 +175,120 @@ export function SignInModal({ isOpen, onClose, message }: SignInModalProps) {
     setError(null);
     setSuccessMessage(null);
     setPhoneStep('enter');
-    setVerificationCode('');
-    setConfirmationResult(null);
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[100] p-4 overflow-y-auto">
-      <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl max-w-md w-full shadow-2xl border border-white/10 p-8 my-auto">
+    <div
+      className="fixed inset-0 flex items-center justify-center z-[100] p-4"
+      style={{ backgroundColor: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}
+    >
+      <div
+        className="relative rounded-2xl max-w-md w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-hide"
+        style={{
+          backgroundColor: 'var(--card-bg)',
+          border: '1px solid var(--card-border)',
+        }}
+      >
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 rounded-lg transition-colors hover:bg-white/10"
+          style={{ color: 'var(--text-secondary)' }}
+        >
+          <X className="w-5 h-5" />
+        </button>
+
         {/* Header */}
         <div className="text-center mb-6">
-          <div className="text-4xl mb-3">📖</div>
-          <h2 className="text-2xl font-bold text-white mb-2">
-            {authMethod === 'phone'
-              ? (phoneStep === 'verify' ? 'Enter Code' : 'Sign In')
-              : (mode === 'signin' ? 'Welcome Back' : mode === 'signup' ? 'Create Account' : 'Reset Password')}
+          <h2
+            className="text-2xl font-bold mb-2"
+            style={{ color: 'var(--text-primary)' }}
+          >
+            {mode === 'signin' ? 'Welcome Back' : mode === 'signup' ? 'Create Account' : 'Reset Password'}
           </h2>
-          <p className="text-white/60 text-sm">
-            {message || (authMethod === 'phone'
-              ? (phoneStep === 'verify' ? 'Enter the code sent to your phone' : 'Sign in with your phone number')
-              : (mode === 'signin' ? 'Sign in to continue' : mode === 'signup' ? 'Join our community' : 'Enter your email to reset'))}
+          <p style={{ color: 'var(--text-secondary)' }} className="text-sm">
+            {message || 'Sign in to access your personalized study experience'}
           </p>
         </div>
 
-        {/* Auth Method Toggle - More Prominent */}
-        <div className="flex gap-3 mb-2">
+        {/* Auth Method Toggle */}
+        <div className="flex gap-2 mb-4">
           <button
             onClick={() => switchAuthMethod('email')}
-            className={`flex-1 py-3 px-4 rounded-xl text-base font-semibold transition-all flex items-center justify-center gap-2 ${
-              authMethod === 'email'
-                ? 'bg-yellow-400/20 border-2 border-yellow-400 text-yellow-400 shadow-lg shadow-yellow-400/20'
-                : 'bg-white/5 border-2 border-white/20 text-white/70 hover:border-white/40 hover:bg-white/10'
-            }`}
+            className="flex-1 py-2.5 px-4 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2"
+            style={{
+              backgroundColor: authMethod === 'email'
+                ? 'color-mix(in srgb, var(--accent-color) 20%, transparent)'
+                : 'transparent',
+              border: authMethod === 'email'
+                ? '2px solid var(--accent-color)'
+                : '2px solid var(--card-border)',
+              color: authMethod === 'email' ? 'var(--accent-color)' : 'var(--text-secondary)',
+            }}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
+            <Mail className="w-4 h-4" />
             Email
           </button>
           <button
             onClick={() => switchAuthMethod('phone')}
-            className={`flex-1 py-3 px-4 rounded-xl text-base font-semibold transition-all flex items-center justify-center gap-2 ${
-              authMethod === 'phone'
-                ? 'bg-yellow-400/20 border-2 border-yellow-400 text-yellow-400 shadow-lg shadow-yellow-400/20'
-                : 'bg-white/5 border-2 border-white/20 text-white/70 hover:border-white/40 hover:bg-white/10'
-            }`}
+            className="flex-1 py-2.5 px-4 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2"
+            style={{
+              backgroundColor: authMethod === 'phone'
+                ? 'color-mix(in srgb, var(--accent-color) 20%, transparent)'
+                : 'transparent',
+              border: authMethod === 'phone'
+                ? '2px solid var(--accent-color)'
+                : '2px solid var(--card-border)',
+              color: authMethod === 'phone' ? 'var(--accent-color)' : 'var(--text-secondary)',
+            }}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-            </svg>
+            <Phone className="w-4 h-4" />
             Phone
           </button>
         </div>
-        <p className="text-white/50 text-xs mb-4 text-center">
-          {authMethod === 'phone' ? 'Quick sign in - no password needed!' : 'Sign in with your email and password'}
-        </p>
 
-        {/* Error Message */}
+        {/* Error/Success Messages */}
         {error && (
-          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+          <div
+            className="mb-4 p-3 rounded-lg text-sm"
+            style={{
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              color: '#ef4444',
+            }}
+          >
             {error}
           </div>
         )}
-
-        {/* Success Message */}
         {successMessage && (
-          <div className="mb-4 p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-green-400 text-sm">
+          <div
+            className="mb-4 p-3 rounded-lg text-sm"
+            style={{
+              backgroundColor: 'rgba(34, 197, 94, 0.1)',
+              border: '1px solid rgba(34, 197, 94, 0.3)',
+              color: '#22c55e',
+            }}
+          >
             {successMessage}
           </div>
         )}
 
-        {/* Phone Auth Form */}
+        {/* Phone Auth */}
         {authMethod === 'phone' && (
           <>
             {phoneStep === 'enter' ? (
-              <form onSubmit={handleSendPhoneCode} className="space-y-4">
+              <form onSubmit={handleSendPhoneCode} className="space-y-3">
                 <input
                   type="text"
                   value={phoneFirstName}
                   onChange={(e) => setPhoneFirstName(e.target.value)}
                   placeholder="First name"
-                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
+                  className="w-full px-4 py-3 rounded-xl outline-none transition-all"
+                  style={{
+                    backgroundColor: 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
+                    border: '2px solid var(--card-border)',
+                    color: 'var(--text-primary)',
+                  }}
                   required
                 />
                 <input
@@ -267,89 +296,126 @@ export function SignInModal({ isOpen, onClose, message }: SignInModalProps) {
                   value={formatPhoneDisplay(phoneNumber)}
                   onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
                   placeholder="(555) 555-5555"
-                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
+                  className="w-full px-4 py-3 rounded-xl outline-none transition-all"
+                  style={{
+                    backgroundColor: 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
+                    border: '2px solid var(--card-border)',
+                    color: 'var(--text-primary)',
+                  }}
                   required
                 />
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold rounded-lg transition-colors disabled:opacity-50"
+                  className="w-full py-3 rounded-xl font-semibold transition-all hover:scale-[1.02] disabled:opacity-50 flex items-center justify-center gap-2"
+                  style={{
+                    backgroundColor: 'var(--accent-color)',
+                    color: 'var(--bg-color)',
+                  }}
                 >
-                  {loading ? 'Sending...' : 'Send Verification Code'}
+                  {loading ? 'Sending...' : 'Send Code'}
+                  <ArrowRight className="w-4 h-4" />
                 </button>
               </form>
             ) : (
-              <form onSubmit={handleVerifyCode} className="space-y-4">
+              <form onSubmit={handleVerifyCode} className="space-y-3">
                 <input
                   type="text"
                   value={verificationCode}
                   onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   placeholder="123456"
-                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50 text-center text-2xl tracking-widest"
+                  className="w-full px-4 py-3 rounded-xl outline-none text-center text-2xl tracking-widest"
+                  style={{
+                    backgroundColor: 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
+                    border: '2px solid var(--card-border)',
+                    color: 'var(--text-primary)',
+                  }}
                   maxLength={6}
                   required
                 />
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold rounded-lg transition-colors disabled:opacity-50"
+                  className="w-full py-3 rounded-xl font-semibold transition-all hover:scale-[1.02] disabled:opacity-50"
+                  style={{
+                    backgroundColor: 'var(--accent-color)',
+                    color: 'var(--bg-color)',
+                  }}
                 >
-                  {loading ? 'Verifying...' : 'Verify Code'}
+                  {loading ? 'Verifying...' : 'Verify'}
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setPhoneStep('enter'); setSuccessMessage(null); }}
-                  className="w-full text-white/50 hover:text-white/70 text-sm transition-colors"
+                  onClick={() => setPhoneStep('enter')}
+                  className="w-full text-sm py-2"
+                  style={{ color: 'var(--text-secondary)' }}
                 >
-                  Use a different number
+                  Use different number
                 </button>
               </form>
             )}
           </>
         )}
 
-        {/* Email Auth Form */}
+        {/* Email Auth */}
         {authMethod === 'email' && (
           <>
-            <form onSubmit={handleEmailSubmit} className="space-y-4">
+            <form onSubmit={handleEmailSubmit} className="space-y-3">
               {mode === 'signup' && (
                 <input
                   type="text"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                   placeholder="First name"
-                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
+                  className="w-full px-4 py-3 rounded-xl outline-none transition-all"
+                  style={{
+                    backgroundColor: 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
+                    border: '2px solid var(--card-border)',
+                    color: 'var(--text-primary)',
+                  }}
                   required
                 />
               )}
-
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email address"
-                className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
+                className="w-full px-4 py-3 rounded-xl outline-none transition-all"
+                style={{
+                  backgroundColor: 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
+                  border: '2px solid var(--card-border)',
+                  color: 'var(--text-primary)',
+                }}
                 required
               />
-
               {mode !== 'reset' && (
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Password"
-                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
+                  className="w-full px-4 py-3 rounded-xl outline-none transition-all"
+                  style={{
+                    backgroundColor: 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
+                    border: '2px solid var(--card-border)',
+                    color: 'var(--text-primary)',
+                  }}
                   required
                   minLength={6}
                 />
               )}
-
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold rounded-lg transition-colors disabled:opacity-50"
+                className="w-full py-3 rounded-xl font-semibold transition-all hover:scale-[1.02] disabled:opacity-50 flex items-center justify-center gap-2"
+                style={{
+                  backgroundColor: 'var(--accent-color)',
+                  color: 'var(--bg-color)',
+                }}
               >
                 {loading ? 'Please wait...' : mode === 'signin' ? 'Sign In' : mode === 'signup' ? 'Create Account' : 'Send Reset Email'}
+                <ArrowRight className="w-4 h-4" />
               </button>
             </form>
 
@@ -358,15 +424,17 @@ export function SignInModal({ isOpen, onClose, message }: SignInModalProps) {
               {mode === 'signin' && (
                 <>
                   <button
-                    onClick={() => { setMode('signup'); setError(null); setSuccessMessage(null); }}
-                    className="text-yellow-400 hover:text-yellow-300 text-sm"
+                    onClick={() => { setMode('signup'); setError(null); }}
+                    className="text-sm"
+                    style={{ color: 'var(--accent-color)' }}
                   >
                     Need an account? Sign up
                   </button>
                   <br />
                   <button
-                    onClick={() => { setMode('reset'); setError(null); setSuccessMessage(null); }}
-                    className="text-white/50 hover:text-white/70 text-sm"
+                    onClick={() => { setMode('reset'); setError(null); }}
+                    className="text-sm"
+                    style={{ color: 'var(--text-secondary)' }}
                   >
                     Forgot password?
                   </button>
@@ -374,16 +442,18 @@ export function SignInModal({ isOpen, onClose, message }: SignInModalProps) {
               )}
               {mode === 'signup' && (
                 <button
-                  onClick={() => { setMode('signin'); setError(null); setSuccessMessage(null); }}
-                  className="text-yellow-400 hover:text-yellow-300 text-sm"
+                  onClick={() => { setMode('signin'); setError(null); }}
+                  className="text-sm"
+                  style={{ color: 'var(--accent-color)' }}
                 >
                   Already have an account? Sign in
                 </button>
               )}
               {mode === 'reset' && (
                 <button
-                  onClick={() => { setMode('signin'); setError(null); setSuccessMessage(null); }}
-                  className="text-yellow-400 hover:text-yellow-300 text-sm"
+                  onClick={() => { setMode('signin'); setError(null); }}
+                  className="text-sm"
+                  style={{ color: 'var(--accent-color)' }}
                 >
                   Back to sign in
                 </button>
@@ -394,14 +464,6 @@ export function SignInModal({ isOpen, onClose, message }: SignInModalProps) {
 
         {/* Invisible reCAPTCHA container */}
         <div id="modal-recaptcha-container"></div>
-
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="w-full text-white/60 hover:text-white text-sm py-2 mt-4 transition-colors"
-        >
-          Maybe Later
-        </button>
       </div>
     </div>
   );

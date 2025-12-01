@@ -141,16 +141,28 @@ export function SettingsModal({ isOpen, onClose, userName, currentStyle }: Setti
   const stats = getDataStats();
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="relative w-full max-w-2xl bg-slate-900 rounded-2xl border border-white/10 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div
+        className="relative w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+        style={{
+          backgroundColor: 'var(--card-bg)',
+          borderColor: 'var(--card-border)',
+          border: '1px solid var(--card-border)',
+          backdropFilter: 'blur(16px)',
+        }}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-white/10">
-          <h2 className={`${playfair.className} text-2xl font-semibold text-yellow-400`}>
+        <div
+          className="flex items-center justify-between p-6"
+          style={{ borderBottom: '1px solid var(--card-border)' }}
+        >
+          <h2 className="text-2xl font-semibold" style={{ color: 'var(--accent-color)' }}>
             Settings & Privacy
           </h2>
           <button
             onClick={onClose}
-            className="text-white/60 hover:text-white transition-colors"
+            className="transition-colors"
+            style={{ color: 'var(--text-secondary)' }}
             aria-label="Close"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -160,34 +172,34 @@ export function SettingsModal({ isOpen, onClose, userName, currentStyle }: Setti
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-white/10">
+        <div className="flex" style={{ borderBottom: '1px solid var(--card-border)' }}>
           <button
             onClick={() => setActiveTab("preferences")}
-            className={`flex-1 px-6 py-3 text-sm font-medium transition-colors ${
-              activeTab === "preferences"
-                ? "text-yellow-400 border-b-2 border-yellow-400"
-                : "text-white/60 hover:text-white/80"
-            }`}
+            className="flex-1 px-6 py-3 text-sm font-medium transition-colors"
+            style={{
+              color: activeTab === "preferences" ? 'var(--accent-color)' : 'var(--text-secondary)',
+              borderBottom: activeTab === "preferences" ? '2px solid var(--accent-color)' : 'none',
+            }}
           >
             Study Preferences
           </button>
           <button
             onClick={() => setActiveTab("account")}
-            className={`flex-1 px-6 py-3 text-sm font-medium transition-colors ${
-              activeTab === "account"
-                ? "text-yellow-400 border-b-2 border-yellow-400"
-                : "text-white/60 hover:text-white/80"
-            }`}
+            className="flex-1 px-6 py-3 text-sm font-medium transition-colors"
+            style={{
+              color: activeTab === "account" ? 'var(--accent-color)' : 'var(--text-secondary)',
+              borderBottom: activeTab === "account" ? '2px solid var(--accent-color)' : 'none',
+            }}
           >
             Account
           </button>
           <button
             onClick={() => setActiveTab("data")}
-            className={`flex-1 px-6 py-3 text-sm font-medium transition-colors ${
-              activeTab === "data"
-                ? "text-yellow-400 border-b-2 border-yellow-400"
-                : "text-white/60 hover:text-white/80"
-            }`}
+            className="flex-1 px-6 py-3 text-sm font-medium transition-colors"
+            style={{
+              color: activeTab === "data" ? 'var(--accent-color)' : 'var(--text-secondary)',
+              borderBottom: activeTab === "data" ? '2px solid var(--accent-color)' : 'none',
+            }}
           >
             Data & Privacy
           </button>

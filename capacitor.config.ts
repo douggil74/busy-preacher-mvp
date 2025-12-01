@@ -1,7 +1,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 // Set to 'development' for local testing, 'production' for App Store builds
-const mode = 'production';
+const mode: 'development' | 'production' = 'production';
 
 const config: CapacitorConfig = {
   appId: 'com.busychristian.app',

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Lock, Eye, EyeOff, Shield } from 'lucide-react';
 import { hasAdminPassword, setAdminPassword, verifyAdminPassword, setAdminSession, isAdminAuthenticated } from '@/lib/adminAuth';
 import { useAuth } from '@/contexts/AuthContext';
-import { isAdmin } from '@/lib/whitelist';
+import { isAdmin, isAdminAsync } from '@/lib/whitelist';
 
 interface AdminAuthProps {
   children: React.ReactNode;
@@ -29,12 +29,15 @@ export default function AdminAuth({ children }: AdminAuthProps) {
     if (authLoading) return;
 
     try {
-      // Admin users get automatic access (bypass password)
-      if (user?.email && isAdmin(user.email)) {
-        console.log('✅ Admin access granted:', user.email);
-        setIsAuthenticated(true);
-        setIsLoading(false);
-        return;
+      // Check if user has admin role (hardcoded admins or Firestore roles)
+      if (user?.email) {
+        const hasAdminAccess = await isAdminAsync(user.email);
+        if (hasAdminAccess) {
+          console.log('✅ Admin access granted:', user.email);
+          setIsAuthenticated(true);
+          setIsLoading(false);
+          return;
+        }
       }
 
       // Check if already authenticated in this session

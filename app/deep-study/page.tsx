@@ -1789,11 +1789,13 @@ export default function DeepStudyPage() {
 {activeWord && popoverPos && !isMobile && (
         <div
           ref={popoverRef}
-          className="hover-popover pointer-events-none fixed z-50 w-[420px] max-w-[90vw] rounded-2xl shadow-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700"
+          className="hover-popover pointer-events-none fixed z-50 w-[420px] max-w-[90vw] rounded-2xl shadow-2xl"
           style={{
             left: popoverPos.x,
             top: popoverPos.y,
             cursor: popoverPinned ? (isDragging ? 'grabbing' : 'grab') : 'default',
+            backgroundColor: 'var(--card-bg)',
+            border: '1px solid var(--card-border)',
           }}
         >
           <div
@@ -1804,17 +1806,17 @@ export default function DeepStudyPage() {
             <div className="flex items-start justify-between gap-3 mb-3">
               <div className="flex-1">
                 {popoverPinned && (
-                  <div className="text-xs text-slate-500 dark:text-slate-400 mb-1 flex items-center gap-1">
+                  <div className="text-xs mb-1 flex items-center gap-1" style={{ color: 'var(--text-secondary)' }}>
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
                     </svg>
                     <span>Drag to move</span>
                   </div>
                 )}
-                <h3 className="text-2xl font-serif text-slate-900 dark:text-white mb-1">
+                <h3 className="text-2xl font-serif mb-1" style={{ color: 'var(--text-primary)' }}>
                   {hoverData?.lemma ?? activeWord}
                 </h3>
-                <div className="text-sm font-semibold text-orange-600 dark:text-orange-400">
+                <div className="text-sm font-semibold" style={{ color: 'var(--accent-color)' }}>
                   STRONG'S NUMBER: {hoverData?.strongs ?? "..."}
                 </div>
               </div>
@@ -1823,7 +1825,11 @@ export default function DeepStudyPage() {
                   e.stopPropagation();
                   setPopoverPinned((p) => !p);
                 }}
-                className="rounded-lg px-2.5 py-1 text-xs font-medium transition-colors bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 shrink-0"
+                className="rounded-lg px-2.5 py-1 text-xs font-medium transition-colors shrink-0"
+                style={{
+                  backgroundColor: 'color-mix(in srgb, var(--text-primary) 10%, transparent)',
+                  color: 'var(--text-secondary)',
+                }}
               >
                 {popoverPinned ? "📌 Pinned" : "📍 Pin"}
               </button>
@@ -1831,40 +1837,47 @@ export default function DeepStudyPage() {
 
             {/* Dictionary Definition Section */}
             <div className="mb-4">
-              <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-3 pb-2 border-b border-slate-200 dark:border-slate-700">
+              <h4 className="text-sm font-bold mb-3 pb-2" style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--card-border)' }}>
                 Dictionary Definition
               </h4>
-              <div className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+              <div className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                 {hoverData?.plain ?? (hoverLoading ? "Loading definition..." : "—")}
               </div>
             </div>
 
-            {/* Search Actions */}
+            {/* Actions */}
             {hoverData && (
-              <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
-                <div className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2">
-                  SEARCH FOR
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSearchStrongs();
-                    }}
-                    className="flex-1 px-3 py-2 text-sm font-medium rounded-lg border-2 border-indigo-600 dark:border-indigo-500 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950 transition-colors"
-                  >
-                    Search for {hoverData.strongs}
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleLookupLemma();
-                    }}
-                    className="flex-1 px-3 py-2 text-sm font-medium rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors"
-                  >
-                    Lookup {hoverData.lemma}
-                  </button>
-                </div>
+              <div className="pt-4 flex gap-2" style={{ borderTop: '1px solid var(--card-border)' }}>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const text = `${hoverData.lemma} (${hoverData.strongs}): ${hoverData.plain}`;
+                    navigator.clipboard.writeText(text);
+                  }}
+                  className="px-3 py-2.5 text-sm font-medium rounded-lg transition-colors"
+                  style={{
+                    backgroundColor: 'color-mix(in srgb, var(--text-primary) 10%, transparent)',
+                    color: 'var(--text-secondary)',
+                  }}
+                  title="Copy to clipboard"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleLookupLemma();
+                  }}
+                  className="flex-1 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors"
+                  style={{
+                    backgroundColor: 'var(--accent-color)',
+                    color: 'var(--bg-color)',
+                  }}
+                >
+                  Learn More
+                </button>
               </div>
             )}
           </div>

@@ -1,47 +1,168 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePlatform } from '@/hooks/usePlatform';
 import { getUserSubscription, Subscription } from '@/lib/subscription';
-import { Playfair_Display } from 'next/font/google';
+import { APP_VERSION } from '@/lib/version';
+import { Camera, User, Mail, Calendar, CreditCard, FileText, HelpCircle, Shield, LogOut, ChevronRight, Clock, CheckCircle, XCircle, AlertCircle, RotateCcw } from 'lucide-react';
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
-const playfair = Playfair_Display({
-  weight: ['600', '700'],
-  subsets: ['latin'],
-  display: 'swap',
-});
+interface PaymentRecord {
+  id: string;
+  date: string;
+  amount: string;
+  status: 'success' | 'failed' | 'pending' | 'refund';
+  description: string;
+}
 
 export default function AccountPage() {
   const router = useRouter();
   const { user, signOut, isLoading: authLoading } = useAuth();
   const { isApp, isPaid, isInTrial, trialDaysRemaining, isWhitelisted, isLoading: platformLoading } = usePlatform();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [cancellingSubscription, setCancellingSubscription] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-  const [updatingPayment, setUpdatingPayment] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [profilePic, setProfilePic] = useState<string | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [paymentHistory, setPaymentHistory] = useState<PaymentRecord[]>([]);
+  const [memberSince, setMemberSince] = useState<Date | null>(null);
+  const [showPaymentHistory, setShowPaymentHistory] = useState(false);
+
+  // Promo code state
+  const [promoCode, setPromoCode] = useState('');
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [promoMessage, setPromoMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
-    async function loadSubscription() {
+    async function loadData() {
       if (user?.uid) {
+        // Load subscription
         const sub = await getUserSubscription(user.uid);
         setSubscription(sub);
+
+        // Load profile data
+        try {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            if (data.photoURL) setProfilePic(data.photoURL);
+            if (data.createdAt) {
+              const date = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
+              setMemberSince(date);
+            }
+          }
+        } catch (e) {
+          console.error('Error loading profile:', e);
+        }
+
+        // Load payment history from subscription
+        if (sub && sub.paidAt) {
+          const history: PaymentRecord[] = [];
+          history.push({
+            id: '1',
+            date: formatDate(sub.paidAt),
+            amount: sub.plan === 'annual' ? '$35.88' : '$3.99',
+            status: 'success',
+            description: `${sub.plan === 'annual' ? 'Annual' : 'Monthly'} Subscription`,
+          });
+          setPaymentHistory(history);
+        }
+        // No payment history for users without payments
       }
       setLoading(false);
     }
-    loadSubscription();
+    loadData();
   }, [user]);
 
-  // Redirect if not logged in (only after auth has finished loading)
   useEffect(() => {
     if (!authLoading && !loading && !platformLoading && !user) {
       router.push('/home');
     }
   }, [user, authLoading, loading, platformLoading, router]);
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user?.uid) return;
+
+    // Validate file
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image must be less than 5MB');
+      return;
+    }
+
+    setUploadingPhoto(true);
+    try {
+      const storage = getStorage();
+      const storageRef = ref(storage, `profile-photos/${user.uid}`);
+      await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(storageRef);
+
+      // Update Firestore
+      await updateDoc(doc(db, 'users', user.uid), {
+        photoURL: downloadURL,
+      });
+
+      setProfilePic(downloadURL);
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+      alert('Failed to upload photo. Please try again.');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const handlePromoCode = async () => {
+    if (!promoCode.trim() || !user) return;
+
+    setPromoLoading(true);
+    setPromoMessage(null);
+
+    try {
+      const response = await fetch('/api/promo/redeem', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: promoCode.trim().toUpperCase(),
+          userId: user.uid,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setPromoMessage({ type: 'error', text: data.error || 'Invalid promo code' });
+        return;
+      }
+
+      setPromoMessage({
+        type: 'success',
+        text: data.promo?.hasForeverAccess
+          ? 'You now have lifetime access!'
+          : 'Promo code applied successfully!'
+      });
+      setPromoCode('');
+
+      // Reload after a moment to reflect changes
+      setTimeout(() => window.location.reload(), 1500);
+    } catch (error) {
+      setPromoMessage({ type: 'error', text: 'Failed to apply promo code' });
+    } finally {
+      setPromoLoading(false);
+    }
+  };
 
   const handleCancelSubscription = async () => {
     if (!user?.uid || !subscription) return;
@@ -55,7 +176,6 @@ export default function AccountPage() {
       });
 
       if (response.ok) {
-        // Refresh subscription data
         const sub = await getUserSubscription(user.uid);
         setSubscription(sub);
         setShowCancelConfirm(false);
@@ -65,49 +185,14 @@ export default function AccountPage() {
         alert(data.error || 'Failed to cancel subscription');
       }
     } catch (error) {
-      console.error('Cancel error:', error);
       alert('Failed to cancel subscription. Please try again.');
     } finally {
       setCancellingSubscription(false);
     }
   };
 
-  const handleUpdatePayment = async () => {
-    if (!user?.uid) return;
-
-    setUpdatingPayment(true);
-    try {
-      const response = await fetch('/api/subscription/update-payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.uid, userEmail: user.email }),
-      });
-
-      const data = await response.json();
-
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        alert(data.error || 'Unable to update payment method');
-      }
-    } catch (error) {
-      console.error('Update payment error:', error);
-      alert('Failed to update payment method. Please try again.');
-    } finally {
-      setUpdatingPayment(false);
-    }
-  };
-
-  const handleSignOut = async () => {
-    await signOut();
-    router.push('/');
-  };
-
   const handleSubscribe = async () => {
-    if (!user) {
-      alert('Please sign in first');
-      return;
-    }
+    if (!user) return;
 
     setIsCheckingOut(true);
     try {
@@ -117,237 +202,249 @@ export default function AccountPage() {
         body: JSON.stringify({
           userId: user.uid,
           userEmail: user.email,
-          plan: 'annual', // Default to annual plan
+          plan: 'annual',
         }),
       });
 
       const { url, error } = await response.json();
 
-      if (error) {
-        throw new Error(error);
-      }
-
-      if (url) {
-        window.location.href = url;
-      }
+      if (error) throw new Error(error);
+      if (url) window.location.href = url;
     } catch (error) {
-      console.error('Checkout error:', error);
       alert('Failed to start checkout. Please try again.');
       setIsCheckingOut(false);
     }
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+    router.push('/');
+  };
+
   const formatDate = (date: any) => {
     if (!date) return 'N/A';
     const d = date.toDate ? date.toDate() : new Date(date);
-    return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
-  const getSubscriptionStatus = () => {
-    if (isWhitelisted) {
-      return { label: 'Whitelisted', color: 'text-purple-400', bg: 'bg-purple-500/20' };
-    }
-    if (isApp) {
-      return { label: 'iOS App', color: 'text-green-400', bg: 'bg-green-500/20' };
-    }
-    if (subscription?.status === 'active') {
-      return { label: 'Active', color: 'text-green-400', bg: 'bg-green-500/20' };
-    }
-    if (subscription?.status === 'canceled') {
-      return { label: 'Cancelled', color: 'text-yellow-400', bg: 'bg-yellow-500/20' };
-    }
-    if (isInTrial) {
-      return { label: 'Free Trial', color: 'text-blue-400', bg: 'bg-blue-500/20' };
-    }
-    return { label: 'Inactive', color: 'text-red-400', bg: 'bg-red-500/20' };
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
   };
 
-  if (authLoading || loading || platformLoading) {
+  if (authLoading || loading || platformLoading || !user) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-400"></div>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: 'var(--accent-color)' }}></div>
       </div>
     );
   }
 
-  // Show loading while redirecting
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-400"></div>
-      </div>
-    );
-  }
-
-  const status = getSubscriptionStatus();
+  // Determine access type
+  const hasAccess = isPaid || isWhitelisted || isApp || (subscription?.status === 'active');
+  const accessType = isWhitelisted ? 'Admin' : isApp ? 'iOS App' : subscription?.status === 'active' ? 'Subscriber' : isInTrial ? 'Free Trial' : 'None';
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+    <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-md border-b border-white/10">
-        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
+      <header style={{ borderBottom: '1px solid var(--card-border)' }}>
+        <div className="max-w-xl mx-auto px-4 py-4 flex items-center justify-between">
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 text-white/70 hover:text-white transition-colors"
+            className="text-sm flex items-center gap-1 transition-colors"
+            style={{ color: 'var(--text-secondary)' }}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             Back
           </button>
-          <h1 className={`${playfair.className} text-xl font-bold text-yellow-400`}>Account</h1>
-          <div className="w-16"></div>
+          <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>v{APP_VERSION}</span>
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+      <main className="max-w-xl mx-auto px-4 py-8">
         {/* Profile Section */}
-        <section className="bg-white/5 border border-white/10 rounded-2xl p-6">
-          <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            Profile
-          </h2>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-white/60">Name</span>
-              <span className="text-white">{user.firstName || user.fullName || 'Not set'}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-white/60">Email</span>
-              <span className="text-white">{user.email || 'Not set'}</span>
-            </div>
-            {user.phone && (
-              <div className="flex justify-between items-center">
-                <span className="text-white/60">Phone</span>
-                <span className="text-white">{user.phone}</span>
+        <section className="mb-8">
+          <div className="rounded-xl p-6" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
+            <div className="flex items-center gap-4">
+              {/* Profile Picture */}
+              <div className="relative">
+                <div
+                  className="w-20 h-20 rounded-full flex items-center justify-center overflow-hidden"
+                  style={{ backgroundColor: 'var(--accent-color)', color: 'var(--bg-color)' }}
+                >
+                  {profilePic ? (
+                    <img src={profilePic} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-2xl font-bold">
+                      {getInitials(user.firstName || user.email || 'U')}
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingPhoto}
+                  className="absolute bottom-0 right-0 w-7 h-7 rounded-full flex items-center justify-center transition-colors"
+                  style={{ backgroundColor: 'var(--card-bg)', border: '2px solid var(--card-border)' }}
+                  title="Change photo"
+                >
+                  {uploadingPhoto ? (
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2" style={{ borderColor: 'var(--accent-color)' }} />
+                  ) : (
+                    <Camera className="w-3.5 h-3.5" style={{ color: 'var(--text-secondary)' }} />
+                  )}
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                  className="hidden"
+                />
               </div>
-            )}
-            <div className="flex justify-between items-center">
-              <span className="text-white/60">Member since</span>
-              <span className="text-white">{formatDate(user.createdAt)}</span>
+
+              {/* Profile Info */}
+              <div className="flex-1">
+                <h1 className="text-xl font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
+                  {user.firstName || 'User'}
+                </h1>
+                <p className="text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>
+                  {user.email}
+                </p>
+                <div className="flex items-center gap-4 text-xs" style={{ color: 'var(--text-secondary)' }}>
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5" />
+                    Member since {memberSince ? formatDate(memberSince) : 'N/A'}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Subscription Section */}
-        <section className="bg-white/5 border border-white/10 rounded-2xl p-6">
-          <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-            </svg>
-            Subscription
-          </h2>
-
-          <div className="space-y-4">
-            {/* Status Badge */}
-            <div className="flex justify-between items-center">
-              <span className="text-white/60">Status</span>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${status.bg} ${status.color}`}>
-                {status.label}
+        {/* Subscription Status Card */}
+        <section className="mb-6">
+          <h2 className="text-sm font-medium mb-3 px-1" style={{ color: 'var(--text-secondary)' }}>Subscription</h2>
+          <div className="rounded-xl p-5" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Status</span>
+              <span className={`text-sm font-medium px-2.5 py-1 rounded-full ${
+                hasAccess
+                  ? 'bg-green-500/20 text-green-400'
+                  : 'bg-white/10'
+              }`} style={!hasAccess ? { color: 'var(--text-secondary)' } : undefined}>
+                {accessType}
               </span>
             </div>
 
             {/* Trial Info */}
-            {isInTrial && !isApp && (
-              <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl">
-                <div className="flex items-center gap-2 text-blue-400 mb-2">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span className="font-medium">Free Trial</span>
+            {isInTrial && !hasAccess && (
+              <div className="mb-4 p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-blue-400" />
+                  <p className="text-blue-400 text-sm">
+                    {trialDaysRemaining > 0
+                      ? `${trialDaysRemaining} day${trialDaysRemaining === 1 ? '' : 's'} left in free trial`
+                      : 'Your free trial has ended'}
+                  </p>
                 </div>
-                <p className="text-white/70 text-sm">
-                  {trialDaysRemaining > 0
-                    ? `You have ${trialDaysRemaining} day${trialDaysRemaining === 1 ? '' : 's'} left in your free trial.`
-                    : 'Your free trial has ended.'}
-                </p>
-                {!subscription && (
-                  <button
-                    onClick={handleSubscribe}
-                    disabled={isCheckingOut}
-                    className="mt-3 w-full py-2 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold rounded-lg transition-colors disabled:opacity-50"
-                  >
-                    {isCheckingOut ? 'Loading checkout...' : 'Subscribe Now'}
-                  </button>
-                )}
-              </div>
-            )}
-
-            {/* Whitelisted User */}
-            {isWhitelisted && (
-              <div className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-xl">
-                <div className="flex items-center gap-2 text-purple-400 mb-2">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
-                  <span className="font-medium">Admin Access</span>
-                </div>
-                <p className="text-white/70 text-sm">
-                  You have full access as a whitelisted user.
-                </p>
-              </div>
-            )}
-
-            {/* iOS App User */}
-            {isApp && !isWhitelisted && (
-              <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-xl">
-                <div className="flex items-center gap-2 text-green-400 mb-2">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="font-medium">iOS App Premium</span>
-                </div>
-                <p className="text-white/70 text-sm">
-                  You have full access through the iOS app. Manage your subscription in the App Store settings.
-                </p>
               </div>
             )}
 
             {/* Active Subscription Details */}
-            {subscription && subscription.status === 'active' && !isApp && (
-              <>
-                <div className="flex justify-between items-center">
-                  <span className="text-white/60">Plan</span>
-                  <span className="text-white">
-                    {subscription.currentPeriodEnd && subscription.currentPeriodStart &&
-                      new Date(subscription.currentPeriodEnd).getTime() - new Date(subscription.currentPeriodStart).getTime() > 60 * 24 * 60 * 60 * 1000
-                      ? 'Annual ($35.88/year)'
-                      : subscription.plan === 'annual' ? 'Annual ($35.88/year)' : 'Monthly ($3.99/month)'}
+            {subscription?.status === 'active' && !isApp && (
+              <div className="space-y-3 mb-4">
+                <div className="flex justify-between text-sm">
+                  <span style={{ color: 'var(--text-secondary)' }}>Plan</span>
+                  <span style={{ color: 'var(--text-primary)' }}>
+                    {subscription.plan === 'annual' ? 'Annual ($35.88/yr)' : 'Monthly ($3.99/mo)'}
                   </span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-white/60">Next billing date</span>
-                  <span className="text-white">{formatDate(subscription.currentPeriodEnd)}</span>
+                <div className="flex justify-between text-sm">
+                  <span style={{ color: 'var(--text-secondary)' }}>Next billing</span>
+                  <span style={{ color: 'var(--text-primary)' }}>{formatDate(subscription.currentPeriodEnd)}</span>
                 </div>
+                {subscription.paidAt && (
+                  <div className="flex justify-between text-sm">
+                    <span style={{ color: 'var(--text-secondary)' }}>Last payment</span>
+                    <span style={{ color: 'var(--text-primary)' }}>{formatDate(subscription.paidAt)}</span>
+                  </div>
+                )}
+              </div>
+            )}
 
-                {/* Cancel Button */}
+            {/* iOS App Message */}
+            {isApp && (
+              <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+                Manage your subscription in iOS Settings &gt; Apple ID &gt; Subscriptions
+              </p>
+            )}
+
+            {/* Whitelisted Message */}
+            {isWhitelisted && (
+              <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+                You have admin access with full features enabled.
+              </p>
+            )}
+
+            {/* Subscribe Button */}
+            {!hasAccess && !isInTrial && (
+              <button
+                onClick={handleSubscribe}
+                disabled={isCheckingOut}
+                className="w-full py-3 font-medium rounded-lg transition-colors disabled:opacity-50"
+                style={{ backgroundColor: 'var(--accent-color)', color: 'var(--bg-color)' }}
+              >
+                {isCheckingOut ? 'Loading...' : 'Subscribe - $2.99/mo'}
+              </button>
+            )}
+
+            {/* Trial Subscribe Button */}
+            {isInTrial && !hasAccess && (
+              <button
+                onClick={handleSubscribe}
+                disabled={isCheckingOut}
+                className="w-full py-3 font-medium rounded-lg transition-colors disabled:opacity-50"
+                style={{ backgroundColor: 'var(--accent-color)', color: 'var(--bg-color)' }}
+              >
+                {isCheckingOut ? 'Loading...' : 'Subscribe Now'}
+              </button>
+            )}
+
+            {/* Cancel Subscription */}
+            {subscription?.status === 'active' && !isApp && !isWhitelisted && (
+              <>
                 {!showCancelConfirm ? (
                   <button
                     onClick={() => setShowCancelConfirm(true)}
-                    className="w-full py-2 text-red-400 hover:text-red-300 text-sm transition-colors"
+                    className="w-full mt-3 text-red-400/80 hover:text-red-400 text-sm transition-colors"
                   >
                     Cancel subscription
                   </button>
                 ) : (
-                  <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl space-y-3">
-                    <p className="text-white/80 text-sm">
-                      Are you sure you want to cancel? You'll lose access at the end of your billing period.
+                  <div className="mt-4 p-4 bg-red-500/10 rounded-lg border border-red-500/20">
+                    <p className="text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>
+                      Are you sure? You'll have access until {formatDate(subscription.currentPeriodEnd)}.
                     </p>
-                    <div className="flex gap-3">
+                    <div className="flex gap-2">
                       <button
                         onClick={() => setShowCancelConfirm(false)}
-                        className="flex-1 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
+                        className="flex-1 py-2 text-sm rounded-lg transition-colors"
+                        style={{ backgroundColor: 'var(--card-hover)', color: 'var(--text-primary)' }}
                       >
-                        Keep subscription
+                        Keep Subscription
                       </button>
                       <button
                         onClick={handleCancelSubscription}
                         disabled={cancellingSubscription}
-                        className="flex-1 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors disabled:opacity-50"
+                        className="flex-1 py-2 text-sm bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors disabled:opacity-50"
                       >
-                        {cancellingSubscription ? 'Cancelling...' : 'Yes, cancel'}
+                        {cancellingSubscription ? 'Cancelling...' : 'Cancel'}
                       </button>
                     </div>
                   </div>
@@ -357,95 +454,175 @@ export default function AccountPage() {
 
             {/* Cancelled Subscription */}
             {subscription?.status === 'canceled' && (
-              <div className="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl">
-                <p className="text-white/70 text-sm mb-3">
-                  Your subscription is cancelled. You have access until {formatDate(subscription.currentPeriodEnd)}.
+              <div className="mt-4 p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
+                <p className="text-yellow-400/80 text-sm mb-2">
+                  Cancelled. Access until {formatDate(subscription.currentPeriodEnd)}.
                 </p>
                 <button
                   onClick={handleSubscribe}
                   disabled={isCheckingOut}
-                  className="w-full py-2 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold rounded-lg transition-colors disabled:opacity-50"
+                  className="w-full py-2 font-medium rounded-lg text-sm transition-colors disabled:opacity-50"
+                  style={{ backgroundColor: 'var(--accent-color)', color: 'var(--bg-color)' }}
                 >
-                  {isCheckingOut ? 'Loading checkout...' : 'Resubscribe'}
-                </button>
-              </div>
-            )}
-
-            {/* No Subscription (Trial Expired) */}
-            {!subscription && !isInTrial && !isApp && (
-              <div className="p-4 bg-white/5 border border-white/20 rounded-xl">
-                <p className="text-white/70 text-sm mb-3">
-                  Subscribe to unlock all features.
-                </p>
-                <button
-                  onClick={handleSubscribe}
-                  disabled={isCheckingOut}
-                  className="w-full py-2 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold rounded-lg transition-colors disabled:opacity-50"
-                >
-                  {isCheckingOut ? 'Loading checkout...' : 'Subscribe Now'}
+                  {isCheckingOut ? 'Loading...' : 'Resubscribe'}
                 </button>
               </div>
             )}
           </div>
         </section>
 
-        {/* Payment Method Section (if has subscription) */}
-        {subscription && subscription.status === 'active' && !isApp && (
-          <section className="bg-white/5 border border-white/10 rounded-2xl p-6">
-            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-              <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-              </svg>
-              Payment Method
-            </h2>
-            <p className="text-white/60 text-sm mb-3">
-              Payments are processed securely via Square.
-            </p>
-            <button
-              onClick={handleUpdatePayment}
-              disabled={updatingPayment}
-              className="w-full py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors disabled:opacity-50"
-            >
-              {updatingPayment ? 'Loading...' : 'Update payment method'}
-            </button>
+        {/* Payment History */}
+        <section className="mb-6">
+          <button
+            onClick={() => setShowPaymentHistory(!showPaymentHistory)}
+            className="w-full rounded-xl p-4 flex items-center justify-between transition-colors"
+            style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
+          >
+            <div className="flex items-center gap-3">
+              <CreditCard className="w-5 h-5" style={{ color: 'var(--accent-color)' }} />
+              <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Payment History</span>
+              {paymentHistory.length > 0 && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/20 text-green-400">
+                  {paymentHistory.length}
+                </span>
+              )}
+            </div>
+            <ChevronRight
+              className={`w-5 h-5 transition-transform ${showPaymentHistory ? 'rotate-90' : ''}`}
+              style={{ color: 'var(--text-secondary)' }}
+            />
+          </button>
+
+          {showPaymentHistory && (
+            <div className="mt-2 rounded-xl overflow-hidden" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
+              {paymentHistory.length === 0 ? (
+                <div className="p-6 text-center">
+                  <CreditCard className="w-10 h-10 mx-auto mb-3 opacity-30" style={{ color: 'var(--text-secondary)' }} />
+                  <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>No payment history yet</p>
+                  {isWhitelisted && (
+                    <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>Admin accounts have complimentary access</p>
+                  )}
+                </div>
+              ) : (
+                paymentHistory.map((payment, index) => (
+                  <div
+                    key={payment.id}
+                    className="p-4 flex items-center justify-between"
+                    style={index > 0 ? { borderTop: '1px solid var(--card-border)' } : undefined}
+                  >
+                    <div className="flex items-center gap-3">
+                      {payment.status === 'success' ? (
+                        <CheckCircle className="w-5 h-5 text-green-400" />
+                      ) : payment.status === 'failed' ? (
+                        <XCircle className="w-5 h-5 text-red-400" />
+                      ) : payment.status === 'refund' ? (
+                        <RotateCcw className="w-5 h-5 text-blue-400" />
+                      ) : (
+                        <AlertCircle className="w-5 h-5 text-yellow-400" />
+                      )}
+                      <div>
+                        <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                          {payment.description}
+                        </p>
+                        <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                          {payment.date}
+                        </p>
+                      </div>
+                    </div>
+                    <span className={`text-sm font-medium ${payment.status === 'refund' ? 'text-green-400' : ''}`} style={payment.status !== 'refund' ? { color: 'var(--text-primary)' } : undefined}>
+                      {payment.amount}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </section>
+
+        {/* Promo Code Section */}
+        {!hasAccess && (
+          <section className="mb-6">
+            <div className="rounded-xl p-5" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
+              <h3 className="text-sm font-medium mb-3" style={{ color: 'var(--text-primary)' }}>Have a promo code?</h3>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                  placeholder="Enter code"
+                  className="flex-1 rounded-lg px-3 py-2 text-sm placeholder-white/30 focus:outline-none uppercase"
+                  style={{
+                    backgroundColor: 'var(--input-bg)',
+                    border: '1px solid var(--input-border)',
+                    color: 'var(--text-primary)'
+                  }}
+                  disabled={promoLoading}
+                  onKeyDown={(e) => e.key === 'Enter' && handlePromoCode()}
+                />
+                <button
+                  onClick={handlePromoCode}
+                  disabled={promoLoading || !promoCode.trim()}
+                  className="px-4 py-2 text-sm rounded-lg transition-colors disabled:opacity-50"
+                  style={{ backgroundColor: 'var(--card-hover)', color: 'var(--text-primary)' }}
+                >
+                  {promoLoading ? '...' : 'Apply'}
+                </button>
+              </div>
+              {promoMessage && (
+                <p className={`mt-2 text-sm ${promoMessage.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>
+                  {promoMessage.text}
+                </p>
+              )}
+            </div>
           </section>
         )}
 
-        {/* Help Section */}
-        <section className="bg-white/5 border border-white/10 rounded-2xl p-6">
-          <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Help & Support
-          </h2>
-          <div className="space-y-3">
-            <a
+        {/* Quick Links */}
+        <section className="mb-6">
+          <h2 className="text-sm font-medium mb-3 px-1" style={{ color: 'var(--text-secondary)' }}>Help & Info</h2>
+          <div className="rounded-xl overflow-hidden" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
+            <Link
               href="/help"
-              className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
+              className="flex items-center justify-between p-4 transition-colors hover:bg-white/5"
+              style={{ borderBottom: '1px solid var(--card-border)' }}
             >
-              <span className="text-white">Help Center</span>
-              <svg className="w-5 h-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </a>
-            <a
+              <div className="flex items-center gap-3">
+                <HelpCircle className="w-5 h-5" style={{ color: 'var(--accent-color)' }} />
+                <span className="text-sm" style={{ color: 'var(--text-primary)' }}>Help & Guide</span>
+              </div>
+              <ChevronRight className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
+            </Link>
+            <Link
+              href="/about"
+              className="flex items-center justify-between p-4 transition-colors hover:bg-white/5"
+              style={{ borderBottom: '1px solid var(--card-border)' }}
+            >
+              <div className="flex items-center gap-3">
+                <FileText className="w-5 h-5" style={{ color: 'var(--accent-color)' }} />
+                <span className="text-sm" style={{ color: 'var(--text-primary)' }}>About</span>
+              </div>
+              <ChevronRight className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
+            </Link>
+            <Link
               href="/privacy"
-              className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
+              className="flex items-center justify-between p-4 transition-colors hover:bg-white/5"
+              style={{ borderBottom: '1px solid var(--card-border)' }}
             >
-              <span className="text-white">Privacy Policy</span>
-              <svg className="w-5 h-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </a>
+              <div className="flex items-center gap-3">
+                <Shield className="w-5 h-5" style={{ color: 'var(--accent-color)' }} />
+                <span className="text-sm" style={{ color: 'var(--text-primary)' }}>Privacy Policy</span>
+              </div>
+              <ChevronRight className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
+            </Link>
             <a
-              href="mailto:pastor.doug@thebusychristian.app"
-              className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
+              href="mailto:thebusychristianapp@gmail.com"
+              className="flex items-center justify-between p-4 transition-colors hover:bg-white/5"
             >
-              <span className="text-white">Contact Support</span>
-              <svg className="w-5 h-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
+              <div className="flex items-center gap-3">
+                <Mail className="w-5 h-5" style={{ color: 'var(--accent-color)' }} />
+                <span className="text-sm" style={{ color: 'var(--text-primary)' }}>Contact Support</span>
+              </div>
+              <ChevronRight className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
             </a>
           </div>
         </section>
@@ -453,17 +630,16 @@ export default function AccountPage() {
         {/* Sign Out */}
         <button
           onClick={handleSignOut}
-          className="w-full py-4 bg-red-500/10 border border-red-500/30 hover:bg-red-500/20 text-red-400 rounded-2xl transition-colors flex items-center justify-center gap-2"
+          className="w-full py-4 rounded-xl flex items-center justify-center gap-2 transition-colors"
+          style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-          Sign Out
+          <LogOut className="w-5 h-5 text-red-400" />
+          <span className="text-red-400 font-medium">Sign Out</span>
         </button>
 
-        {/* Version */}
-        <p className="text-center text-white/30 text-xs">
-          The Busy Christian v1.0.0
+        {/* Footer */}
+        <p className="text-center text-xs mt-8" style={{ color: 'var(--text-secondary)' }}>
+          The Busy Christian &middot; Made with faith
         </p>
       </main>
     </div>

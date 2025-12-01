@@ -83,9 +83,13 @@ export default function SplashPage() {
     preventKeyboard();
     const keyboardInterval = setInterval(preventKeyboard, 100);
 
+    // Check if user has completed onboarding
+    const hasCompletedOnboarding = localStorage.getItem("onboarding_completed") === "true";
+    const destination = hasCompletedOnboarding ? "/home" : "/onboarding";
+
     const textTimer = setTimeout(() => setShowText(true), 200);  // Faster text appear
     const fadeTimer = setTimeout(() => setVisible(false), 2800);
-    const navTimer = setTimeout(() => router.push("/home"), 4200);
+    const navTimer = setTimeout(() => router.push(destination), 4200);
 
     return () => {
       clearInterval(keyboardInterval);

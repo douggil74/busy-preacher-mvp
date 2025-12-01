@@ -33,6 +33,7 @@ import { Paywall } from '@/components/Paywall';
 import { TrialWelcomeModal } from '@/components/TrialWelcomeModal';
 import { usePlatform } from '@/hooks/usePlatform';
 import { useAuth } from '@/contexts/AuthContext';
+import WeatherHeader from '@/components/WeatherHeader';
 
 function copyToClipboard(text: string) {
   if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
@@ -1137,6 +1138,9 @@ const handleKeywordResultSelect = (reference: string) => {
     <RequireAuth>
     <Paywall>
     <main className="px-6 pt-10 pb-8 max-w-4xl mx-auto relative">
+      {/* Weather-aware animated header */}
+      <WeatherHeader />
+
       {pastorNote && isOnboarded && (
         <EncouragingBanner message={pastorNote} />
       )}

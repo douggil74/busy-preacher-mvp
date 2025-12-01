@@ -863,3 +863,129 @@ html.light .input:focus {
   transform: translateY(-4px);
   box-shadow: var(--shadow-xl);
 }
+
+/* ========================================
+   WEATHER HEADER ANIMATIONS
+   ======================================== */
+
+/* Sun rotation */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+  animation: spin-slow 30s linear infinite;
+}
+
+/* Cloud floating */
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.animate-float-slow {
+  animation: float-slow 6s ease-in-out infinite;
+}
+
+@keyframes float-slower {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.animate-float-slower {
+  animation: float-slower 8s ease-in-out infinite;
+}
+
+/* Cloud drifting */
+@keyframes drift {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(30px); }
+}
+.animate-drift {
+  animation: drift 20s ease-in-out infinite alternate;
+}
+
+@keyframes drift-slow {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(20px); }
+}
+.animate-drift-slow {
+  animation: drift-slow 25s ease-in-out infinite alternate;
+}
+
+@keyframes drift-slower {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(15px); }
+}
+.animate-drift-slower {
+  animation: drift-slower 30s ease-in-out infinite alternate;
+}
+
+/* Rain falling */
+@keyframes rain {
+  0% {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  10% { opacity: 0.4; }
+  90% { opacity: 0.4; }
+  100% {
+    transform: translateY(250px);
+    opacity: 0;
+  }
+}
+.animate-rain {
+  animation: rain 1.5s linear infinite;
+}
+
+@keyframes rain-fast {
+  0% {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  10% { opacity: 0.5; }
+  90% { opacity: 0.5; }
+  100% {
+    transform: translateY(250px);
+    opacity: 0;
+  }
+}
+.animate-rain-fast {
+  animation: rain-fast 0.8s linear infinite;
+}
+
+/* Snow falling */
+@keyframes snow {
+  0% {
+    transform: translateY(-10px) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% { opacity: 0.6; }
+  90% { opacity: 0.6; }
+  100% {
+    transform: translateY(250px) translateX(20px) rotate(360deg);
+    opacity: 0;
+  }
+}
+.animate-snow {
+  animation: snow 4s linear infinite;
+}
+
+/* Lightning flash */
+@keyframes flash {
+  0%, 100% { opacity: 0; }
+  5%, 10% { opacity: 0.8; }
+  15%, 20% { opacity: 0; }
+  25%, 30% { opacity: 0.6; }
+  35% { opacity: 0; }
+}
+.animate-flash {
+  animation: flash 4s ease-in-out infinite;
+}
+
+/* Star twinkling */
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.2); }
+}
+.animate-twinkle {
+  animation: twinkle 3s ease-in-out infinite;
+}

@@ -1157,24 +1157,16 @@ const handleKeywordResultSelect = (reference: string) => {
 
       {isOnboarded && !passageRef && !theme && !passageOutline && !themeOutline && !combinedOutline && (
         <section
-          className="rounded-2xl p-6 mb-8 relative overflow-hidden glow-hover cursor-pointer"
+          className="rounded-2xl p-8 mb-8 relative overflow-hidden -mx-2 md:-mx-4"
           style={{
-            background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.08) 50%, rgba(217, 119, 6, 0.05) 100%)',
-            border: '1px solid rgba(251, 191, 36, 0.3)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
+            backgroundColor: 'var(--card-bg)',
+            border: '1px solid var(--card-border)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)'
           }}
         >
-          {/* Decorative warm glow */}
-          <div
-            className="absolute top-0 right-0 w-72 h-72 rounded-full blur-3xl opacity-30"
-            style={{ background: 'radial-gradient(circle, rgba(251, 191, 36, 0.4) 0%, transparent 70%)' }}
-          />
-          <div
-            className="absolute bottom-0 left-0 w-48 h-48 rounded-full blur-3xl opacity-20"
-            style={{ background: 'radial-gradient(circle, rgba(245, 158, 11, 0.3) 0%, transparent 70%)' }}
-          />
 
-          <div className="relative z-10 text-center mb-6">
+          <div className="relative z-10 text-center mb-6 pt-16 md:pt-20">
             <h2 className={`${nunitoSans.className} text-2xl md:text-3xl font-bold`} style={{ color: 'var(--text-primary)' }}>
               {userName}, {personalGreeting}
             </h2>

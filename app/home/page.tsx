@@ -442,12 +442,14 @@ useEffect(() => {
     const onboardingComplete = localStorage.getItem("bc-onboarding-complete");
 
     // If we have local preferences, use them immediately
+    // Always prioritize localStorage name over Firebase name
     if ((savedName && savedStyle) || onboardingComplete === "true") {
       setUserName(savedName || "Friend");
       setIsOnboarded(true);
     } else if (user?.preferences?.onboardingComplete) {
       // If user has preferences in Firestore, skip onboarding
-      setUserName(user.firstName || "Friend");
+      // Still check localStorage first, then fall back to Firebase name
+      setUserName(savedName || user.firstName || "Friend");
       setIsOnboarded(true);
     } else if (!user) {
       // No user and no local preferences - show onboarding
@@ -1138,9 +1140,6 @@ const handleKeywordResultSelect = (reference: string) => {
     <RequireAuth>
     <Paywall>
     <main className="px-6 pt-10 pb-8 max-w-4xl mx-auto relative">
-      {/* Weather-aware animated header */}
-      <WeatherHeader />
-
       {pastorNote && isOnboarded && (
         <EncouragingBanner message={pastorNote} />
       )}
@@ -1157,23 +1156,30 @@ const handleKeywordResultSelect = (reference: string) => {
 
       {isOnboarded && !passageRef && !theme && !passageOutline && !themeOutline && !combinedOutline && (
         <section
-          className="rounded-2xl p-8 mb-8 relative overflow-hidden -mx-2 md:-mx-4"
+          className="rounded-2xl mb-8 relative overflow-hidden -mx-2 md:-mx-4"
           style={{
-            backgroundColor: 'var(--card-bg)',
             border: '1px solid var(--card-border)',
-            backdropFilter: 'blur(20px)',
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)'
           }}
         >
+          {/* Weather-aware animated art - visible at top */}
+          <div className="relative h-40 md:h-48 overflow-hidden rounded-t-2xl">
+            <WeatherHeader />
+          </div>
 
-          <div className="relative z-10 text-center mb-6 pt-16 md:pt-20">
+          {/* Content area with padding - overlaps weather slightly */}
+          <div
+            className="px-8 pb-8 -mt-12 relative rounded-b-2xl"
+            style={{ backgroundColor: 'var(--card-bg)' }}
+          >
+            <div className="relative text-center mb-6 pt-4" style={{ zIndex: 5 }}>
             <h2 className={`${nunitoSans.className} text-2xl md:text-3xl font-bold`} style={{ color: 'var(--text-primary)' }}>
               {userName}, {personalGreeting}
             </h2>
           </div>
 
           {/* Daily Verse Card */}
-          <div className="mb-6 relative z-10">
+          <div className="mb-6 relative" style={{ zIndex: 5 }}>
             <DailyVerseCard
               onStudyVerse={(reference) => {
                 setPassageRef(reference);
@@ -1183,7 +1189,7 @@ const handleKeywordResultSelect = (reference: string) => {
           </div>
 
           {pattern && pattern.totalStudies > 0 && (
-            <div className="mb-6 relative z-10">
+            <div className="mb-6 relative" style={{ zIndex: 5 }}>
               <button
                 onClick={() => setShowJourney(!showJourney)}
                 className="flex items-center gap-2 text-sm transition-colors mb-3"
@@ -1205,6 +1211,7 @@ const handleKeywordResultSelect = (reference: string) => {
               )}
             </div>
           )}
+          </div>
         </section>
       )}
 

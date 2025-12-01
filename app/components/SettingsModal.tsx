@@ -66,9 +66,16 @@ export function SettingsModal({ isOpen, onClose, userName, currentStyle }: Setti
 
   if (!isOpen) return null;
 
-  const handleSavePreferences = () => {
-    // Save all preferences
-    localStorage.setItem("bc-user-name", name);
+  const handleSavePreferences = async () => {
+    // Capitalize name properly
+    const capitalizedName = name
+      .trim()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+
+    // Save all preferences to localStorage
+    localStorage.setItem("bc-user-name", capitalizedName);
     localStorage.setItem("bc-user-email", email);
     localStorage.setItem("bc-style", studyStyle);
     localStorage.setItem("bc-study-goal", studyGoal);
@@ -76,12 +83,40 @@ export function SettingsModal({ isOpen, onClose, userName, currentStyle }: Setti
     localStorage.setItem("bc-show-devotional", String(showDevotional));
     localStorage.setItem("bc-show-reading-plan", String(showReadingPlan));
     localStorage.setItem("bc-enable-reminders", String(enableReminders));
-    
+
     if (!showDevotional) {
       localStorage.removeItem("bc-devotional-last-shown");
     }
-    
-    alert("✅ Settings saved! Refresh the page to see changes.");
+
+    // Also save to Firestore if user is logged in
+    if (user?.uid) {
+      try {
+        const { doc, setDoc } = await import('firebase/firestore');
+        const { db } = await import('@/lib/firebase');
+
+        await setDoc(
+          doc(db, 'users', user.uid),
+          {
+            firstName: capitalizedName,
+            fullName: capitalizedName,
+            preferences: {
+              studyStyle: studyStyle,
+              studyGoal: studyGoal,
+              weeklyFrequency: weeklyFrequency,
+              enableDevotional: showDevotional,
+              enableReadingPlan: showReadingPlan,
+              enableReminders: enableReminders,
+            }
+          },
+          { merge: true }
+        );
+      } catch (error) {
+        console.error('Failed to save to Firestore:', error);
+      }
+    }
+
+    // Reload to apply changes immediately
+    window.location.reload();
   };
 
   const handleDelete = () => {

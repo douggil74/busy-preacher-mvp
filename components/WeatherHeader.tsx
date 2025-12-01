@@ -61,34 +61,37 @@ export default function WeatherHeader() {
   if (!mounted) return null;
 
   return (
-    <div className="absolute top-0 left-0 right-0 h-72 overflow-hidden pointer-events-none z-0">
-      {/* Gradient fade overlay */}
-      <div
-        className="absolute inset-0 z-10"
-        style={{
-          background: 'linear-gradient(to bottom, transparent 0%, transparent 30%, var(--bg-color) 100%)'
-        }}
-      />
-
+    <div
+      className="absolute inset-0 overflow-hidden pointer-events-none rounded-t-2xl"
+      style={{ backgroundColor: 'var(--card-bg)' }}
+    >
       {/* Weather scene */}
-      <div className="absolute inset-0 z-0">
+      <div className="absolute inset-0">
         <WeatherScene type={weather} />
       </div>
+
+      {/* Gradient fade overlay - fades into card background */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: 'linear-gradient(to bottom, transparent 0%, transparent 50%, var(--card-bg) 100%)'
+        }}
+      />
     </div>
   );
 }
 
 function WeatherScene({ type }: { type: WeatherType }) {
-  // Color palette based on weather
+  // Color palette based on weather - vibrant and visible
   const colors = {
-    sunny: { primary: '#D4A574', secondary: '#E8C9A0', accent: '#F5DEB3' },
-    'partly-cloudy': { primary: '#B8C4D0', secondary: '#D4DDE6', accent: '#E8EEF4' },
-    cloudy: { primary: '#8899AA', secondary: '#A0B0C0', accent: '#B8C8D8' },
-    rainy: { primary: '#6B7D8F', secondary: '#8899AA', accent: '#A0B0C0' },
-    stormy: { primary: '#4A5568', secondary: '#606F80', accent: '#778899' },
-    snowy: { primary: '#C8D4E0', secondary: '#E0E8F0', accent: '#F0F4F8' },
-    'night-clear': { primary: '#4A5568', secondary: '#606F80', accent: '#778899' },
-    'night-cloudy': { primary: '#3D4852', secondary: '#4A5568', accent: '#606F80' },
+    sunny: { primary: '#F5A623', secondary: '#FFD93D', accent: '#FFF176', bg: 'linear-gradient(135deg, rgba(255,193,7,0.15) 0%, rgba(255,152,0,0.08) 100%)' },
+    'partly-cloudy': { primary: '#78909C', secondary: '#90A4AE', accent: '#B0BEC5', bg: 'linear-gradient(135deg, rgba(144,164,174,0.12) 0%, rgba(96,125,139,0.06) 100%)' },
+    cloudy: { primary: '#607D8B', secondary: '#78909C', accent: '#90A4AE', bg: 'linear-gradient(135deg, rgba(96,125,139,0.15) 0%, rgba(69,90,100,0.08) 100%)' },
+    rainy: { primary: '#5C6BC0', secondary: '#7986CB', accent: '#9FA8DA', bg: 'linear-gradient(135deg, rgba(92,107,192,0.15) 0%, rgba(63,81,181,0.08) 100%)' },
+    stormy: { primary: '#5C6BC0', secondary: '#7986CB', accent: '#FFEB3B', bg: 'linear-gradient(135deg, rgba(69,90,100,0.2) 0%, rgba(55,71,79,0.12) 100%)' },
+    snowy: { primary: '#90CAF9', secondary: '#BBDEFB', accent: '#E3F2FD', bg: 'linear-gradient(135deg, rgba(227,242,253,0.15) 0%, rgba(187,222,251,0.08) 100%)' },
+    'night-clear': { primary: '#7E57C2', secondary: '#9575CD', accent: '#FFD54F', bg: 'linear-gradient(135deg, rgba(103,58,183,0.12) 0%, rgba(49,27,146,0.08) 100%)' },
+    'night-cloudy': { primary: '#5C6BC0', secondary: '#7986CB', accent: '#9FA8DA', bg: 'linear-gradient(135deg, rgba(63,81,181,0.1) 0%, rgba(48,63,159,0.06) 100%)' },
   };
 
   const c = colors[type];
@@ -96,13 +99,19 @@ function WeatherScene({ type }: { type: WeatherType }) {
   return (
     <svg
       className="w-full h-full"
-      viewBox="0 0 800 300"
-      preserveAspectRatio="xMidYMin slice"
+      viewBox="0 0 800 200"
+      preserveAspectRatio="xMidYMid slice"
     >
       <defs>
+        {/* Background gradient */}
+        <linearGradient id={`skyGradient-${type}`} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor={c.primary} stopOpacity="0.15" />
+          <stop offset="100%" stopColor={c.secondary} stopOpacity="0.05" />
+        </linearGradient>
+
         {/* Glow filter for celestial bodies */}
         <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feGaussianBlur stdDeviation="4" result="blur" />
           <feMerge>
             <feMergeNode in="blur" />
             <feMergeNode in="SourceGraphic" />
@@ -111,9 +120,12 @@ function WeatherScene({ type }: { type: WeatherType }) {
 
         {/* Soft blur for background elements */}
         <filter id="softBlur">
-          <feGaussianBlur stdDeviation="1.5" />
+          <feGaussianBlur stdDeviation="2" />
         </filter>
       </defs>
+
+      {/* Background gradient fill */}
+      <rect width="800" height="200" fill={`url(#skyGradient-${type})`} />
 
       {/* === SUNNY === */}
       {type === 'sunny' && (
@@ -124,21 +136,21 @@ function WeatherScene({ type }: { type: WeatherType }) {
             {[...Array(16)].map((_, i) => (
               <line
                 key={i}
-                x1="680" y1="30"
-                x2="680" y2="50"
+                x1="680" y1="25"
+                x2="680" y2="48"
                 stroke={c.primary}
-                strokeWidth="2"
+                strokeWidth="3"
                 strokeLinecap="round"
-                opacity="0.6"
+                opacity="0.7"
                 transform={`rotate(${i * 22.5} 680 80)`}
               />
             ))}
             {/* Inner glow */}
-            <circle cx="680" cy="80" r="28" fill={c.accent} opacity="0.3" filter="url(#glow)" />
+            <circle cx="680" cy="80" r="32" fill={c.accent} opacity="0.4" filter="url(#glow)" />
             {/* Sun body - multiple rings for depth */}
-            <circle cx="680" cy="80" r="22" fill="none" stroke={c.primary} strokeWidth="2.5" opacity="0.8" />
-            <circle cx="680" cy="80" r="16" fill="none" stroke={c.secondary} strokeWidth="1.5" opacity="0.6" />
-            <circle cx="680" cy="80" r="8" fill={c.accent} opacity="0.4" />
+            <circle cx="680" cy="80" r="26" fill="none" stroke={c.primary} strokeWidth="3" opacity="0.9" />
+            <circle cx="680" cy="80" r="18" fill="none" stroke={c.secondary} strokeWidth="2" opacity="0.7" />
+            <circle cx="680" cy="80" r="10" fill={c.accent} opacity="0.6" />
           </g>
 
           {/* Subtle horizon line */}
@@ -146,13 +158,13 @@ function WeatherScene({ type }: { type: WeatherType }) {
             d="M0 200 Q200 180 400 195 Q600 210 800 190"
             fill="none"
             stroke={c.secondary}
-            strokeWidth="1"
-            opacity="0.2"
+            strokeWidth="1.5"
+            opacity="0.25"
           />
 
           {/* Light wispy clouds */}
-          <WispyCloud x={80} y={60} scale={1} color={c.secondary} opacity={0.15} delay={0} />
-          <WispyCloud x={450} y={90} scale={0.7} color={c.secondary} opacity={0.1} delay={2} />
+          <WispyCloud x={80} y={60} scale={1} color={c.secondary} opacity={0.25} delay={0} />
+          <WispyCloud x={450} y={90} scale={0.7} color={c.secondary} opacity={0.2} delay={2} />
         </g>
       )}
 
@@ -160,27 +172,28 @@ function WeatherScene({ type }: { type: WeatherType }) {
       {type === 'partly-cloudy' && (
         <g>
           {/* Sun peeking through */}
-          <g className="animate-spin-slow" style={{ transformOrigin: '650px 70px' }}>
+          <g className="animate-spin-slow" style={{ transformOrigin: '680px 65px' }}>
             {[...Array(12)].map((_, i) => (
               <line
                 key={i}
-                x1="650" y1="30"
-                x2="650" y2="45"
-                stroke={c.accent}
-                strokeWidth="1.5"
+                x1="680" y1="22"
+                x2="680" y2="42"
+                stroke="#FFD93D"
+                strokeWidth="2.5"
                 strokeLinecap="round"
-                opacity="0.4"
-                transform={`rotate(${i * 30} 650 70)`}
+                opacity="0.65"
+                transform={`rotate(${i * 30} 680 65)`}
               />
             ))}
-            <circle cx="650" cy="70" r="18" fill="none" stroke={c.accent} strokeWidth="2" opacity="0.5" />
-            <circle cx="650" cy="70" r="10" fill={c.accent} opacity="0.2" />
+            <circle cx="680" cy="65" r="28" fill="#FFF176" opacity="0.3" filter="url(#glow)" />
+            <circle cx="680" cy="65" r="22" fill="none" stroke="#FFD93D" strokeWidth="2.5" opacity="0.75" />
+            <circle cx="680" cy="65" r="14" fill="#FFF176" opacity="0.45" />
           </g>
 
-          {/* Layered clouds with depth */}
-          <CloudFormation x={100} y={50} scale={1.2} color={c.primary} opacity={0.35} delay={0} />
-          <CloudFormation x={350} y={80} scale={1} color={c.secondary} opacity={0.25} delay={1.5} />
-          <CloudFormation x={550} y={45} scale={0.8} color={c.primary} opacity={0.3} delay={3} />
+          {/* Layered clouds with depth - more visible */}
+          <CloudFormation x={60} y={35} scale={1.4} color={c.primary} opacity={0.7} delay={0} />
+          <CloudFormation x={280} y={65} scale={1.2} color={c.secondary} opacity={0.6} delay={1.5} />
+          <CloudFormation x={480} y={30} scale={1.0} color={c.primary} opacity={0.65} delay={3} />
         </g>
       )}
 
@@ -188,11 +201,11 @@ function WeatherScene({ type }: { type: WeatherType }) {
       {type === 'cloudy' && (
         <g>
           {/* Multiple cloud layers for overcast look */}
-          <CloudFormation x={-20} y={30} scale={1.4} color={c.primary} opacity={0.4} delay={0} />
-          <CloudFormation x={200} y={60} scale={1.2} color={c.secondary} opacity={0.35} delay={2} />
-          <CloudFormation x={400} y={40} scale={1.3} color={c.primary} opacity={0.38} delay={1} />
-          <CloudFormation x={580} y={70} scale={1.1} color={c.secondary} opacity={0.32} delay={3} />
-          <CloudFormation x={720} y={35} scale={0.9} color={c.primary} opacity={0.36} delay={0.5} />
+          <CloudFormation x={-20} y={30} scale={1.4} color={c.primary} opacity={0.65} delay={0} />
+          <CloudFormation x={200} y={60} scale={1.2} color={c.secondary} opacity={0.55} delay={2} />
+          <CloudFormation x={400} y={40} scale={1.3} color={c.primary} opacity={0.6} delay={1} />
+          <CloudFormation x={580} y={70} scale={1.1} color={c.secondary} opacity={0.5} delay={3} />
+          <CloudFormation x={720} y={35} scale={0.9} color={c.primary} opacity={0.55} delay={0.5} />
         </g>
       )}
 
@@ -200,9 +213,9 @@ function WeatherScene({ type }: { type: WeatherType }) {
       {type === 'rainy' && (
         <g>
           {/* Dark clouds */}
-          <CloudFormation x={50} y={40} scale={1.3} color={c.primary} opacity={0.5} delay={0} />
-          <CloudFormation x={280} y={55} scale={1.4} color={c.secondary} opacity={0.45} delay={1.5} />
-          <CloudFormation x={500} y={35} scale={1.2} color={c.primary} opacity={0.48} delay={0.8} />
+          <CloudFormation x={50} y={40} scale={1.3} color={c.primary} opacity={0.7} delay={0} />
+          <CloudFormation x={280} y={55} scale={1.4} color={c.secondary} opacity={0.6} delay={1.5} />
+          <CloudFormation x={500} y={35} scale={1.2} color={c.primary} opacity={0.65} delay={0.8} />
 
           {/* Rain drops - elegant lines */}
           {[...Array(25)].map((_, i) => (
@@ -220,9 +233,9 @@ function WeatherScene({ type }: { type: WeatherType }) {
       {type === 'stormy' && (
         <g>
           {/* Heavy dark clouds */}
-          <CloudFormation x={20} y={30} scale={1.5} color={c.primary} opacity={0.6} delay={0} />
-          <CloudFormation x={250} y={45} scale={1.6} color={c.secondary} opacity={0.55} delay={1} />
-          <CloudFormation x={480} y={25} scale={1.4} color={c.primary} opacity={0.58} delay={0.5} />
+          <CloudFormation x={20} y={30} scale={1.5} color={c.primary} opacity={0.75} delay={0} />
+          <CloudFormation x={250} y={45} scale={1.6} color={c.secondary} opacity={0.7} delay={1} />
+          <CloudFormation x={480} y={25} scale={1.4} color={c.primary} opacity={0.72} delay={0.5} />
 
           {/* Lightning bolt - artistic zigzag */}
           <g className="animate-flash">
@@ -230,17 +243,17 @@ function WeatherScene({ type }: { type: WeatherType }) {
               d="M380 90 L365 130 L375 130 L355 180 L395 120 L380 120 L400 90 Z"
               fill="none"
               stroke={c.accent}
-              strokeWidth="2"
+              strokeWidth="3"
               strokeLinejoin="round"
-              opacity="0.7"
+              opacity="0.85"
             />
             <path
               d="M380 90 L365 130 L375 130 L355 180"
               fill="none"
               stroke="#FFF"
-              strokeWidth="1"
+              strokeWidth="1.5"
               strokeLinejoin="round"
-              opacity="0.5"
+              opacity="0.6"
             />
           </g>
 
@@ -261,8 +274,8 @@ function WeatherScene({ type }: { type: WeatherType }) {
       {type === 'snowy' && (
         <g>
           {/* Soft clouds */}
-          <CloudFormation x={100} y={50} scale={1.2} color={c.secondary} opacity={0.3} delay={0} />
-          <CloudFormation x={400} y={40} scale={1.1} color={c.primary} opacity={0.28} delay={2} />
+          <CloudFormation x={100} y={50} scale={1.2} color={c.secondary} opacity={0.5} delay={0} />
+          <CloudFormation x={400} y={40} scale={1.1} color={c.primary} opacity={0.45} delay={2} />
 
           {/* Snowflakes - delicate crystalline shapes */}
           {[...Array(20)].map((_, i) => (
@@ -271,7 +284,7 @@ function WeatherScene({ type }: { type: WeatherType }) {
               x={40 + i * 38}
               delay={i * 0.25}
               color={c.accent}
-              size={4 + (i % 3) * 2}
+              size={5 + (i % 3) * 2}
             />
           ))}
         </g>
@@ -282,23 +295,23 @@ function WeatherScene({ type }: { type: WeatherType }) {
         <g>
           {/* Crescent moon - elegant design */}
           <g filter="url(#glow)">
-            <circle cx="650" cy="70" r="24" fill="none" stroke={c.accent} strokeWidth="2" opacity="0.6" />
+            <circle cx="680" cy="70" r="28" fill="none" stroke={c.accent} strokeWidth="2.5" opacity="0.75" />
             <path
-              d="M640 50 A24 24 0 0 1 640 90 A18 18 0 0 0 640 50"
+              d="M668 48 A28 28 0 0 1 668 92 A20 20 0 0 0 668 48"
               fill={c.accent}
-              opacity="0.3"
+              opacity="0.45"
             />
             {/* Moon texture */}
-            <circle cx="638" cy="65" r="3" fill={c.secondary} opacity="0.2" />
-            <circle cx="648" cy="78" r="2" fill={c.secondary} opacity="0.15" />
+            <circle cx="665" cy="65" r="4" fill={c.secondary} opacity="0.25" />
+            <circle cx="678" cy="80" r="2.5" fill={c.secondary} opacity="0.2" />
           </g>
 
           {/* Stars - varied sizes and twinkle */}
           {[
-            { x: 100, y: 40, size: 1.5 }, { x: 180, y: 80, size: 2 }, { x: 250, y: 35, size: 1 },
-            { x: 320, y: 95, size: 1.5 }, { x: 400, y: 50, size: 2.5 }, { x: 480, y: 75, size: 1 },
-            { x: 550, y: 45, size: 2 }, { x: 720, y: 110, size: 1.5 }, { x: 760, y: 55, size: 1 },
-            { x: 150, y: 120, size: 1 }, { x: 380, y: 110, size: 1.5 }, { x: 600, y: 100, size: 2 },
+            { x: 100, y: 40, size: 2.5 }, { x: 180, y: 80, size: 3 }, { x: 250, y: 35, size: 2 },
+            { x: 320, y: 95, size: 2.5 }, { x: 400, y: 50, size: 3.5 }, { x: 480, y: 75, size: 2 },
+            { x: 550, y: 45, size: 3 }, { x: 720, y: 110, size: 2.5 }, { x: 760, y: 55, size: 2 },
+            { x: 150, y: 120, size: 2 }, { x: 380, y: 110, size: 2.5 }, { x: 600, y: 100, size: 3 },
           ].map((star, i) => (
             <Star key={i} x={star.x} y={star.y} size={star.size} color={c.accent} delay={i * 0.3} />
           ))}
@@ -308,8 +321,8 @@ function WeatherScene({ type }: { type: WeatherType }) {
             d="M100 40 L180 80 L250 35"
             fill="none"
             stroke={c.secondary}
-            strokeWidth="0.5"
-            opacity="0.15"
+            strokeWidth="1"
+            opacity="0.25"
             strokeDasharray="2 4"
           />
         </g>
@@ -319,17 +332,17 @@ function WeatherScene({ type }: { type: WeatherType }) {
       {type === 'night-cloudy' && (
         <g>
           {/* Moon behind clouds */}
-          <circle cx="600" cy="65" r="20" fill={c.accent} opacity="0.15" filter="url(#softBlur)" />
+          <circle cx="650" cy="65" r="24" fill={c.accent} opacity="0.25" filter="url(#softBlur)" />
 
           {/* Night clouds */}
-          <CloudFormation x={80} y={50} scale={1.1} color={c.secondary} opacity={0.3} delay={0} />
-          <CloudFormation x={350} y={70} scale={1.3} color={c.primary} opacity={0.35} delay={1.5} />
-          <CloudFormation x={550} y={45} scale={1} color={c.secondary} opacity={0.32} delay={2.5} />
+          <CloudFormation x={80} y={50} scale={1.1} color={c.secondary} opacity={0.5} delay={0} />
+          <CloudFormation x={350} y={70} scale={1.3} color={c.primary} opacity={0.55} delay={1.5} />
+          <CloudFormation x={550} y={45} scale={1} color={c.secondary} opacity={0.48} delay={2.5} />
 
           {/* Dim stars peeking through */}
           {[
-            { x: 120, y: 30, size: 1 }, { x: 280, y: 45, size: 1.5 }, { x: 450, y: 35, size: 1 },
-            { x: 720, y: 90, size: 1.5 }, { x: 760, y: 40, size: 1 },
+            { x: 120, y: 30, size: 2 }, { x: 280, y: 45, size: 2.5 }, { x: 450, y: 35, size: 2 },
+            { x: 720, y: 90, size: 2.5 }, { x: 760, y: 40, size: 2 },
           ].map((star, i) => (
             <Star key={i} x={star.x} y={star.y} size={star.size} color={c.accent} delay={i * 0.4} dim />
           ))}
@@ -371,12 +384,18 @@ function CloudFormation({ x, y, scale, color, opacity, delay }: {
       style={{ animationDelay: `${delay}s` }}
       transform={`translate(${x}, ${y}) scale(${scale})`}
     >
+      {/* Soft cloud fill for depth */}
+      <path
+        d="M20 60 Q20 45 35 45 Q40 30 60 32 Q75 20 95 28 Q115 18 135 30 Q155 25 165 40 Q180 38 185 52 Q195 55 190 68 Q188 78 175 80 L25 80 Q10 78 10 65 Q8 55 20 60"
+        fill={color}
+        opacity={opacity * 0.15}
+      />
       {/* Main cloud body - multiple overlapping curves for organic feel */}
       <path
         d="M20 60 Q20 45 35 45 Q40 30 60 32 Q75 20 95 28 Q115 18 135 30 Q155 25 165 40 Q180 38 185 52 Q195 55 190 68 Q188 78 175 80 L25 80 Q10 78 10 65 Q8 55 20 60"
         fill="none"
         stroke={color}
-        strokeWidth="2"
+        strokeWidth="3"
         strokeLinecap="round"
         strokeLinejoin="round"
         opacity={opacity}
@@ -386,17 +405,17 @@ function CloudFormation({ x, y, scale, color, opacity, delay }: {
         d="M40 55 Q55 48 75 52 Q95 45 115 50"
         fill="none"
         stroke={color}
-        strokeWidth="1"
+        strokeWidth="2"
         strokeLinecap="round"
-        opacity={opacity * 0.5}
+        opacity={opacity * 0.65}
       />
       <path
         d="M60 65 Q80 60 100 63 Q120 58 140 62"
         fill="none"
         stroke={color}
-        strokeWidth="1"
+        strokeWidth="2"
         strokeLinecap="round"
-        opacity={opacity * 0.4}
+        opacity={opacity * 0.55}
       />
     </g>
   );
@@ -410,9 +429,9 @@ function RainLine({ x, delay, color, fast = false }: {
       x1={x} y1="-10"
       x2={x - 8} y2="40"
       stroke={color}
-      strokeWidth="1.5"
+      strokeWidth="2"
       strokeLinecap="round"
-      opacity="0.4"
+      opacity="0.55"
       className={fast ? 'animate-rain-fast' : 'animate-rain'}
       style={{ animationDelay: `${delay}s` }}
     />
@@ -435,13 +454,13 @@ function Snowflake({ x, delay, color, size }: {
             x1="0" y1={-size}
             x2="0" y2={size}
             stroke={color}
-            strokeWidth="1"
+            strokeWidth="1.5"
             strokeLinecap="round"
-            opacity="0.5"
+            opacity="0.7"
             transform={`rotate(${angle})`}
           />
         ))}
-        <circle cx="0" cy="0" r={size * 0.3} fill={color} opacity="0.3" />
+        <circle cx="0" cy="0" r={size * 0.4} fill={color} opacity="0.5" />
       </g>
     </g>
   );
@@ -456,16 +475,18 @@ function Star({ x, y, size, color, delay, dim = false }: {
       style={{ animationDelay: `${delay}s` }}
       transform={`translate(${x}, ${y})`}
     >
+      {/* Glow effect */}
+      <circle cx="0" cy="0" r={size * 1.5} fill={color} opacity={dim ? 0.1 : 0.2} filter="url(#softBlur)" />
       {/* Four-pointed star */}
       <path
         d={`M0 ${-size} L${size * 0.3} 0 L0 ${size} L${-size * 0.3} 0 Z`}
         fill={color}
-        opacity={dim ? 0.2 : 0.5}
+        opacity={dim ? 0.35 : 0.7}
       />
       <path
         d={`M${-size} 0 L0 ${size * 0.3} L${size} 0 L0 ${-size * 0.3} Z`}
         fill={color}
-        opacity={dim ? 0.15 : 0.4}
+        opacity={dim ? 0.3 : 0.6}
       />
     </g>
   );

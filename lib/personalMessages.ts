@@ -112,7 +112,6 @@ export function getPastorNote(): string {
     "✨ Real talk: You don't have to have it all figured out. Just take the next step.",
     "🌟 Reminder: God's not disappointed in you. He's cheering you on.",
     "💪 Truth: Your past doesn't define you. God's grace does.",
-    "🎯 Keep this in mind: Progress over perfection. Always.",
     "❤️ From my heart: God's love for you isn't based on your performance.",
     "🔥 Don't forget: Your worst day doesn't change God's best promise.",
     // Pastor Doug's encouraging words from Spiritual Foundations

@@ -341,11 +341,11 @@ export default function Sidebar() {
         {/* Main Navigation */}
         <nav className="p-2 space-y-1 mt-2">
           {mainNavItems.map((item) => {
-            const active = isActive(item.href);
+            const active = isActive(item.href!);
             return (
               <Link
                 key={item.id}
-                href={item.href}
+                href={item.href!}
                 onClick={closeSidebar}
                 onMouseEnter={() => setHoveredItem(item.id)}
                 onMouseLeave={() => setHoveredItem(null)}

@@ -485,6 +485,10 @@ function Snowflake({ x, delay, color, size }: {
 function Star({ x, y, size, color, delay, dim = false }: {
   x: number; y: number; size: number; color: string; delay: number; dim?: boolean
 }) {
+  // Use brighter base colors for dim stars, let animation handle visibility
+  const starColor = dim ? color : color;
+  const glowOpacity = dim ? 0.3 : 0.5;
+
   return (
     <g
       className="animate-twinkle"
@@ -492,17 +496,15 @@ function Star({ x, y, size, color, delay, dim = false }: {
       transform={`translate(${x}, ${y})`}
     >
       {/* Glow effect */}
-      <circle cx="0" cy="0" r={size * 1.5} fill={color} opacity={dim ? 0.1 : 0.2} filter="url(#softBlur)" />
-      {/* Four-pointed star */}
+      <circle cx="0" cy="0" r={size * 1.5} fill={starColor} opacity={glowOpacity} filter="url(#softBlur)" />
+      {/* Four-pointed star - no inline opacity, let animation control visibility */}
       <path
         d={`M0 ${-size} L${size * 0.3} 0 L0 ${size} L${-size * 0.3} 0 Z`}
-        fill={color}
-        opacity={dim ? 0.35 : 0.7}
+        fill={starColor}
       />
       <path
         d={`M${-size} 0 L0 ${size * 0.3} L${size} 0 L0 ${-size * 0.3} Z`}
-        fill={color}
-        opacity={dim ? 0.3 : 0.6}
+        fill={starColor}
       />
     </g>
   );

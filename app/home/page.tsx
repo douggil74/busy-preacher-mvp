@@ -1156,7 +1156,7 @@ const handleKeywordResultSelect = (reference: string) => {
 
       {isOnboarded && !passageRef && !theme && !passageOutline && !themeOutline && !combinedOutline && (
         <section
-          className="rounded-2xl mb-8 relative overflow-hidden -mx-2 md:-mx-4"
+          className="rounded-2xl mb-8 relative overflow-hidden"
           style={{
             border: '1px solid var(--card-border)',
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)'
@@ -1169,11 +1169,11 @@ const handleKeywordResultSelect = (reference: string) => {
 
           {/* Content area with padding - overlaps weather slightly */}
           <div
-            className="px-8 pb-8 -mt-12 relative rounded-b-2xl"
+            className="px-6 pb-4 -mt-8 relative rounded-b-2xl"
             style={{ backgroundColor: 'var(--card-bg)' }}
           >
-            <div className="relative text-center mb-6 pt-4" style={{ zIndex: 5 }}>
-            <h2 className={`${nunitoSans.className} text-2xl md:text-3xl font-bold`} style={{ color: 'var(--text-primary)' }}>
+            <div className="relative text-center mb-4 pt-2" style={{ zIndex: 5 }}>
+            <h2 className={`${nunitoSans.className} text-xl md:text-2xl font-bold`} style={{ color: 'var(--text-primary)' }}>
               {userName}, {personalGreeting}
             </h2>
           </div>

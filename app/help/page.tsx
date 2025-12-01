@@ -8,7 +8,7 @@ import { card, typography, cn } from '@/lib/ui-constants';
 
 export default function HelpPage() {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10">
+    <main className="page-container">
       <button
         onClick={() => window.history.back()}
         className="mb-6 flex items-center gap-2 text-sm transition-colors"

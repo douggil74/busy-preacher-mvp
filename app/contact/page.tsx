@@ -14,7 +14,7 @@ import { APP_VERSION } from "@/lib/version";
 
 export default function ContactPage() {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8">
+    <main className="page-container">
       <button
   onClick={() => window.history.back()}
   className="mb-6 flex items-center gap-2 text-sm text-white/60 hover:text-white/90 transition-colors"

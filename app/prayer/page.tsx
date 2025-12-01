@@ -376,7 +376,7 @@ export default function PrayerPage() {
     <RequireAuth>
     <Paywall>
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white">
-      <div className="max-w-3xl mx-auto px-4 py-12">
+      <div className="page-container">
         {pastorNote && <EncouragingBanner message={pastorNote} />}
 
         {/* Sound unlock banner for mobile */}

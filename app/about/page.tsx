@@ -8,7 +8,7 @@ import { card, button, typography, cn } from '@/lib/ui-constants';
 
 export default function AboutPage() {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10">
+    <main className="page-container">
       <div className="mb-6">
         <button
           onClick={() => window.history.back()}

@@ -208,11 +208,11 @@ export default function Sidebar() {
                     </p>
                   </div>
                   {mainNavItems.map((item) => {
-                    const active = isActive(item.href);
+                    const active = isActive(item.href!);
                     return (
                       <Link
                         key={item.id}
-                        href={item.href}
+                        href={item.href!}
                         onClick={() => setMenuOpen(false)}
                         className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all"
                         style={{

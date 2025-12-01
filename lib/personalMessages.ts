@@ -25,7 +25,7 @@ export function getTimeBasedGreeting(): string {
     const greetings = [
       "Good afternoon! Taking a break to refuel?",
       "Hey! Perfect time for some spiritual refreshment.",
-      "Afternoon! Let's spend some time together.",
+      "Good afternoon! God has something good for you today.",
       "Good afternoon! Need some encouragement today?",
       "Hey there! Glad you're here."
     ];

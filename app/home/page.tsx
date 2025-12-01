@@ -27,7 +27,7 @@ import { EncouragingBanner } from "@/components/EncouragingBanner";
 import { safeStorage } from "@/utils/safeStorage";
 import { KeywordSearchResults } from "@/components/KeywordSearchResults";
 import WordStudyModal from "@/components/WordStudyModal";
-import { getTimeBasedGreeting, getLoadingMessage, getPastorNote, getStudyPrompt } from "@/lib/personalMessages";
+import { getTimeBasedGreeting, getLoadingMessage, getPastorNote } from "@/lib/personalMessages";
 import RequireAuth from '@/components/RequireAuth';
 import { Paywall } from '@/components/Paywall';
 import { TrialWelcomeModal } from '@/components/TrialWelcomeModal';
@@ -365,7 +365,6 @@ const [searchedKeyword, setSearchedKeyword] = useState("");
   const [showReadingPlan, setShowReadingPlan] = useState(true);
   const [personalGreeting, setPersonalGreeting] = useState("");
   const [pastorNote, setPastorNote] = useState("");
-  const [studyPrompt, setStudyPrompt] = useState("");
   const hoverTimer = useRef<NodeJS.Timeout | null>(null);
   const statusWords = ["Fetching…", "Researching…", "Synthesizing…", "Formatting…", "Ready"];
 
@@ -392,7 +391,6 @@ const [searchedKeyword, setSearchedKeyword] = useState("");
   useEffect(() => {
     setPersonalGreeting(getTimeBasedGreeting());
     setPastorNote(getPastorNote());
-    setStudyPrompt(getStudyPrompt());
   }, []);
 
   const displayIcon = hydrated 
@@ -1228,10 +1226,6 @@ const handleKeywordResultSelect = (reference: string) => {
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
         }}
       >
-        <div className="mb-6 pb-5" style={{ borderBottom: '1px solid var(--card-border)' }}>
-          <p className="text-base" style={{ color: 'var(--text-secondary)' }}>{studyPrompt || "What's on your heart today?"}</p>
-        </div>
-
         {savedStudies.length > 0 && (
           <div className="mb-4">
             <button

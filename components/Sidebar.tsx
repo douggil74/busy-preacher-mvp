@@ -25,13 +25,15 @@ import {
   Languages
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import ContactModal from '@/components/ContactModal';
 
 interface NavItem {
   id: string;
   icon: React.ElementType;
   label: string;
-  href: string;
+  href?: string;
   color: string;
+  action?: string;
 }
 
 const mainNavItems: NavItem[] = [
@@ -48,7 +50,7 @@ const menuItems: NavItem[] = [
   { id: 'account', icon: User, label: 'Account', href: '/account', color: '#94a3b8' },
   { id: 'about', icon: Info, label: 'About', href: '/about', color: '#94a3b8' },
   { id: 'help', icon: HelpCircle, label: 'Help', href: '/help', color: '#94a3b8' },
-  { id: 'contact', icon: Mail, label: 'Contact', href: '/contact', color: '#94a3b8' },
+  { id: 'contact', icon: Mail, label: 'Contact', action: 'openContact', color: '#94a3b8' },
 ];
 
 export default function Sidebar() {
@@ -58,6 +60,7 @@ export default function Sidebar() {
   const [isDark, setIsDark] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [contactModalOpen, setContactModalOpen] = useState(false);
   const pathname = usePathname();
   const { user, isAuthenticated, signOut } = useAuth();
   const menuRef = useRef<HTMLDivElement>(null);
@@ -234,17 +237,33 @@ export default function Sidebar() {
 
               {/* Menu Items */}
               {menuItems.map((item) => (
-                <Link
-                  key={item.id}
-                  href={item.href}
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2 rounded-xl transition-all hover:bg-white/10"
-                >
-                  <item.icon className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
-                  <span className="text-sm" style={{ color: 'var(--text-primary)' }}>
-                    {item.label}
-                  </span>
-                </Link>
+                item.action === 'openContact' ? (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setContactModalOpen(true);
+                      setMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all hover:bg-white/10"
+                  >
+                    <item.icon className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
+                    <span className="text-sm" style={{ color: 'var(--text-primary)' }}>
+                      {item.label}
+                    </span>
+                  </button>
+                ) : (
+                  <Link
+                    key={item.id}
+                    href={item.href || '#'}
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-3 px-3 py-2 rounded-xl transition-all hover:bg-white/10"
+                  >
+                    <item.icon className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
+                    <span className="text-sm" style={{ color: 'var(--text-primary)' }}>
+                      {item.label}
+                    </span>
+                  </Link>
+                )
               ))}
 
               {/* Settings */}
@@ -381,6 +400,12 @@ export default function Sidebar() {
           onClick={closeSidebar}
         />
       )}
+
+      {/* Contact Modal */}
+      <ContactModal
+        isOpen={contactModalOpen}
+        onClose={() => setContactModalOpen(false)}
+      />
     </>
   );
 }

@@ -422,8 +422,8 @@ function CloudFormation({ x, y, scale, color, opacity, delay }: {
 function RainDrop({ x, delay, fast = false }: {
   x: number; delay: number; fast?: boolean
 }) {
-  // Blue-gray color that works in both light and dark mode
-  const dropColor = '#4A6FA5';
+  // Match cloud line color (blue-gray)
+  const dropColor = '#546E7A';
 
   return (
     <g

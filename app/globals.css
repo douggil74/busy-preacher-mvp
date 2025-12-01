@@ -919,21 +919,21 @@ html.light .input:focus {
   animation: drift-slower 30s ease-in-out infinite alternate;
 }
 
-/* Rain falling - gentle pace */
+/* Rain falling - very gentle, realistic pace */
 @keyframes rain {
   0% {
     transform: translateY(-20px);
     opacity: 0;
   }
-  10% { opacity: 0.3; }
-  90% { opacity: 0.3; }
+  5% { opacity: 0.5; }
+  95% { opacity: 0.5; }
   100% {
-    transform: translateY(250px);
+    transform: translateY(220px);
     opacity: 0;
   }
 }
 .animate-rain {
-  animation: rain 4s linear infinite;
+  animation: rain 8s linear infinite;
 }
 
 @keyframes rain-fast {
@@ -941,15 +941,15 @@ html.light .input:focus {
     transform: translateY(-20px);
     opacity: 0;
   }
-  10% { opacity: 0.4; }
-  90% { opacity: 0.4; }
+  5% { opacity: 0.6; }
+  95% { opacity: 0.6; }
   100% {
-    transform: translateY(250px);
+    transform: translateY(220px);
     opacity: 0;
   }
 }
 .animate-rain-fast {
-  animation: rain-fast 2.5s linear infinite;
+  animation: rain-fast 5s linear infinite;
 }
 
 /* Snow falling */

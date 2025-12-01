@@ -82,16 +82,16 @@ export default function WeatherHeader() {
 }
 
 function WeatherScene({ type }: { type: WeatherType }) {
-  // Color palette based on weather - vibrant and visible
+  // Color palette - darker colors that are visible in both light and dark modes
   const colors = {
-    sunny: { primary: '#F5A623', secondary: '#FFD93D', accent: '#FFF176', bg: 'linear-gradient(135deg, rgba(255,193,7,0.15) 0%, rgba(255,152,0,0.08) 100%)' },
-    'partly-cloudy': { primary: '#78909C', secondary: '#90A4AE', accent: '#B0BEC5', bg: 'linear-gradient(135deg, rgba(144,164,174,0.12) 0%, rgba(96,125,139,0.06) 100%)' },
-    cloudy: { primary: '#607D8B', secondary: '#78909C', accent: '#90A4AE', bg: 'linear-gradient(135deg, rgba(96,125,139,0.15) 0%, rgba(69,90,100,0.08) 100%)' },
-    rainy: { primary: '#5C6BC0', secondary: '#7986CB', accent: '#9FA8DA', bg: 'linear-gradient(135deg, rgba(92,107,192,0.15) 0%, rgba(63,81,181,0.08) 100%)' },
-    stormy: { primary: '#5C6BC0', secondary: '#7986CB', accent: '#FFEB3B', bg: 'linear-gradient(135deg, rgba(69,90,100,0.2) 0%, rgba(55,71,79,0.12) 100%)' },
-    snowy: { primary: '#90CAF9', secondary: '#BBDEFB', accent: '#E3F2FD', bg: 'linear-gradient(135deg, rgba(227,242,253,0.15) 0%, rgba(187,222,251,0.08) 100%)' },
-    'night-clear': { primary: '#7E57C2', secondary: '#9575CD', accent: '#FFD54F', bg: 'linear-gradient(135deg, rgba(103,58,183,0.12) 0%, rgba(49,27,146,0.08) 100%)' },
-    'night-cloudy': { primary: '#5C6BC0', secondary: '#7986CB', accent: '#9FA8DA', bg: 'linear-gradient(135deg, rgba(63,81,181,0.1) 0%, rgba(48,63,159,0.06) 100%)' },
+    sunny: { primary: '#D4890D', secondary: '#E9A825', accent: '#F5C842', bg: 'linear-gradient(135deg, rgba(212,137,13,0.12) 0%, rgba(233,168,37,0.06) 100%)' },
+    'partly-cloudy': { primary: '#546E7A', secondary: '#607D8B', accent: '#78909C', bg: 'linear-gradient(135deg, rgba(84,110,122,0.1) 0%, rgba(96,125,139,0.05) 100%)' },
+    cloudy: { primary: '#455A64', secondary: '#546E7A', accent: '#607D8B', bg: 'linear-gradient(135deg, rgba(69,90,100,0.12) 0%, rgba(84,110,122,0.06) 100%)' },
+    rainy: { primary: '#3F51B5', secondary: '#5C6BC0', accent: '#7986CB', bg: 'linear-gradient(135deg, rgba(63,81,181,0.12) 0%, rgba(92,107,192,0.06) 100%)' },
+    stormy: { primary: '#37474F', secondary: '#455A64', accent: '#FFC107', bg: 'linear-gradient(135deg, rgba(55,71,79,0.15) 0%, rgba(69,90,100,0.08) 100%)' },
+    snowy: { primary: '#64B5F6', secondary: '#90CAF9', accent: '#BBDEFB', bg: 'linear-gradient(135deg, rgba(100,181,246,0.1) 0%, rgba(144,202,249,0.05) 100%)' },
+    'night-clear': { primary: '#5E35B1', secondary: '#7E57C2', accent: '#FFB300', bg: 'linear-gradient(135deg, rgba(94,53,177,0.1) 0%, rgba(126,87,194,0.05) 100%)' },
+    'night-cloudy': { primary: '#3F51B5', secondary: '#5C6BC0', accent: '#7986CB', bg: 'linear-gradient(135deg, rgba(63,81,181,0.08) 0%, rgba(92,107,192,0.04) 100%)' },
   };
 
   const c = colors[type];
@@ -171,29 +171,29 @@ function WeatherScene({ type }: { type: WeatherType }) {
       {/* === PARTLY CLOUDY === */}
       {type === 'partly-cloudy' && (
         <g>
-          {/* Sun peeking through */}
+          {/* Sun peeking through - darker gold for light mode visibility */}
           <g className="animate-spin-slow" style={{ transformOrigin: '680px 65px' }}>
             {[...Array(12)].map((_, i) => (
               <line
                 key={i}
-                x1="680" y1="22"
-                x2="680" y2="42"
-                stroke="#FFD93D"
-                strokeWidth="2.5"
+                x1="680" y1="20"
+                x2="680" y2="44"
+                stroke="#D4890D"
+                strokeWidth="3"
                 strokeLinecap="round"
-                opacity="0.65"
+                opacity="0.75"
                 transform={`rotate(${i * 30} 680 65)`}
               />
             ))}
-            <circle cx="680" cy="65" r="28" fill="#FFF176" opacity="0.3" filter="url(#glow)" />
-            <circle cx="680" cy="65" r="22" fill="none" stroke="#FFD93D" strokeWidth="2.5" opacity="0.75" />
-            <circle cx="680" cy="65" r="14" fill="#FFF176" opacity="0.45" />
+            <circle cx="680" cy="65" r="30" fill="#E9A825" opacity="0.25" filter="url(#glow)" />
+            <circle cx="680" cy="65" r="24" fill="none" stroke="#D4890D" strokeWidth="3" opacity="0.85" />
+            <circle cx="680" cy="65" r="16" fill="#E9A825" opacity="0.5" />
           </g>
 
-          {/* Layered clouds with depth - more visible */}
-          <CloudFormation x={60} y={35} scale={1.4} color={c.primary} opacity={0.7} delay={0} />
-          <CloudFormation x={280} y={65} scale={1.2} color={c.secondary} opacity={0.6} delay={1.5} />
-          <CloudFormation x={480} y={30} scale={1.0} color={c.primary} opacity={0.65} delay={3} />
+          {/* Layered clouds with depth - higher opacity for visibility */}
+          <CloudFormation x={60} y={35} scale={1.4} color={c.primary} opacity={0.85} delay={0} />
+          <CloudFormation x={280} y={65} scale={1.2} color={c.secondary} opacity={0.75} delay={1.5} />
+          <CloudFormation x={480} y={30} scale={1.0} color={c.primary} opacity={0.8} delay={3} />
         </g>
       )}
 
@@ -201,11 +201,11 @@ function WeatherScene({ type }: { type: WeatherType }) {
       {type === 'cloudy' && (
         <g>
           {/* Multiple cloud layers for overcast look */}
-          <CloudFormation x={-20} y={30} scale={1.4} color={c.primary} opacity={0.65} delay={0} />
-          <CloudFormation x={200} y={60} scale={1.2} color={c.secondary} opacity={0.55} delay={2} />
-          <CloudFormation x={400} y={40} scale={1.3} color={c.primary} opacity={0.6} delay={1} />
-          <CloudFormation x={580} y={70} scale={1.1} color={c.secondary} opacity={0.5} delay={3} />
-          <CloudFormation x={720} y={35} scale={0.9} color={c.primary} opacity={0.55} delay={0.5} />
+          <CloudFormation x={-20} y={30} scale={1.4} color={c.primary} opacity={0.85} delay={0} />
+          <CloudFormation x={200} y={60} scale={1.2} color={c.secondary} opacity={0.75} delay={2} />
+          <CloudFormation x={400} y={40} scale={1.3} color={c.primary} opacity={0.8} delay={1} />
+          <CloudFormation x={580} y={70} scale={1.1} color={c.secondary} opacity={0.7} delay={3} />
+          <CloudFormation x={720} y={35} scale={0.9} color={c.primary} opacity={0.75} delay={0.5} />
         </g>
       )}
 
@@ -213,17 +213,16 @@ function WeatherScene({ type }: { type: WeatherType }) {
       {type === 'rainy' && (
         <g>
           {/* Dark clouds */}
-          <CloudFormation x={50} y={40} scale={1.3} color={c.primary} opacity={0.7} delay={0} />
-          <CloudFormation x={280} y={55} scale={1.4} color={c.secondary} opacity={0.6} delay={1.5} />
-          <CloudFormation x={500} y={35} scale={1.2} color={c.primary} opacity={0.65} delay={0.8} />
+          <CloudFormation x={50} y={40} scale={1.3} color={c.primary} opacity={0.85} delay={0} />
+          <CloudFormation x={280} y={55} scale={1.4} color={c.secondary} opacity={0.75} delay={1.5} />
+          <CloudFormation x={500} y={35} scale={1.2} color={c.primary} opacity={0.8} delay={0.8} />
 
-          {/* Rain drops - elegant lines */}
-          {[...Array(25)].map((_, i) => (
-            <RainLine
+          {/* Light rain - scattered drops */}
+          {[...Array(45)].map((_, i) => (
+            <RainDrop
               key={i}
-              x={30 + i * 30 + (i % 3) * 10}
-              delay={i * 0.12}
-              color={c.accent}
+              x={20 + (i * 17) + ((i * 7) % 11)}
+              delay={i * 0.18 + ((i * 3) % 5) * 0.25}
             />
           ))}
         </g>
@@ -233,9 +232,9 @@ function WeatherScene({ type }: { type: WeatherType }) {
       {type === 'stormy' && (
         <g>
           {/* Heavy dark clouds */}
-          <CloudFormation x={20} y={30} scale={1.5} color={c.primary} opacity={0.75} delay={0} />
-          <CloudFormation x={250} y={45} scale={1.6} color={c.secondary} opacity={0.7} delay={1} />
-          <CloudFormation x={480} y={25} scale={1.4} color={c.primary} opacity={0.72} delay={0.5} />
+          <CloudFormation x={20} y={30} scale={1.5} color={c.primary} opacity={0.9} delay={0} />
+          <CloudFormation x={250} y={45} scale={1.6} color={c.secondary} opacity={0.85} delay={1} />
+          <CloudFormation x={480} y={25} scale={1.4} color={c.primary} opacity={0.88} delay={0.5} />
 
           {/* Lightning bolt - artistic zigzag */}
           <g className="animate-flash">
@@ -257,13 +256,12 @@ function WeatherScene({ type }: { type: WeatherType }) {
             />
           </g>
 
-          {/* Heavy rain */}
-          {[...Array(35)].map((_, i) => (
-            <RainLine
+          {/* Heavy rain - more drops, faster */}
+          {[...Array(60)].map((_, i) => (
+            <RainDrop
               key={i}
-              x={20 + i * 22}
-              delay={i * 0.08}
-              color={c.accent}
+              x={15 + (i * 13) + ((i * 5) % 9)}
+              delay={i * 0.1 + ((i * 2) % 4) * 0.2}
               fast
             />
           ))}
@@ -421,20 +419,38 @@ function CloudFormation({ x, y, scale, color, opacity, delay }: {
   );
 }
 
-function RainLine({ x, delay, color, fast = false }: {
-  x: number; delay: number; color: string; fast?: boolean
+function RainDrop({ x, delay, fast = false }: {
+  x: number; delay: number; fast?: boolean
 }) {
+  // Blue-gray color that works in both light and dark mode
+  const dropColor = '#4A6FA5';
+
   return (
-    <line
-      x1={x} y1="-10"
-      x2={x - 8} y2="40"
-      stroke={color}
-      strokeWidth="2"
-      strokeLinecap="round"
-      opacity="0.55"
+    <g
       className={fast ? 'animate-rain-fast' : 'animate-rain'}
       style={{ animationDelay: `${delay}s` }}
-    />
+    >
+      {/* Teardrop shape */}
+      <ellipse
+        cx={x}
+        cy="0"
+        rx="2"
+        ry="4"
+        fill={dropColor}
+        opacity="0.6"
+      />
+      {/* Small trail */}
+      <line
+        x1={x}
+        y1="-6"
+        x2={x}
+        y2="4"
+        stroke={dropColor}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        opacity="0.4"
+      />
+    </g>
   );
 }
 

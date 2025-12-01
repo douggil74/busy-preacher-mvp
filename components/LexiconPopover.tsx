@@ -221,10 +221,28 @@ export const LexiconPopover = {
         return;
       }
 
-      const padding = ctx.isMobile ? 16 : 12;
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-      const maxWidth = ctx.isMobile ? Math.min(340, vw - 32) : 360;
+
+      // Mobile: use fixed positioning centered on screen
+      if (ctx.isMobile) {
+        const maxWidth = Math.min(320, vw - 32);
+        const panel = panelRef.current;
+        panel.style.visibility = "hidden";
+        panel.style.width = `${maxWidth}px`;
+
+        const height = Math.min(panel.offsetHeight, vh - 64);
+        const left = (vw - maxWidth) / 2;
+        const top = Math.max(32, (vh - height) / 2);
+
+        setPos({ top, left, width: maxWidth });
+        panel.style.visibility = "";
+        return;
+      }
+
+      // Desktop: position near the anchor
+      const padding = 12;
+      const maxWidth = 360;
       const width = Math.min(maxWidth, vw - 32);
 
       const panel = panelRef.current;
@@ -235,13 +253,8 @@ export const LexiconPopover = {
 
       const height = panel.offsetHeight;
 
-      let left = ctx.isMobile 
-        ? (vw - width) / 2 + window.scrollX
-        : ctx.anchor.x - 6;
-      
-      if (!ctx.isMobile) {
-        left = Math.min(Math.max(16 + window.scrollX, left), window.scrollX + vw - width - 16);
-      }
+      let left = ctx.anchor.x - 6;
+      left = Math.min(Math.max(16 + window.scrollX, left), window.scrollX + vw - width - 16);
 
       let top = ctx.anchor.y + ctx.anchor.h + padding;
       const bottomEdge = top + height + 16;
@@ -334,28 +347,46 @@ export const LexiconPopover = {
     const showEssentials =
       !busy && ctx.entry && !ctx.entry.error && !ctx.entry.needsMoreInfo;
 
+    const closePopup = () => {
+      ctx.setOpenTerm(null);
+      ctx.setAnchor(null);
+      ctx.setEntry(null);
+    };
+
     return (
-      <div
-        ref={panelRef}
-        onMouseEnter={ctx.isMobile ? undefined : ctx.cancelClose}
-        onMouseLeave={ctx.isMobile ? undefined : ctx.scheduleClose}
-        className="z-50 max-w-[calc(100vw-2rem)] max-h-[calc(100vh-2rem)] overflow-auto break-words"
-        style={{
-          position: "absolute",
-          visibility: pos ? "visible" : "hidden",
-          left: pos?.left ?? 0,
-          top: pos?.top ?? 0,
-          width: pos?.width ?? 360,
-        }}
-      >
+      <>
+        {/* Dark backdrop overlay on mobile */}
+        {ctx.isMobile && (
+          <div
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+            onClick={closePopup}
+            style={{ visibility: pos ? "visible" : "hidden" }}
+          />
+        )}
         <div
-          className="rounded-xl p-4 shadow-xl relative"
+          ref={panelRef}
+          onMouseEnter={ctx.isMobile ? undefined : ctx.cancelClose}
+          onMouseLeave={ctx.isMobile ? undefined : ctx.scheduleClose}
+          className="z-50 overflow-auto break-words"
           style={{
-            backgroundColor: 'var(--card-bg)',
-            border: '1px solid var(--card-border)',
-            color: 'var(--text-primary)',
+            position: ctx.isMobile ? "fixed" : "absolute",
+            visibility: pos ? "visible" : "hidden",
+            left: pos?.left ?? 0,
+            top: pos?.top ?? 0,
+            width: pos?.width ?? (ctx.isMobile ? 320 : 360),
+            maxWidth: "calc(100vw - 2rem)",
+            maxHeight: ctx.isMobile ? "calc(100vh - 4rem)" : "calc(100vh - 2rem)",
           }}
         >
+          <div
+            className="rounded-xl p-4 shadow-xl relative"
+            style={{
+              backgroundColor: 'var(--card-bg)',
+              border: '1px solid var(--card-border)',
+              color: 'var(--text-primary)',
+              backdropFilter: 'blur(20px)',
+            }}
+          >
           {/* Close button - always visible */}
           <button
             onClick={() => {
@@ -417,6 +448,7 @@ export const LexiconPopover = {
           </div>
         </div>
       </div>
+      </>
     );
   },
 };

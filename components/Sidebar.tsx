@@ -57,6 +57,7 @@ export default function Sidebar() {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [isDark, setIsDark] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const pathname = usePathname();
   const { user, isAuthenticated, signOut } = useAuth();
   const menuRef = useRef<HTMLDivElement>(null);
@@ -65,6 +66,12 @@ export default function Sidebar() {
     setMounted(true);
     const mode = localStorage.getItem('bc-theme-mode') || 'dark';
     setIsDark(mode === 'dark');
+
+    // Check if mobile
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   // Close menu when clicking outside
@@ -116,6 +123,19 @@ export default function Sidebar() {
 
   return (
     <>
+      {/* Mobile Logo - Top Left */}
+      {isMobile && (
+        <Link href="/home" className="fixed top-4 left-4 z-50">
+          <Image
+            src="/logo.png"
+            alt="Logo"
+            width={36}
+            height={36}
+            className="object-contain"
+          />
+        </Link>
+      )}
+
       {/* Top Right Controls - Theme Toggle & Hamburger */}
       <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
         {/* Theme Toggle */}
@@ -155,10 +175,11 @@ export default function Sidebar() {
           {/* Dropdown Menu */}
           {menuOpen && (
             <div
-              className="absolute right-0 mt-2 w-48 rounded-2xl p-2 shadow-lg"
+              className="absolute right-0 mt-2 w-56 rounded-2xl p-2 shadow-lg max-h-[80vh] overflow-y-auto"
               style={{
                 backgroundColor: 'var(--card-bg)',
                 border: '1px solid var(--card-border)',
+                backdropFilter: 'blur(20px)',
               }}
             >
               {/* User Info */}
@@ -172,6 +193,42 @@ export default function Sidebar() {
                       {user.email}
                     </p>
                   </div>
+                </>
+              )}
+
+              {/* Main Navigation - Only on Mobile */}
+              {isMobile && (
+                <>
+                  <div className="px-3 py-1.5 mb-1">
+                    <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
+                      Navigate
+                    </p>
+                  </div>
+                  {mainNavItems.map((item) => {
+                    const active = isActive(item.href);
+                    return (
+                      <Link
+                        key={item.id}
+                        href={item.href}
+                        onClick={() => setMenuOpen(false)}
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all"
+                        style={{
+                          backgroundColor: active ? `${item.color}20` : 'transparent',
+                        }}
+                      >
+                        <div
+                          className="w-7 h-7 rounded-lg flex items-center justify-center"
+                          style={{ backgroundColor: `${item.color}20` }}
+                        >
+                          <item.icon className="w-4 h-4" style={{ color: item.color }} />
+                        </div>
+                        <span className="text-sm font-medium" style={{ color: active ? item.color : 'var(--text-primary)' }}>
+                          {item.label}
+                        </span>
+                      </Link>
+                    );
+                  })}
+                  <div className="my-2 border-t" style={{ borderColor: 'var(--card-border)' }} />
                 </>
               )}
 
@@ -226,8 +283,9 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {/* Left Sidebar */}
-      <aside
+      {/* Left Sidebar - Hidden on Mobile */}
+      {!isMobile && (
+        <aside
         className={`
           fixed left-0 top-0 h-full z-50 transition-all duration-300 ease-out
           ${sidebarOpen ? 'w-64' : 'w-16'}
@@ -313,9 +371,10 @@ export default function Sidebar() {
           })}
         </nav>
       </aside>
+      )}
 
-      {/* Click-outside overlay when sidebar is open */}
-      {sidebarOpen && (
+      {/* Click-outside overlay when sidebar is open - Desktop only */}
+      {!isMobile && sidebarOpen && (
         <div
           className="fixed inset-0 z-40"
           style={{ left: '256px' }}

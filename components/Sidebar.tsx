@@ -126,8 +126,8 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Mobile Logo - Top Left */}
-      {isMobile && (
+      {/* Mobile Logo - Top Left (only on home page to avoid overlapping back buttons) */}
+      {isMobile && (pathname === '/home' || pathname === '/') && (
         <Link href="/home" className="fixed top-4 left-4 z-50">
           <Image
             src="/logo.png"

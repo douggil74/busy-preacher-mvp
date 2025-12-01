@@ -1170,11 +1170,8 @@ const handleKeywordResultSelect = (reference: string) => {
 
           <div className="relative z-10 text-center mb-6">
             <h2 className={`${nunitoSans.className} text-2xl md:text-3xl font-bold mb-3`} style={{ color: 'var(--text-primary)' }}>
-              {personalGreeting}
+              {userName}, {personalGreeting}
             </h2>
-            <p className="text-lg leading-relaxed mb-4" style={{ color: 'var(--text-secondary)' }}>
-              {userName}, {studyPrompt}
-            </p>
           </div>
 
           {/* Daily Verse Card */}

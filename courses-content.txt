@@ -912,7 +912,7 @@ When we talk about being "born again" or being "saved" we are essentially saying
         keyTakeaways: [
           'Resurrection hope rests on Jesus’ empty tomb.',
           'Our future bodies will be incorruptible and Christlike.',
-          'Hope fuels steadfast work in the Lord now.',
+          'Hope in Christ gives us strength to keep serving faithfully.',
         ],
         reflectionQuestions: [
           'Which aspect of the resurrection most encourages you?',

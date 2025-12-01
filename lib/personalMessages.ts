@@ -141,7 +141,7 @@ export function getPastorNote(): string {
     "Heaven with Christ is the believer's sure hope.",
     "Resurrection hope rests on Jesus' empty tomb.",
     "Our future bodies will be incorruptible and Christlike.",
-    "Hope fuels steadfast work in the Lord now.",
+    "Hope in Christ gives us strength to keep serving faithfully.",
     "Healthy homes grow from sacrificial love and mutual honor.",
     "Giving fuels mission; integrity guards witness.",
     "Submit to God, resist the devil, and he will flee.",

@@ -1175,10 +1175,6 @@ const handleKeywordResultSelect = (reference: string) => {
           />
 
           <div className="relative z-10 text-center mb-6">
-            {/* Time-based icon */}
-            <div className="text-5xl mb-3">
-              {new Date().getHours() < 12 ? '☀️' : new Date().getHours() < 17 ? '🌤️' : new Date().getHours() < 21 ? '🌅' : '🌙'}
-            </div>
             <h2 className={`${nunitoSans.className} text-2xl md:text-3xl font-bold`} style={{ color: 'var(--text-primary)' }}>
               {userName}, {personalGreeting}
             </h2>

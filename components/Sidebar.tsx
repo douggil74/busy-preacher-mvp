@@ -129,8 +129,8 @@ export default function Sidebar() {
     return pathname === href || pathname?.startsWith(href + '/');
   };
 
-  // Don't render anything on onboarding pages
-  if (shouldHideSidebar) {
+  // Don't render anything on onboarding pages OR when not authenticated
+  if (shouldHideSidebar || !isAuthenticated) {
     return null;
   }
 

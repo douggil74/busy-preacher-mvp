@@ -209,9 +209,9 @@ export default function RequireAuth({ children }: RequireAuthProps) {
   // If not authenticated, show sign-in prompt
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center px-4">
+      <div className="min-h-screen flex items-center justify-center px-4" style={{ backgroundColor: 'var(--bg-color)' }}>
         <div className="max-w-md w-full">
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur">
+          <div className="rounded-2xl p-8 backdrop-blur" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
             {/* Icon */}
             <div className="flex justify-center mb-6">
               <div className="p-4 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-full">
@@ -222,12 +222,12 @@ export default function RequireAuth({ children }: RequireAuthProps) {
             </div>
 
             {/* Title */}
-            <h1 className={`${playfair.className} text-3xl font-bold text-white text-center mb-3`}>
+            <h1 className={`${playfair.className} text-3xl font-bold text-center mb-3`} style={{ color: 'var(--text-primary)' }}>
               {authMethod === 'phone'
                 ? (phoneStep === 'verify' ? 'Enter Code' : 'Sign In')
                 : (mode === 'signin' ? 'Sign In' : mode === 'signup' ? 'Create Account' : 'Reset Password')}
             </h1>
-            <p className="text-white/70 text-center mb-6">
+            <p className="text-center mb-6" style={{ color: 'var(--text-secondary)' }}>
               {authMethod === 'phone'
                 ? (phoneStep === 'verify' ? 'Enter the code sent to your phone' : 'Sign in with your phone number')
                 : (mode === 'signin'
@@ -290,7 +290,7 @@ export default function RequireAuth({ children }: RequireAuthProps) {
                 {phoneStep === 'enter' ? (
                   <form onSubmit={handleSendPhoneCode} className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-white/80 mb-2">
+                      <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
                         First Name
                       </label>
                       <input
@@ -298,12 +298,13 @@ export default function RequireAuth({ children }: RequireAuthProps) {
                         value={phoneFirstName}
                         onChange={(e) => setPhoneFirstName(e.target.value)}
                         placeholder="Your first name"
-                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50 transition-colors"
+                        className="w-full px-4 py-3 rounded-lg focus:outline-none focus:border-yellow-400/50 transition-colors"
+                        style={{ backgroundColor: 'var(--input-bg)', border: '2px solid var(--input-border)', color: 'var(--input-text)' }}
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-white/80 mb-2">
+                      <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
                         Phone Number
                       </label>
                       <input
@@ -311,7 +312,8 @@ export default function RequireAuth({ children }: RequireAuthProps) {
                         value={formatPhoneDisplay(phoneNumber)}
                         onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
                         placeholder="(555) 555-5555"
-                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50 transition-colors"
+                        className="w-full px-4 py-3 rounded-lg focus:outline-none focus:border-yellow-400/50 transition-colors"
+                        style={{ backgroundColor: 'var(--input-bg)', border: '2px solid var(--input-border)', color: 'var(--input-text)' }}
                         required
                       />
                     </div>
@@ -326,7 +328,7 @@ export default function RequireAuth({ children }: RequireAuthProps) {
                 ) : (
                   <form onSubmit={handleVerifyCode} className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-white/80 mb-2">
+                      <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
                         Verification Code
                       </label>
                       <input
@@ -334,7 +336,8 @@ export default function RequireAuth({ children }: RequireAuthProps) {
                         value={verificationCode}
                         onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                         placeholder="123456"
-                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50 transition-colors text-center text-2xl tracking-widest"
+                        className="w-full px-4 py-3 rounded-lg focus:outline-none focus:border-yellow-400/50 transition-colors text-center text-2xl tracking-widest"
+                        style={{ backgroundColor: 'var(--input-bg)', border: '2px solid var(--input-border)', color: 'var(--input-text)' }}
                         maxLength={6}
                         required
                       />
@@ -364,7 +367,7 @@ export default function RequireAuth({ children }: RequireAuthProps) {
                 <form onSubmit={handleEmailSubmit} className="space-y-4">
                   {mode === 'signup' && (
                     <div>
-                      <label className="block text-sm font-medium text-white/80 mb-2">
+                      <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
                         First Name
                       </label>
                       <input
@@ -372,14 +375,15 @@ export default function RequireAuth({ children }: RequireAuthProps) {
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
                         placeholder="Your first name"
-                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50 transition-colors"
+                        className="w-full px-4 py-3 rounded-lg focus:outline-none focus:border-yellow-400/50 transition-colors"
+                        style={{ backgroundColor: 'var(--input-bg)', border: '2px solid var(--input-border)', color: 'var(--input-text)' }}
                         required
                       />
                     </div>
                   )}
 
                   <div>
-                    <label className="block text-sm font-medium text-white/80 mb-2">
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
                       Email
                     </label>
                     <input
@@ -387,14 +391,15 @@ export default function RequireAuth({ children }: RequireAuthProps) {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="your@email.com"
-                      className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50 transition-colors"
+                      className="w-full px-4 py-3 rounded-lg focus:outline-none focus:border-yellow-400/50 transition-colors"
+                        style={{ backgroundColor: 'var(--input-bg)', border: '2px solid var(--input-border)', color: 'var(--input-text)' }}
                       required
                     />
                   </div>
 
                   {mode !== 'reset' && (
                     <div>
-                      <label className="block text-sm font-medium text-white/80 mb-2">
+                      <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
                         Password
                       </label>
                       <input
@@ -402,7 +407,8 @@ export default function RequireAuth({ children }: RequireAuthProps) {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="••••••••"
-                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50 transition-colors"
+                        className="w-full px-4 py-3 rounded-lg focus:outline-none focus:border-yellow-400/50 transition-colors"
+                        style={{ backgroundColor: 'var(--input-bg)', border: '2px solid var(--input-border)', color: 'var(--input-text)' }}
                         required
                         minLength={6}
                       />

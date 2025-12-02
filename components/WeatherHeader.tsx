@@ -873,11 +873,11 @@ function WeatherScene({ type }: { type: SceneType }) {
         <g>
           <rect width="800" height="200" fill="url(#skyNight)" />
 
-          {/* Aurora with enhanced visibility */}
-          <ellipse cx="400" cy="85" rx="350" ry="55" fill="#00AA55" opacity="0.2" filter="url(#heavyBlur)" />
-          <ellipse cx="400" cy="85" rx="350" ry="55" fill="url(#auroraGreen)" opacity="0.45" filter="url(#heavyBlur)" className="animate-pulse" style={{ animationDuration: '5s' }} />
-          <ellipse cx="300" cy="100" rx="250" ry="35" fill="#20B2AA" opacity="0.2" filter="url(#heavyBlur)" />
-          <ellipse cx="300" cy="100" rx="250" ry="35" fill="#60efff" opacity="0.18" filter="url(#heavyBlur)" className="animate-pulse" style={{ animationDuration: '6s', animationDelay: '2s' }} />
+          {/* Subtle Milky Way band - smaller and dimmer for darker night sky */}
+          <ellipse cx="400" cy="75" rx="180" ry="30" fill="#00AA55" opacity="0.08" filter="url(#heavyBlur)" />
+          <ellipse cx="400" cy="75" rx="180" ry="30" fill="url(#auroraGreen)" opacity="0.15" filter="url(#heavyBlur)" className="animate-pulse" style={{ animationDuration: '8s' }} />
+          <ellipse cx="300" cy="85" rx="120" ry="20" fill="#20B2AA" opacity="0.06" filter="url(#heavyBlur)" />
+          <ellipse cx="300" cy="85" rx="120" ry="20" fill="#60efff" opacity="0.08" filter="url(#heavyBlur)" className="animate-pulse" style={{ animationDuration: '10s', animationDelay: '3s' }} />
 
           {/* Crescent moon */}
           <circle cx="680" cy="55" r="50" fill="#FFF8E1" opacity="0.1" filter="url(#heavyBlur)" />

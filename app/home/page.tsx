@@ -1175,7 +1175,7 @@ const handleKeywordResultSelect = (reference: string) => {
             style={{ backgroundColor: 'var(--card-bg)' }}
           >
             <div className="relative text-center mb-6 pt-2" style={{ zIndex: 5 }}>
-            <h2 className={`${nunitoSans.className} text-xl md:text-2xl font-bold mb-2`} style={{ color: 'var(--text-primary)' }}>
+            <h2 className={`${nunitoSans.className} text-2xl md:text-3xl font-bold mb-2`} style={{ color: 'var(--text-primary)' }}>
               {greetingPrefix}, {userName}.
             </h2>
             <p className="text-base" style={{ color: 'var(--text-secondary)' }}>
@@ -1220,13 +1220,13 @@ const handleKeywordResultSelect = (reference: string) => {
         </section>
       )}
 
-      {/* SECTION 1: Create Your Own Devotion */}
+      {/* SECTION 1: Explore Any Passage or Topic */}
       <div id="devotion-section" className="mb-4 scroll-mt-20">
         <h2 className={`${nunitoSans.className} text-xl font-semibold mb-1`} style={{ color: 'var(--accent-color)' }}>
-          Create Your Own Devotion
+          Explore Any Passage or Topic
         </h2>
         <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-          Generate AI-powered Bible studies with pastoral insights, practical applications, and cross-references
+          AI-powered research with pastoral insights, practical applications, and cross-references
         </p>
       </div>
 

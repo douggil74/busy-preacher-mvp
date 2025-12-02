@@ -100,20 +100,28 @@ export default function Sidebar() {
 
     const root = document.documentElement;
     if (isDark) {
+      root.classList.remove('light');
       root.style.setProperty('--bg-color', '#0f1729');
       root.style.setProperty('--card-bg', '#1a2332');
       root.style.setProperty('--card-border', '#2d3f5f');
       root.style.setProperty('--text-primary', '#e8f2f8');
       root.style.setProperty('--text-secondary', '#b8d4e6');
       root.style.setProperty('--accent-color', '#3b82f6');
+      root.style.setProperty('--input-bg', 'rgba(255, 255, 255, 0.05)');
+      root.style.setProperty('--input-border', 'rgba(255, 255, 255, 0.15)');
+      root.style.setProperty('--input-text', '#ffffff');
       localStorage.setItem('bc-theme-mode', 'dark');
     } else {
+      root.classList.add('light');
       root.style.setProperty('--bg-color', '#f5f1e8');
       root.style.setProperty('--card-bg', '#ebe5d9');
       root.style.setProperty('--card-border', '#d4c9b3');
       root.style.setProperty('--text-primary', '#2d2520');
       root.style.setProperty('--text-secondary', '#5a4f46');
       root.style.setProperty('--accent-color', '#b8860b');
+      root.style.setProperty('--input-bg', '#ffffff');
+      root.style.setProperty('--input-border', '#cbd5e1');
+      root.style.setProperty('--input-text', '#0f172a');
       localStorage.setItem('bc-theme-mode', 'light');
     }
     localStorage.setItem('bc-theme-user-set', 'true');

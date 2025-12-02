@@ -143,6 +143,46 @@ html.light body {
   color: #0f172a;
 }
 
+/* FORCE light mode inputs to be visible */
+html.light input[type="text"],
+html.light input[type="email"],
+html.light input[type="password"],
+html.light input[type="tel"],
+html.light input[type="number"],
+html.light input[type="search"],
+html.light input[type="url"],
+html.light textarea {
+  background-color: #ffffff !important;
+  border: 2px solid #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #64748b !important;
+}
+
+/* Also handle system preference light mode (no html.light class) */
+@media (prefers-color-scheme: light) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="tel"],
+  input[type="number"],
+  input[type="search"],
+  input[type="url"],
+  textarea {
+    background-color: #ffffff !important;
+    border: 2px solid #cbd5e1 !important;
+    color: #0f172a !important;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: #64748b !important;
+  }
+}
+
 html.light .dark\:bg-slate-900,
 html.light .dark\:bg-slate-800 {
   background-color: #ffffff !important;

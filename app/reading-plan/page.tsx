@@ -275,7 +275,7 @@ function ReadingPlanContent() {
   const daysLeft = planProgress.duration - planProgress.currentDay;
 
   return (
-    <main className="min-h-screen p-6" style={{ backgroundColor: 'var(--bg-color)' }}>
+    <main className="min-h-screen p-6 md:pl-56" style={{ backgroundColor: 'var(--bg-color)' }}>
       <div className="max-w-4xl mx-auto">
         <Link
           href="/reading-plans"

@@ -286,7 +286,7 @@ export default function AccountPage() {
     <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
       {/* Header */}
       <header style={{ borderBottom: '1px solid var(--card-border)' }}>
-        <div className="max-w-xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-xl mx-auto px-4 md:pl-52 py-4 flex items-center justify-between">
           <button
             onClick={() => router.back()}
             className="text-sm flex items-center gap-1 transition-colors"

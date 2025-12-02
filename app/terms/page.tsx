@@ -8,7 +8,7 @@ export default function TermsPage() {
     <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
       {/* Header */}
       <div className="sticky top-0 z-20 backdrop-blur-md" style={{ backgroundColor: 'rgba(var(--card-bg-rgb), 0.9)', borderBottom: '1px solid var(--card-border)' }}>
-        <div className="max-w-3xl mx-auto px-4 py-3">
+        <div className="max-w-3xl mx-auto px-4 md:pl-52 py-3">
           <div className="flex items-center gap-3">
             <Link href="/legal" className="p-2 rounded-lg hover:bg-white/10 transition-colors">
               <ArrowLeft className="w-5 h-5" style={{ color: 'var(--text-secondary)' }} />

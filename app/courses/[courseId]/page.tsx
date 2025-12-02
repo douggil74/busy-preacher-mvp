@@ -460,7 +460,7 @@ export default function CoursePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-950">
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-color)' }}>
       <div className="container py-8">
         {/* Header */}
         <div className="mb-8">
@@ -478,13 +478,13 @@ export default function CoursePage() {
             <div className="flex items-start gap-4">
               <div className="text-5xl">{getCategoryIcon(course.category)}</div>
               <div className="flex-1">
-                <h1 className="text-3xl font-bold text-white mb-2">{course.title}</h1>
+                <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">{course.title}</h1>
                 {course.subtitle && (
-                  <p className="text-lg text-white/70 mb-3">{course.subtitle}</p>
+                  <p className="text-lg text-slate-600 dark:text-white/70 mb-3">{course.subtitle}</p>
                 )}
-                <p className="text-white/60 mb-4">{course.description}</p>
-                
-                <div className="flex flex-wrap gap-4 text-sm text-white/60">
+                <p className="text-slate-600 dark:text-white/60 mb-4">{course.description}</p>
+
+                <div className="flex flex-wrap gap-4 text-sm text-slate-500 dark:text-white/60">
                   <span className="inline-flex items-center gap-1">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -507,12 +507,12 @@ export default function CoursePage() {
 
                 {/* Progress Bar */}
                 <div className="mt-4">
-                  <div className="flex items-center justify-between text-sm text-white/60 mb-2">
+                  <div className="flex items-center justify-between text-sm text-slate-500 dark:text-white/60 mb-2">
                     <span>Course Progress</span>
                     <span>{completionPercentage}% Complete</span>
                   </div>
-                  <div className="h-3 bg-white/10 rounded-full overflow-hidden">
-                    <div 
+                  <div className="h-3 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
+                    <div
                       className="h-full bg-gradient-to-r from-yellow-400 to-orange-400 transition-all duration-500"
                       style={{ width: `${completionPercentage}%` }}
                     />
@@ -534,8 +534,8 @@ export default function CoursePage() {
                 <span className="text-yellow-400 font-bold">{selectedLesson}</span>
               </div>
               <div className="text-left flex-1 min-w-0">
-                <div className="text-xs text-white/50">Current Lesson</div>
-                <div className="font-semibold text-white truncate">{currentLesson?.title}</div>
+                <div className="text-xs text-slate-500 dark:text-white/50">Current Lesson</div>
+                <div className="font-semibold text-slate-900 dark:text-white truncate">{currentLesson?.title}</div>
               </div>
             </div>
             <svg 
@@ -572,7 +572,7 @@ export default function CoursePage() {
                   >
                     <div className="flex items-center gap-2 mb-1">
                       <span className={`text-sm font-semibold ${
-                        isCurrent ? 'text-yellow-400' : isCompleted ? 'text-green-400' : 'text-white/60'
+                        isCurrent ? 'text-yellow-400' : isCompleted ? 'text-green-400' : 'text-slate-500 dark:text-white/60'
                       }`}>
                         Lesson {lesson.number}
                       </span>
@@ -582,7 +582,7 @@ export default function CoursePage() {
                         </svg>
                       )}
                     </div>
-                    <div className={`text-sm ${isCurrent ? 'text-white' : 'text-white/70'}`}>
+                    <div className={`text-sm ${isCurrent ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-white/70'}`}>
                       {lesson.title}
                     </div>
                   </button>
@@ -595,7 +595,7 @@ export default function CoursePage() {
         <div className="grid lg:grid-cols-[300px_1fr] gap-6">
           {/* 🖥️ DESKTOP LESSON LIST SIDEBAR */}
           <div className="hidden lg:block card h-fit">
-            <h2 className="text-lg font-semibold mb-4 text-white">Lessons</h2>
+            <h2 className="text-lg font-semibold mb-4 text-slate-900 dark:text-white">Lessons</h2>
             <div className="space-y-2">
               {course.lessons.map((lesson) => {
                 const isCompleted = completedLessons.includes(lesson.number);
@@ -615,7 +615,7 @@ export default function CoursePage() {
                   >
                     <div className="flex items-center gap-2 mb-1">
                       <span className={`text-sm font-semibold ${
-                        isCurrent ? 'text-yellow-400' : isCompleted ? 'text-green-400' : 'text-white/60'
+                        isCurrent ? 'text-yellow-400' : isCompleted ? 'text-green-400' : 'text-slate-500 dark:text-white/60'
                       }`}>
                         Lesson {lesson.number}
                       </span>
@@ -625,7 +625,7 @@ export default function CoursePage() {
                         </svg>
                       )}
                     </div>
-                    <div className={`text-sm ${isCurrent ? 'text-white' : 'text-white/70'}`}>
+                    <div className={`text-sm ${isCurrent ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-white/70'}`}>
                       {lesson.title}
                     </div>
                   </button>
@@ -641,17 +641,17 @@ export default function CoursePage() {
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <span className="text-sm text-yellow-400 font-semibold">Lesson {currentLesson.number}</span>
-                    <h2 className="text-2xl font-bold text-white mt-1">{currentLesson.title}</h2>
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{currentLesson.title}</h2>
                   </div>
-                  <span className="text-sm text-white/60">
+                  <span className="text-sm text-slate-500 dark:text-white/60">
                     ~{currentLesson.estimatedMinutes} min
                   </span>
                 </div>
 
                 {/* Key Passages */}
                 <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-white mb-3">Key Passages</h3>
-                  <p className="text-sm text-white/50 mb-3">Hover to preview • Click to study below</p>
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-3">Key Passages</h3>
+                  <p className="text-sm text-slate-500 dark:text-white/50 mb-3">Hover to preview • Click to study below</p>
                   <div className="flex flex-wrap gap-2">
                     {currentLesson.keyPassages.map((passage, idx) => (
                       <button
@@ -673,7 +673,7 @@ export default function CoursePage() {
                 {/* 📝 STUDY QUESTIONS WITH Q&A */}
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-lg font-semibold text-white">Study Questions</h3>
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Study Questions</h3>
                     {Object.keys(questionAnswers).length > 0 && (
                       <button
                         onClick={exportAnsweredQuestions}
@@ -715,7 +715,7 @@ export default function CoursePage() {
                             }`}>
                               {idx + 1}
                             </span>
-                            <p className="text-white/80 flex-1 pr-2">{question}</p>
+                            <p className="text-slate-700 dark:text-white/80 flex-1 pr-2">{question}</p>
                             <div className="flex items-center gap-2 flex-shrink-0">
                               {hasAnswer && (
                                 <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -743,7 +743,7 @@ export default function CoursePage() {
                                 autoFocus
                               />
                               <div className="flex items-center justify-between mt-2">
-                                <p className="text-xs text-white/40">
+                                <p className="text-xs text-slate-400 dark:text-white/40">
                                   {currentAnswer.trim().length > 0 ? '✓ Answer saved automatically' : 'Start typing to save your answer'}
                                 </p>
                                 {currentAnswer.trim().length > 0 && (
@@ -788,8 +788,8 @@ export default function CoursePage() {
 
                 {/* Application */}
                 <div className="mb-6 p-4 rounded-lg bg-green-400/10 border border-green-400/30">
-                  <h3 className="text-lg font-semibold text-green-300 mb-2">Application</h3>
-                  <p className="text-white/80">{currentLesson.application}</p>
+                  <h3 className="text-lg font-semibold text-green-600 dark:text-green-300 mb-2">Application</h3>
+                  <p className="text-slate-700 dark:text-white/80">{currentLesson.application}</p>
                 </div>
 
                 {/* Complete Button */}
@@ -828,11 +828,11 @@ export default function CoursePage() {
 
         {/* ESV Passage Study Section */}
         <section id="passage-study" className="card mt-8">
-          <h2 className="text-xl font-semibold text-white mb-4">Read Passage (ESV)</h2>
-          
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">Read Passage (ESV)</h2>
+
           <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
             <div>
-              <label htmlFor="bpPassage" className="mb-2 block text-sm text-white/80">
+              <label htmlFor="bpPassage" className="mb-2 block text-sm text-slate-600 dark:text-white/80">
                 Passage (ESV)
               </label>
               <input
@@ -883,7 +883,7 @@ export default function CoursePage() {
 
           <div className="mt-5">
             {!bpText ? (
-              <p className="text-white/60 text-sm">
+              <p className="text-slate-500 dark:text-white/60 text-sm">
                 Click a passage above or enter a reference and click <span className="font-semibold">Get ESV</span>. Hover any word for a
                 simple, plain-English original language note; click to pin/unpin.
               </p>
@@ -911,7 +911,7 @@ export default function CoursePage() {
 
         {/* Course Notes Section */}
         <section className="card mt-8">
-          <h3 className="text-lg font-semibold text-white mb-3">Course Notes</h3>
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-3">Course Notes</h3>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
@@ -931,16 +931,21 @@ export default function CoursePage() {
       {/* Passage Preview Popover */}
       {previewPassage && previewPos && (
         <div
-          className="pointer-events-none fixed z-50 w-[400px] max-w-[90vw] rounded-lg border border-blue-400/30 bg-slate-950/98 p-4 shadow-2xl backdrop-blur"
-          style={{ left: previewPos.x, top: previewPos.y }}
+          className="pointer-events-none fixed z-50 w-[400px] max-w-[90vw] rounded-2xl p-4 shadow-2xl backdrop-blur"
+          style={{
+            left: previewPos.x,
+            top: previewPos.y,
+            backgroundColor: 'var(--card-bg)',
+            border: '1px solid var(--card-border)',
+          }}
         >
           <div className="mb-2 flex items-center justify-between">
-            <div className="text-sm font-semibold text-blue-300">{previewPassage}</div>
-            <div className="text-xs text-white/50">ESV</div>
+            <div className="text-sm font-semibold" style={{ color: 'var(--accent-color)' }}>{previewPassage}</div>
+            <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>ESV</div>
           </div>
-          <div className="max-h-[250px] overflow-y-auto text-sm leading-relaxed text-white/90">
+          <div className="max-h-[250px] overflow-y-auto text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>
             {previewLoading ? (
-              <div className="flex items-center gap-2 text-white/50">
+              <div className="flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
                 <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
@@ -949,10 +954,10 @@ export default function CoursePage() {
             ) : previewText ? (
               <p className="whitespace-pre-wrap">{previewText}</p>
             ) : (
-              <p className="text-white/50">Failed to load</p>
+              <p style={{ color: 'var(--text-secondary)' }}>Failed to load</p>
             )}
           </div>
-          <div className="mt-3 border-t border-white/10 pt-2 text-xs text-white/40">
+          <div className="mt-3 pt-2 text-xs" style={{ borderTop: '1px solid var(--card-border)', color: 'var(--text-muted)' }}>
             Click to study with word lookup below
           </div>
         </div>
@@ -961,27 +966,52 @@ export default function CoursePage() {
       {/* Word Hover Popover */}
       {activeWord && popoverPos && (
         <div
-          className="hover-popover pointer-events-none fixed z-50 w-[360px] max-w-[90vw] rounded-lg border border-white/15 bg-slate-950/95 p-3 text-sm shadow-xl backdrop-blur"
-          style={{ left: popoverPos.x, top: popoverPos.y }}
+          className="hover-popover fixed w-[360px] max-w-[90vw] rounded-2xl shadow-2xl"
+          style={{
+            left: popoverPos.x,
+            top: popoverPos.y,
+            zIndex: 50,
+            backgroundColor: 'var(--card-bg)',
+            border: popoverPinned ? '2px solid var(--accent-color)' : '1px solid var(--card-border)',
+            pointerEvents: popoverPinned ? 'auto' : 'none',
+          }}
         >
-          <div className="pointer-events-auto">
-            <div className="mb-1 flex items-center justify-between gap-2">
-              <div className="text-xs uppercase tracking-wide text-white/60">Word for Today</div>
-              <button onClick={() => setPopoverPinned((p) => !p)} className="btn text-xs px-2 py-1">
-                {popoverPinned ? "Unpin" : "Pin"}
-              </button>
+          <div className="pointer-events-auto p-5">
+            <div className="flex items-start justify-between gap-3 mb-2">
+              <div className="flex-1">
+                <h3 className="text-xl font-serif mb-1" style={{ color: 'var(--text-primary)' }}>
+                  {hoverData?.lemma ?? activeWord}
+                </h3>
+                <div className="text-xs font-semibold" style={{ color: 'var(--accent-color)' }}>
+                  {hoverData?.strongs ?? "Loading..."}
+                </div>
+              </div>
+              {popoverPinned ? (
+                <button
+                  onClick={() => {
+                    setPopoverPinned(false);
+                    setActiveWord(null);
+                    setHoverData(null);
+                    setPopoverPos(null);
+                  }}
+                  className="w-7 h-7 flex items-center justify-center rounded-full transition-colors"
+                  style={{
+                    backgroundColor: 'color-mix(in srgb, var(--text-primary) 10%, transparent)',
+                    color: 'var(--text-secondary)',
+                  }}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              ) : (
+                <span className="text-xs px-2 py-1 rounded" style={{ backgroundColor: 'var(--accent-color)', color: 'var(--bg-color)' }}>
+                  Click to pin
+                </span>
+              )}
             </div>
-
-            <div className="text-base font-semibold">{activeWord}</div>
-            <div className="mt-1 grid grid-cols-[80px_1fr] gap-x-3 gap-y-1">
-              <div className="text-xs text-white/60">Lemma</div>
-              <div className="text-sm">{hoverData?.lemma ?? "…"}</div>
-              <div className="text-xs text-white/60">Strong's #</div>
-              <div className="text-sm">{hoverData?.strongs ?? "…"}</div>
-            </div>
-
-            <div className="mt-2 border-t border-white/10 pt-2 text-sm leading-6">
-              {hoverData?.plain ?? (hoverLoading ? "Thinking…" : "—")}
+            <div className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+              {hoverData?.plain ?? (hoverLoading ? "Loading..." : "—")}
             </div>
           </div>
         </div>

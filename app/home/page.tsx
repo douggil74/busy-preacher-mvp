@@ -343,14 +343,32 @@ const [searchedKeyword, setSearchedKeyword] = useState("");
   const [bpRef, setBpRef] = useState("");
   const [bpText, setBpText] = useState("");
   const [bpError, setBpError] = useState<string | null>(null);
-  const [activeWord, setActiveWord] = useState<string | null>(null);
+  // Hover state (temporary preview)
+  const [hoverWord, setHoverWord] = useState<string | null>(null);
   const [hoverData, setHoverData] = useState<{ lemma: string; strongs: string; plain: string } | null>(null);
+  const [hoverPos, setHoverPos] = useState<{ x: number; y: number } | null>(null);
   const [currentBookName, setCurrentBookName] = useState<string>('');
-  const [popoverPinned, setPopoverPinned] = useState(false);
-  const [popoverPos, setPopoverPos] = useState<{ x: number; y: number } | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
+
+  // Word study cache - prevents redundant API calls
+  const wordCache = useRef<Map<string, { lemma: string; strongs: string; plain: string }>>(new Map());
+
+  // Multiple pinned popovers (max 3)
+  interface PinnedPopover {
+    id: string;
+    word: string;
+    data: { lemma: string; strongs: string; plain: string } | null;
+    position: { x: number; y: number };
+    loading: boolean;
+    zIndex: number;
+  }
+  const [pinnedPopovers, setPinnedPopovers] = useState<PinnedPopover[]>([]);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const popoverRef = useRef<HTMLDivElement>(null);
+  const [nextZIndex, setNextZIndex] = useState(100);
+  const popoverRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+
+  // For word study modal
+  const [activeWord, setActiveWord] = useState<string | null>(null);
   const [showWordStudyModal, setShowWordStudyModal] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -798,60 +816,94 @@ useEffect(() => {
       .finally(() => setEsvLoading(false));
   };
 
-  const requestHover = (surface: string) => {
-    setHoverLoading(true);
-
+  // Request word data for hover preview
+  const requestHoverData = (surface: string) => {
     const rawBook = bpRef.trim().split(/\s+/)[0];
     const bookName = rawBook.charAt(0).toUpperCase() + rawBook.slice(1).toLowerCase();
     setCurrentBookName(bookName);
 
+    // Create cache key combining word and book
+    const cacheKey = `${surface.toLowerCase()}-${bookName}`;
+
+    // Check cache first
+    const cached = wordCache.current.get(cacheKey);
+    if (cached) {
+      setHoverData(cached);
+      setHoverLoading(false);
+      return;
+    }
+
+    setHoverLoading(true);
     lexplainFetch(surface, bookName)
-      .then((d) => setHoverData(d))
+      .then((d) => {
+        // Store in cache
+        wordCache.current.set(cacheKey, d);
+        setHoverData(d);
+      })
       .finally(() => setHoverLoading(false));
   };
 
+  // Request word data for a specific pinned popover
+  const requestPinnedData = (id: string, surface: string) => {
+    const rawBook = bpRef.trim().split(/\s+/)[0];
+    const bookName = rawBook.charAt(0).toUpperCase() + rawBook.slice(1).toLowerCase();
+    setCurrentBookName(bookName);
+
+    // Create cache key combining word and book
+    const cacheKey = `${surface.toLowerCase()}-${bookName}`;
+
+    // Check cache first
+    const cached = wordCache.current.get(cacheKey);
+    if (cached) {
+      setPinnedPopovers(prev => prev.map(p =>
+        p.id === id ? { ...p, data: cached, loading: false } : p
+      ));
+      return;
+    }
+
+    lexplainFetch(surface, bookName).then((d) => {
+      // Store in cache
+      wordCache.current.set(cacheKey, d);
+      setPinnedPopovers(prev => prev.map(p =>
+        p.id === id ? { ...p, data: d, loading: false } : p
+      ));
+    });
+  };
+
+  const calculatePosition = (e: React.MouseEvent, width = 420, height = 300) => {
+    const margin = 16;
+    let x = e.clientX;
+    let y = e.clientY + 12;
+
+    if (x + width > window.innerWidth - margin) {
+      x = window.innerWidth - width - margin;
+    }
+    if (x < margin) x = margin;
+
+    if (y + height > window.innerHeight - margin) {
+      y = e.clientY - height - 12;
+    }
+    if (y < margin) y = margin;
+
+    return { x, y };
+  };
+
   const onWordEnter = (e: React.MouseEvent, w: string) => {
-    if (popoverPinned) return;
-    setActiveWord(w);
+    // Don't show hover preview if word is already pinned
+    if (pinnedPopovers.some(p => p.word === w)) return;
 
-    const calculatePosition = () => {
-      const popoverWidth = 360;
-      const popoverHeight = 220;
-      const margin = 16;
+    setHoverWord(w);
+    setHoverPos(calculatePosition(e, 360, 220));
 
-      let x = e.clientX;
-      let y = e.clientY + 12;
-
-      if (x + popoverWidth > window.innerWidth - margin) {
-        x = window.innerWidth - popoverWidth - margin;
-      }
-
-      if (x < margin) {
-        x = margin;
-      }
-
-      if (y + popoverHeight > window.innerHeight - margin) {
-        y = e.clientY - popoverHeight - 12;
-      }
-
-      if (y < margin) {
-        y = margin;
-      }
-
-      return { x, y };
-    };
-
-    setPopoverPos(calculatePosition());
     if (hoverTimer.current) clearTimeout(hoverTimer.current);
-    hoverTimer.current = setTimeout(() => requestHover(w), 50);
+    hoverTimer.current = setTimeout(() => requestHoverData(w), 50);
   };
 
   const onWordLeave = () => {
-    if (popoverPinned) return;
     if (hoverTimer.current) clearTimeout(hoverTimer.current);
-    setActiveWord(null);
+    setHoverWord(null);
     setHoverData(null);
-    setPopoverPos(null);
+    setHoverPos(null);
   };
 
   const onWordClick = (e: React.MouseEvent, w: string) => {
@@ -860,102 +912,102 @@ useEffect(() => {
     // On mobile, open modal directly
     if (isMobile) {
       setActiveWord(w);
-      requestHover(w);
-      // Wait for hover data to load, then open modal
-      setTimeout(() => {
-        setShowWordStudyModal(true);
-      }, 100);
+      requestHoverData(w);
+      setTimeout(() => setShowWordStudyModal(true), 100);
       return;
     }
 
-    // Desktop behavior: show/hide popover
-    if (popoverPinned && activeWord === w) {
-      setPopoverPinned(false);
-      onWordLeave();
+    // Check if word is already pinned - if so, close it
+    const existingIndex = pinnedPopovers.findIndex(p => p.word === w);
+    if (existingIndex !== -1) {
+      setPinnedPopovers(prev => prev.filter(p => p.word !== w));
+      return;
+    }
+
+    // Clear hover state
+    onWordLeave();
+
+    // Create new pinned popover
+    const newPopover: PinnedPopover = {
+      id: `${w}-${Date.now()}`,
+      word: w,
+      data: hoverData?.lemma ? hoverData : null, // Use hover data if available
+      position: calculatePosition(e),
+      loading: !hoverData?.lemma,
+      zIndex: nextZIndex,
+    };
+
+    setNextZIndex(prev => prev + 1);
+
+    // If already have 3, replace the oldest one
+    if (pinnedPopovers.length >= 3) {
+      setPinnedPopovers(prev => [...prev.slice(1), newPopover]);
     } else {
-      setPopoverPinned(true);
-      setActiveWord(w);
+      setPinnedPopovers(prev => [...prev, newPopover]);
+    }
 
-      const calculatePosition = () => {
-        const popoverWidth = 420; // Match actual popover width
-        const popoverHeight = 300;
-        const margin = 16;
-
-        let x = e.clientX;
-        let y = e.clientY + 12;
-
-        // Keep within viewport horizontally
-        if (x + popoverWidth > window.innerWidth - margin) {
-          x = window.innerWidth - popoverWidth - margin;
-        }
-        if (x < margin) {
-          x = margin;
-        }
-
-        // Keep within viewport vertically
-        if (y + popoverHeight > window.innerHeight - margin) {
-          y = e.clientY - popoverHeight - 12;
-        }
-        if (y < margin) {
-          y = margin;
-        }
-
-        return { x, y };
-      };
-
-      setPopoverPos(calculatePosition());
-      requestHover(w);
+    // Fetch data if not already loaded
+    if (!hoverData?.lemma) {
+      requestPinnedData(newPopover.id, w);
     }
   };
 
-  // Drag handlers for pinned popover
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!popoverPinned) return;
-    setIsDragging(true);
-    const popoverRect = popoverRef.current?.getBoundingClientRect();
-    if (popoverRect && popoverPos) {
+  // Close a specific pinned popover
+  const closePinnedPopover = (id: string) => {
+    setPinnedPopovers(prev => prev.filter(p => p.id !== id));
+  };
+
+  // Close all pinned popovers
+  const closeAllPopovers = () => {
+    setPinnedPopovers([]);
+  };
+
+  // Bring popover to front when clicked
+  const bringToFront = (id: string) => {
+    setPinnedPopovers(prev => prev.map(p =>
+      p.id === id ? { ...p, zIndex: nextZIndex } : p
+    ));
+    setNextZIndex(prev => prev + 1);
+  };
+
+  // Drag handlers for pinned popovers
+  const handleMouseDown = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    setDraggingId(id);
+    bringToFront(id);
+
+    const popover = pinnedPopovers.find(p => p.id === id);
+    if (popover) {
       setDragOffset({
-        x: e.clientX - popoverPos.x,
-        y: e.clientY - popoverPos.y,
+        x: e.clientX - popover.position.x,
+        y: e.clientY - popover.position.y,
       });
     }
   };
 
   const handleMouseMove = (e: MouseEvent) => {
-    if (!isDragging || !popoverPinned) return;
-    setPopoverPos({
-      x: e.clientX - dragOffset.x,
-      y: e.clientY - dragOffset.y,
-    });
+    if (!draggingId) return;
+    setPinnedPopovers(prev => prev.map(p =>
+      p.id === draggingId
+        ? { ...p, position: { x: e.clientX - dragOffset.x, y: e.clientY - dragOffset.y } }
+        : p
+    ));
   };
 
   const handleMouseUp = () => {
-    setIsDragging(false);
+    setDraggingId(null);
   };
 
-  const handleClickOutside = (e: MouseEvent) => {
-    if (popoverPinned && popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
-      setPopoverPinned(false);
-      setActiveWord(null);
-      setHoverData(null);
-      setPopoverPos(null);
-    }
-  };
-
-  // Search button handlers - open detailed modal
-  const handleSearchStrongs = () => {
-    if (!hoverData) return;
+  // Open detailed word study modal from pinned popover
+  const openWordStudyFromPinned = (popover: PinnedPopover) => {
+    setActiveWord(popover.word);
+    setHoverData(popover.data);
     setShowWordStudyModal(true);
   };
 
-  const handleLookupLemma = () => {
-    if (!hoverData) return;
-    setShowWordStudyModal(true);
-  };
-
-  // Add event listeners for drag and click outside
+  // Add event listeners for drag
   useEffect(() => {
-    if (isDragging) {
+    if (draggingId) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
       return () => {
@@ -964,17 +1016,18 @@ useEffect(() => {
       };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDragging]);
+  }, [draggingId, dragOffset]);
 
+  // Escape key closes all popovers
   useEffect(() => {
-    if (popoverPinned) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [popoverPinned]);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && pinnedPopovers.length > 0) {
+        closeAllPopovers();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [pinnedPopovers.length]);
 
   const bpFetch = async () => {
     const cleaned = bpRef.trim();
@@ -1753,56 +1806,101 @@ const handleKeywordResultSelect = (reference: string) => {
         </div>
       </section>
 
-{activeWord && popoverPos && !isMobile && (
+{/* Hover Preview Popover (temporary, not pinned) */}
+      {hoverWord && hoverPos && !isMobile && (
         <div
-          ref={popoverRef}
-          className="hover-popover pointer-events-none fixed z-50 w-[420px] max-w-[90vw] rounded-2xl shadow-2xl"
+          className="hover-popover pointer-events-none fixed w-[360px] max-w-[90vw] rounded-2xl shadow-2xl"
           style={{
-            left: popoverPos.x,
-            top: popoverPos.y,
-            cursor: popoverPinned ? (isDragging ? 'grabbing' : 'grab') : 'default',
+            left: hoverPos.x,
+            top: hoverPos.y,
+            zIndex: 50,
             backgroundColor: 'var(--card-bg)',
             border: '1px solid var(--card-border)',
           }}
         >
+          <div className="pointer-events-auto p-5">
+            <div className="flex items-start justify-between gap-3 mb-2">
+              <div className="flex-1">
+                <h3 className="text-xl font-serif mb-1" style={{ color: 'var(--text-primary)' }}>
+                  {hoverData?.lemma ?? hoverWord}
+                </h3>
+                <div className="text-xs font-semibold" style={{ color: 'var(--accent-color)' }}>
+                  {hoverData?.strongs ?? "Loading..."}
+                </div>
+              </div>
+              <span className="text-xs px-2 py-1 rounded" style={{ backgroundColor: 'var(--accent-color)', color: 'var(--bg-color)' }}>
+                Click to pin
+              </span>
+            </div>
+            <div className="text-sm leading-relaxed line-clamp-3" style={{ color: 'var(--text-secondary)' }}>
+              {hoverData?.plain ?? (hoverLoading ? "Loading..." : "—")}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Pinned Popovers (up to 3) */}
+      {pinnedPopovers.map((popover) => (
+        <div
+          key={popover.id}
+          ref={(el) => {
+            if (el) popoverRefs.current.set(popover.id, el);
+            else popoverRefs.current.delete(popover.id);
+          }}
+          className="fixed w-[420px] max-w-[90vw] rounded-2xl shadow-2xl"
+          style={{
+            left: popover.position.x,
+            top: popover.position.y,
+            zIndex: popover.zIndex,
+            cursor: draggingId === popover.id ? 'grabbing' : 'grab',
+            backgroundColor: 'var(--card-bg)',
+            border: '2px solid var(--accent-color)',
+          }}
+          onClick={() => bringToFront(popover.id)}
+        >
           <div
-            className="pointer-events-auto p-6"
-            onMouseDown={handleMouseDown}
+            className="p-6"
+            onMouseDown={(e) => handleMouseDown(e, popover.id)}
           >
-            {/* Header with Lemma */}
+            {/* Header with close button */}
             <div className="flex items-start justify-between gap-3 mb-3">
               <div className="flex-1">
-                {popoverPinned && (
-                  <div className="text-xs mb-1 flex items-center gap-1" style={{ color: 'var(--text-secondary)' }}>
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                    </svg>
-                    <span>Drag to move</span>
-                  </div>
-                )}
+                <div className="text-xs mb-1 flex items-center gap-1" style={{ color: 'var(--text-secondary)' }}>
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                  </svg>
+                  <span>Drag to move</span>
+                  <span className="mx-1">•</span>
+                  <span className="text-xs" style={{ color: 'var(--accent-color)' }}>
+                    {pinnedPopovers.length}/3 windows
+                  </span>
+                </div>
                 <h3 className="text-2xl font-serif mb-1" style={{ color: 'var(--text-primary)' }}>
-                  {hoverData?.lemma ?? activeWord}
+                  {popover.data?.lemma ?? popover.word}
                 </h3>
                 <div className="text-sm font-semibold" style={{ color: 'var(--accent-color)' }}>
-                  STRONG'S NUMBER: {hoverData?.strongs ?? "..."}
+                  STRONG'S: {popover.data?.strongs ?? "..."}
                 </div>
               </div>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  setPopoverPinned((p) => !p);
+                  closePinnedPopover(popover.id);
                 }}
-                className="rounded-lg px-2.5 py-1 text-xs font-medium transition-colors shrink-0"
+                className="rounded-lg p-1.5 text-xs font-medium transition-colors shrink-0 hover:bg-red-500/20"
                 style={{
                   backgroundColor: 'color-mix(in srgb, var(--text-primary) 10%, transparent)',
                   color: 'var(--text-secondary)',
                 }}
+                title="Close (or press Escape to close all)"
               >
-                {popoverPinned ? "📌 Pinned" : "📍 Pin"}
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
 
-            {/* Dictionary Definition Section */}
+            {/* Dictionary Definition */}
             <div className="mb-4">
               <h4
                 className="text-sm font-bold mb-3 pb-2"
@@ -1811,17 +1909,17 @@ const handleKeywordResultSelect = (reference: string) => {
                 Dictionary Definition
               </h4>
               <div className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                {hoverData?.plain ?? (hoverLoading ? "Loading definition..." : "—")}
+                {popover.data?.plain ?? (popover.loading ? "Loading definition..." : "—")}
               </div>
             </div>
 
             {/* Actions */}
-            {hoverData && (
+            {popover.data && (
               <div className="pt-4 flex gap-2" style={{ borderTop: '1px solid var(--card-border)' }}>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    const text = `${hoverData.lemma} (${hoverData.strongs}): ${hoverData.plain}`;
+                    const text = `${popover.data!.lemma} (${popover.data!.strongs}): ${popover.data!.plain}`;
                     navigator.clipboard.writeText(text);
                   }}
                   className="px-3 py-2.5 text-sm font-medium rounded-lg transition-colors"
@@ -1838,7 +1936,7 @@ const handleKeywordResultSelect = (reference: string) => {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleLookupLemma();
+                    openWordStudyFromPinned(popover);
                   }}
                   className="flex-1 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors"
                   style={{
@@ -1852,7 +1950,7 @@ const handleKeywordResultSelect = (reference: string) => {
             )}
           </div>
         </div>
-      )}
+      ))}
 
 <EnhancedOnboarding
   isOpen={showOnboarding}

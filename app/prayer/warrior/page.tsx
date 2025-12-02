@@ -6,7 +6,7 @@ import React from 'react';
 
 export default function PrayerWarriorPage() {
   return (
-    <div className="max-w-2xl mx-auto p-6 text-center">
+    <div className="max-w-2xl mx-auto p-6 md:pl-56 text-center">
       <h1 className="text-3xl font-bold text-yellow-400 mb-4">
         ⚔️ Become a Prayer Warrior
       </h1>

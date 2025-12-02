@@ -63,11 +63,14 @@ export default function CertificateButton({
 
   if (showNameInput) {
     return (
-      <div className="p-6 border-2 border-green-500 rounded-lg bg-green-500/10 backdrop-blur">
-        <h3 className="text-lg font-semibold text-green-400 mb-3">
+      <div
+        className="p-6 border-2 border-green-500 rounded-lg backdrop-blur"
+        style={{ backgroundColor: 'color-mix(in srgb, var(--card-bg) 90%, #22c55e 10%)' }}
+      >
+        <h3 className="text-lg font-semibold text-green-600 dark:text-green-400 mb-3">
           🎉 Congratulations on completing the course!
         </h3>
-        <p className="text-sm text-white/80 mb-4">
+        <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
           Enter your name to download your certificate:
         </p>
         <input
@@ -75,7 +78,7 @@ export default function CertificateButton({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Your full name"
-          className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg mb-3 text-white placeholder:text-white/40 focus:ring-2 focus:ring-green-400 focus:border-transparent focus:outline-none"
+          className="input w-full mb-3"
           onKeyPress={(e) => e.key === 'Enter' && handleDownload()}
         />
         <div className="flex gap-2">
@@ -88,7 +91,12 @@ export default function CertificateButton({
           </button>
           <button
             onClick={() => setShowNameInput(false)}
-            className="px-4 py-2 border border-white/20 rounded-lg hover:bg-white/10 text-white transition-colors"
+            className="px-4 py-2 rounded-lg transition-colors"
+            style={{
+              border: '1px solid var(--card-border)',
+              color: 'var(--text-primary)',
+              backgroundColor: 'transparent',
+            }}
           >
             Cancel
           </button>

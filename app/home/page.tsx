@@ -1140,10 +1140,6 @@ const handleKeywordResultSelect = (reference: string) => {
     <RequireAuth>
     <Paywall>
     <main className="px-6 pt-10 pb-8 max-w-4xl mx-auto relative">
-      {pastorNote && isOnboarded && (
-        <EncouragingBanner message={pastorNote} />
-      )}
-
       {insight && insight.priority < 100 && !passageOutline && !themeOutline && !combinedOutline && (
         <PastoralInsightBanner
           message={insight.message}
@@ -1980,13 +1976,25 @@ const handleKeywordResultSelect = (reference: string) => {
         {ESV_NOTICE}
       </p>
       
-      <div className="mt-4 text-center">
+      <div className="mt-4 text-center space-x-4">
         <button
           onClick={() => setShowSettings(true)}
           className="text-xs text-white/50 hover:text-yellow-400 underline transition-colors"
         >
           Manage Your Data & Privacy
         </button>
+        <Link
+          href="/privacy"
+          className="text-xs text-white/50 hover:text-yellow-400 underline transition-colors"
+        >
+          Privacy Policy
+        </Link>
+        <Link
+          href="/terms"
+          className="text-xs text-white/50 hover:text-yellow-400 underline transition-colors"
+        >
+          Terms of Service
+        </Link>
       </div>
 
       <footer className="mt-8 text-center text-xs text-white/40">

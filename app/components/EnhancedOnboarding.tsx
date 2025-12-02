@@ -67,6 +67,9 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
     email: "",
   });
 
+  // Terms agreement
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+
   // Check if user has onboarded before
   useEffect(() => {
     const hasOnboarded = localStorage.getItem('bc-study-style');
@@ -464,10 +467,31 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
                       />
                     )}
 
+                    {authMode === 'signup' && (
+                      <label className="flex items-start gap-3 text-left cursor-pointer group">
+                        <input
+                          type="checkbox"
+                          checked={agreedToTerms}
+                          onChange={(e) => setAgreedToTerms(e.target.checked)}
+                          className="mt-1 w-4 h-4 rounded border-white/30 bg-white/5 text-yellow-400 focus:ring-yellow-400 focus:ring-offset-0 cursor-pointer"
+                        />
+                        <span className="text-sm text-white/70 group-hover:text-white/90 transition-colors">
+                          I agree to the{' '}
+                          <a href="/terms" target="_blank" className="text-yellow-400 hover:text-yellow-300 underline">
+                            Terms of Service
+                          </a>{' '}
+                          and{' '}
+                          <a href="/privacy" target="_blank" className="text-yellow-400 hover:text-yellow-300 underline">
+                            Privacy Policy
+                          </a>
+                        </span>
+                      </label>
+                    )}
+
                     <button
                       type="submit"
-                      disabled={isSubmitting}
-                      className="w-full py-4 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold rounded-xl transition-colors disabled:opacity-50"
+                      disabled={isSubmitting || (authMode === 'signup' && !agreedToTerms)}
+                      className="w-full py-4 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isSubmitting
                         ? 'Please wait...'
@@ -498,7 +522,7 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
                           </div>
                           <p className="text-white/40 text-xs leading-relaxed">
                             After your 7-day trial, subscription auto-renews at $2.99/mo or $35.88/yr.
-                            Cancel anytime. By signing up, you agree to our Terms of Service.
+                            Cancel anytime.
                           </p>
                         </div>
                       </div>

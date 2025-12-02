@@ -25,7 +25,7 @@ type DeleteOption = "all" | "history" | "notes" | "journey" | null;
 export function SettingsModal({ isOpen, onClose, userName, currentStyle }: SettingsModalProps) {
   const { user } = useAuth();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"preferences" | "account" | "data">("preferences");
+  const [activeTab, setActiveTab] = useState<"account" | "data">("account");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteOption, setDeleteOption] = useState<DeleteOption>(null);
   const [confirmText, setConfirmText] = useState("");
@@ -209,16 +209,6 @@ export function SettingsModal({ isOpen, onClose, userName, currentStyle }: Setti
         {/* Tabs */}
         <div className="flex" style={{ borderBottom: '1px solid var(--card-border)' }}>
           <button
-            onClick={() => setActiveTab("preferences")}
-            className="flex-1 px-6 py-3 text-sm font-medium transition-colors"
-            style={{
-              color: activeTab === "preferences" ? 'var(--accent-color)' : 'var(--text-secondary)',
-              borderBottom: activeTab === "preferences" ? '2px solid var(--accent-color)' : 'none',
-            }}
-          >
-            Study Preferences
-          </button>
-          <button
             onClick={() => setActiveTab("account")}
             className="flex-1 px-6 py-3 text-sm font-medium transition-colors"
             style={{
@@ -226,7 +216,7 @@ export function SettingsModal({ isOpen, onClose, userName, currentStyle }: Setti
               borderBottom: activeTab === "account" ? '2px solid var(--accent-color)' : 'none',
             }}
           >
-            Account
+            Account & Study
           </button>
           <button
             onClick={() => setActiveTab("data")}
@@ -242,12 +232,44 @@ export function SettingsModal({ isOpen, onClose, userName, currentStyle }: Setti
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
-          {/* STUDY PREFERENCES TAB */}
-          {activeTab === "preferences" && (
+          {/* ACCOUNT & STUDY TAB */}
+          {activeTab === "account" && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold text-white mb-4">📖 Study Settings</h3>
+                <h3 className="text-lg font-semibold text-white mb-4">Your Profile</h3>
                 
+                <div className="space-y-4">
+                  {/* Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-white/80 mb-2">Name</label>
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Your name"
+                      className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-white/40 focus:border-yellow-400 focus:outline-none"
+                    />
+                  </div>
+
+                  {/* Email */}
+                  <div>
+                    <label className="block text-sm font-medium text-white/80 mb-2">Email (optional)</label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="your@email.com"
+                      className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-white/40 focus:border-yellow-400 focus:outline-none"
+                    />
+                  </div>
+
+                </div>
+              </div>
+
+              {/* Study Settings */}
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-4">📖 Study Settings</h3>
+
                 {/* Study Style */}
                 <div className="space-y-3 mb-6">
                   <label className="text-sm font-medium text-white/80">Study Style</label>
@@ -311,11 +333,8 @@ export function SettingsModal({ isOpen, onClose, userName, currentStyle }: Setti
                     <span>Daily</span>
                   </div>
                 </div>
-              </div>
 
-              {/* Feature Toggles */}
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-4">⚙️ Features</h3>
+                {/* Feature Toggles */}
                 <div className="space-y-3">
                   {[
                     { key: "devotional", label: "Daily Devotional", emoji: "🌅", value: showDevotional, setter: setShowDevotional },
@@ -347,69 +366,13 @@ export function SettingsModal({ isOpen, onClose, userName, currentStyle }: Setti
                     </button>
                   ))}
                 </div>
-              </div>
-
-              {/* Save Button */}
-              <button
-                onClick={handleSavePreferences}
-                className="w-full py-3 rounded-lg bg-yellow-400 text-slate-900 font-semibold hover:bg-yellow-300 transition-colors"
-              >
-                💾 Save Preferences
-              </button>
-            </div>
-          )}
-
-          {/* ACCOUNT TAB */}
-          {activeTab === "account" && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-4">Your Profile</h3>
-                
-                <div className="space-y-4">
-                  {/* Name */}
-                  <div>
-                    <label className="block text-sm font-medium text-white/80 mb-2">Name</label>
-                    <input
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Your name"
-                      className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-white/40 focus:border-yellow-400 focus:outline-none"
-                    />
-                  </div>
-
-                  {/* Email */}
-                  <div>
-                    <label className="block text-sm font-medium text-white/80 mb-2">Email (optional)</label>
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="your@email.com"
-                      className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-white/40 focus:border-yellow-400 focus:outline-none"
-                    />
-                  </div>
-
-                  {/* Current Style Display */}
-                  <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-                    <div className="text-sm text-white/60 mb-1">Current Study Style</div>
-                    <div className="text-lg text-white">{currentStyle}</div>
-                  </div>
-
-                  <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-                    <div className="text-sm text-white/60 mb-1">Data Storage</div>
-                    <div className="text-sm text-white/80">
-                      All your data is stored locally in your browser. Nothing is sent to our servers.
-                    </div>
-                  </div>
-                </div>
 
                 {/* Save Button */}
                 <button
                   onClick={handleSavePreferences}
                   className="w-full mt-6 py-3 rounded-lg bg-yellow-400 text-slate-900 font-semibold hover:bg-yellow-300 transition-colors"
                 >
-                  💾 Save Profile
+                  💾 Save Settings
                 </button>
               </div>
 

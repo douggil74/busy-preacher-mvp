@@ -1062,3 +1062,35 @@ html.light .input:focus {
 .animate-twinkle {
   animation: twinkle 2s ease-in-out infinite;
 }
+
+/* Fall leaf animation for Thanksgiving */
+@keyframes fall-leaf {
+  0% { transform: translateY(0) rotate(0deg); opacity: 0.7; }
+  25% { transform: translateY(30px) rotate(15deg); }
+  50% { transform: translateY(60px) rotate(-10deg); }
+  75% { transform: translateY(90px) rotate(20deg); }
+  100% { transform: translateY(150px) rotate(45deg); opacity: 0; }
+}
+.animate-fall-leaf {
+  animation: fall-leaf 6s ease-in-out infinite;
+}
+
+/* Floating hearts animation for Valentines */
+@keyframes float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-15px) scale(1.05); }
+}
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Shooting star animation */
+@keyframes shooting-star {
+  0% { transform: translateX(0) translateY(0); opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: translateX(150px) translateY(60px); opacity: 0; }
+}
+.animate-shooting-star {
+  animation: shooting-star 4s ease-out infinite;
+  animation-delay: 2s;
+}

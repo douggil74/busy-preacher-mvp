@@ -318,28 +318,20 @@ function HeaderBarContent() {
                   Deep Study
                 </Link>
                 <Link
-                  href="/reading-plans"
-                  className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
-                  style={{ color: 'var(--text-primary)' }}
-                  onClick={() => setOpen(false)}
-                >
-                  Reading Plan
-                </Link>
-                <Link
-                  href="/library"
-                  className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
-                  style={{ color: 'var(--text-primary)' }}
-                  onClick={() => setOpen(false)}
-                >
-                  My Library
-                </Link>
-                <Link
                   href="/courses"
                   className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
                   style={{ color: 'var(--text-primary)' }}
                   onClick={() => setOpen(false)}
                 >
                   Study Courses
+                </Link>
+                <Link
+                  href="/reading-plans"
+                  className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+                  style={{ color: 'var(--text-primary)' }}
+                  onClick={() => setOpen(false)}
+                >
+                  Reading Plan
                 </Link>
                 <Link
                   href="/prayer"
@@ -356,6 +348,14 @@ function HeaderBarContent() {
                   onClick={() => setOpen(false)}
                 >
                   Ask the Pastor
+                </Link>
+                <Link
+                  href="/library"
+                  className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+                  style={{ color: 'var(--text-primary)' }}
+                  onClick={() => setOpen(false)}
+                >
+                  My Library
                 </Link>
                 <div className="border-t my-1" style={{ borderColor: 'var(--card-border)' }} />
                 <Link
@@ -381,6 +381,14 @@ function HeaderBarContent() {
                   onClick={() => setOpen(false)}
                 >
                   Contact
+                </Link>
+                <Link
+                  href="/legal"
+                  className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+                  style={{ color: 'var(--text-primary)' }}
+                  onClick={() => setOpen(false)}
+                >
+                  Legal
                 </Link>
               </div>
             )}

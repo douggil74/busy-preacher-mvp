@@ -10,6 +10,7 @@ import PastoralContactModal from '@/components/PastoralContactModal';
 import { getPastorNote } from '@/lib/personalMessages';
 import MandatoryReportingModal from '@/components/MandatoryReportingModal';
 import PastoralInbox from '@/components/PastoralInbox';
+import CrisisDisclaimerModal from '@/components/CrisisDisclaimerModal';
 import { useAuth } from '@/contexts/AuthContext';
 import RequireAuth from '@/components/RequireAuth';
 import { Paywall } from '@/components/Paywall';
@@ -44,6 +45,8 @@ export default function PastoralGuidancePage() {
   const [isExporting, setIsExporting] = useState(false);
   const [isEmailing, setIsEmailing] = useState(false);
   const [pastorNote, setPastorNote] = useState<string>("");
+  const [showDisclaimerModal, setShowDisclaimerModal] = useState(false);
+  const [disclaimerAccepted, setDisclaimerAccepted] = useState(true); // Start true to avoid flash
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const modalShownForMessages = useRef<Set<string>>(new Set());
@@ -52,6 +55,48 @@ export default function PastoralGuidancePage() {
   useEffect(() => {
     setPastorNote(getPastorNote());
   }, []);
+
+  // Check if user has acknowledged crisis disclaimer
+  useEffect(() => {
+    const hasAccepted = localStorage.getItem('bc-pastoral-disclaimer-accepted');
+    if (hasAccepted === 'true') {
+      setDisclaimerAccepted(true);
+      setShowDisclaimerModal(false);
+    } else {
+      setDisclaimerAccepted(false);
+      setShowDisclaimerModal(true);
+    }
+  }, []);
+
+  // Handle accepting the disclaimer
+  const handleDisclaimerAccept = async () => {
+    // Save to localStorage
+    localStorage.setItem('bc-pastoral-disclaimer-accepted', 'true');
+    localStorage.setItem('bc-pastoral-disclaimer-date', new Date().toISOString());
+
+    // Save to Firebase if user is logged in
+    if (user?.uid) {
+      try {
+        const { doc, setDoc } = await import('firebase/firestore');
+        const { db } = await import('@/lib/firebase');
+
+        await setDoc(
+          doc(db, 'users', user.uid),
+          {
+            pastoralDisclaimerAccepted: true,
+            pastoralDisclaimerDate: new Date().toISOString(),
+          },
+          { merge: true }
+        );
+      } catch (error) {
+        console.error('Failed to save disclaimer acceptance to Firebase:', error);
+        // Non-critical - localStorage is sufficient
+      }
+    }
+
+    setDisclaimerAccepted(true);
+    setShowDisclaimerModal(false);
+  };
 
   // Export to PDF
   const handleExportPDF = () => {
@@ -483,6 +528,13 @@ export default function PastoralGuidancePage() {
   return (
     <RequireAuth>
     <Paywall>
+    {/* Crisis Disclaimer Modal - shown on first visit */}
+    <CrisisDisclaimerModal
+      isOpen={showDisclaimerModal}
+      onAccept={handleDisclaimerAccept}
+      userName={firstName}
+    />
+
     <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
       <style jsx>{`
         @keyframes typingDot {

@@ -4,7 +4,7 @@
 import Link from "next/link";
 
 import { APP_VERSION } from "@/lib/version";
-import { card, typography, cn } from '@/lib/ui-constants';
+import { card, button, typography, cn } from '@/lib/ui-constants';
 
 export default function HelpPage() {
   return (
@@ -21,399 +21,192 @@ export default function HelpPage() {
       </button>
 
       <h1 className="text-3xl font-bold text-center mb-3" style={{ color: 'var(--text-primary)' }}>
-        Help & Guide
+        Help Guide
       </h1>
       <p className="text-center mb-8" style={{ color: 'var(--text-secondary)' }}>
-        Everything you need to know to get the most out of The Busy Christian
+        Get the most out of The Busy Christian
       </p>
 
       <section className="space-y-6">
-        {/* Subscription & Billing */}
-        <div className="card bg-green-500/10 border-green-500/30">
-          <h2 className="text-xl font-semibold mb-4 text-white/90 light:text-black/90">💳 Subscription & Billing</h2>
+        {/* Quick Start */}
+        <div className={card.highlight}>
+          <h2 className={cn(typography.h2, 'mb-4')}>🚀 Quick Start</h2>
+          <div className="space-y-3 text-white/80 light:text-black/80">
+            <p>
+              <strong>The Busy Christian</strong> helps you study the Bible deeper, faster.
+              Here's how to get started:
+            </p>
+            <ol className="ml-4 space-y-2 text-sm">
+              <li><strong>1.</strong> Enter a Bible passage or topic on the home page</li>
+              <li><strong>2.</strong> Get an outline with key points, cross-references, and applications</li>
+              <li><strong>3.</strong> Click any verse to dig deeper with translations and commentary</li>
+              <li><strong>4.</strong> Save your favorites to the library for later</li>
+            </ol>
+          </div>
+        </div>
+
+        {/* Main Features */}
+        <div className={card.default}>
+          <h2 className={cn(typography.h2, 'mb-4')}>📖 Study Tools</h2>
           <div className="space-y-4 text-white/80 light:text-black/80">
-            <div>
-              <h3 className="font-semibold text-white light:text-black mb-2">Pricing</h3>
-              <ul className="ml-4 space-y-1 text-sm text-white/70 light:text-black/70">
-                <li>• <strong>7-day free trial</strong> for all new users</li>
-                <li>• <strong>Annual:</strong> $35.88/year ($2.99/mo) - Best Value!</li>
-                <li>• <strong>Monthly:</strong> $3.99/month</li>
-                <li>• <strong>iOS App:</strong> Same pricing through App Store</li>
-              </ul>
+            <div className="flex items-start gap-3">
+              <span className="text-yellow-400 text-lg">📝</span>
+              <div>
+                <h3 className="font-semibold text-white/90 light:text-black/90">Outline Generator</h3>
+                <p className="text-sm text-white/70 light:text-black/70">
+                  Enter a passage, topic, or both. Get sermon-ready outlines with illustrations and practical applications.
+                </p>
+              </div>
             </div>
-
-            <div>
-              <h3 className="font-semibold text-white light:text-black mb-2">Promo Codes</h3>
-              <ul className="ml-4 space-y-1 text-sm text-white/70 light:text-black/70">
-                <li>• Enter promo codes on the <strong>paywall screen</strong> before subscribing</li>
-                <li>• Or go to <strong>Account</strong> page to redeem codes</li>
-                <li>• Some codes grant lifetime access, others extend trials</li>
-              </ul>
+            <div className="flex items-start gap-3">
+              <span className="text-yellow-400 text-lg">🔍</span>
+              <div>
+                <h3 className="font-semibold text-white/90 light:text-black/90">Deep Study</h3>
+                <p className="text-sm text-white/70 light:text-black/70">
+                  Compare 5 translations, read commentaries, and explore word meanings with Greek/Hebrew insights.
+                </p>
+              </div>
             </div>
-
-            <div>
-              <h3 className="font-semibold text-white light:text-black mb-2">Managing Your Subscription</h3>
-              <ul className="ml-4 space-y-1 text-sm text-white/70 light:text-black/70">
-                <li>• <strong>Web users:</strong> Go to Account page to view status or cancel</li>
-                <li>• <strong>iOS users:</strong> Manage in Settings → Apple ID → Subscriptions</li>
-                <li>• Cancellations take effect at end of billing period</li>
-              </ul>
+            <div className="flex items-start gap-3">
+              <span className="text-yellow-400 text-lg">💬</span>
+              <div>
+                <h3 className="font-semibold text-white/90 light:text-black/90">Ask the Pastor</h3>
+                <p className="text-sm text-white/70 light:text-black/70">
+                  Get biblically-grounded answers to your spiritual questions, available 24/7.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="text-yellow-400 text-lg">🙏</span>
+              <div>
+                <h3 className="font-semibold text-white/90 light:text-black/90">Prayer Center</h3>
+                <p className="text-sm text-white/70 light:text-black/70">
+                  Share prayer requests and pray for others. Get notified when someone prays for you.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="text-yellow-400 text-lg">📚</span>
+              <div>
+                <h3 className="font-semibold text-white/90 light:text-black/90">Library & Notes</h3>
+                <p className="text-sm text-white/70 light:text-black/70">
+                  Save studies, add personal notes, and export everything as PDF when you need it.
+                </p>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className={card.default}>
-          <h2 className={cn(typography.h2, 'mb-3')}>Getting Started</h2>
-          <p className="text-white/80 light:text-black/80 mb-4">
-            <strong>The Busy Christian</strong> helps preachers, teachers, and devoted students 
-            prepare outlines and explore Scripture faster — while encouraging faithful, Spirit-led study 
-            and pastoral care for your community.
-          </p>
-        </div>
-
+        {/* Personalization */}
         <div className="card">
           <h2 className="text-xl font-semibold mb-4 text-white/90 light:text-black/90">🎨 Personalize Your Experience</h2>
           <p className="text-white/80 light:text-black/80 mb-3">
-            Choose your preferred study style from the menu → <strong>Personalize</strong>:
+            Choose your study style in Settings:
           </p>
           <ul className="space-y-2 text-white/70 light:text-black/70 ml-4">
-            <li><strong className="text-yellow-400">☕ Casual Devotional:</strong> Warm, conversational, practical</li>
-            <li><strong className="text-yellow-400">📖 Bible Student:</strong> Balanced depth with accessibility</li>
+            <li><strong className="text-yellow-400">☕ Casual:</strong> Warm and conversational</li>
+            <li><strong className="text-yellow-400">📖 Bible Student:</strong> Balanced depth</li>
             <li><strong className="text-yellow-400">👨‍🏫 Pastor/Teacher:</strong> Sermon-ready with illustrations</li>
           </ul>
           <p className="text-sm text-white/60 light:text-black/60 mt-3">
-            💡 Your AI-generated outlines will match your selected style!
+            Your AI-generated outlines will adapt to match your style.
           </p>
         </div>
 
-        <div className="card">
-          <h2 className="text-xl font-semibold mb-4 text-white/90 light:text-black/90">📖 Main Study Tools</h2>
-          <div className="space-y-4 text-white/80 light:text-black/80">
-            <div>
-              <h3 className="font-semibold text-white light:text-black mb-2">Outline Generator (Home Page)</h3>
-              <ul className="ml-4 mt-1 space-y-1 text-sm text-white/70 light:text-black/70">
-                <li>• Enter a <strong>Passage</strong> for passage-based outlines</li>
-                <li>• Enter a <strong>Topic</strong> for thematic studies</li>
-                <li>• Fill both for a combined study connecting text to theme</li>
-                <li>• Get sermon-ready points, illustrations, cross-refs, and applications</li>
-              </ul>
+        {/* Subscription & Billing */}
+        <div className="card bg-green-500/10 border-green-500/30">
+          <h2 className="text-xl font-semibold mb-4 text-white/90 light:text-black/90">💳 Subscription</h2>
+          <div className="space-y-3 text-white/80 light:text-black/80">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 bg-white/5 rounded-lg">
+                <div className="font-bold text-yellow-400">$2.99/mo</div>
+                <div className="text-xs text-white/60 light:text-black/60">Annual ($35.88/yr)</div>
+              </div>
+              <div className="p-3 bg-white/5 rounded-lg">
+                <div className="font-bold text-white/90 light:text-black/90">$3.99/mo</div>
+                <div className="text-xs text-white/60 light:text-black/60">Monthly</div>
+              </div>
             </div>
-
-            <div>
-              <h3 className="font-semibold text-white light:text-black mb-2">ESV Text Lookup</h3>
-              <ul className="ml-4 mt-1 space-y-1 text-sm text-white/70 light:text-black/70">
-                <li>• Hover any word for Greek/Hebrew insights with Strong's numbers</li>
-                <li>• Click to pin the lexical note</li>
-                <li>• Click "Study Deeper" to access commentary and translations</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-white light:text-black mb-2">Deep Study Page</h3>
-              <ul className="ml-4 mt-1 space-y-1 text-sm text-white/70 light:text-black/70">
-                <li>• Compare 5 translations (KJV, ASV, WEB, ESV, NIV)</li>
-                <li>• Read AI-powered commentary (adapts to your style!)</li>
-                <li>• Access traditional commentary (Adam Clarke, Matthew Henry)</li>
-                <li>• Save commentaries to your notes with one click</li>
-                <li>• Links to external study tools (BibleHub, Blue Letter Bible, StudyLight)</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <div className={card.warning}>
-          <h2 className={cn(typography.h2, 'mb-4')}>💬 Ask the Pastor</h2>
-          <p className="text-white/80 light:text-black/80 mb-3">
-            Get AI-powered biblical counsel and spiritual guidance:
-          </p>
-          <div className="space-y-3 text-white/70 light:text-black/70">
-            <div>
-              <h3 className="font-semibold text-white/90 mb-1">How It Works</h3>
-              <ul className="ml-4 space-y-1 text-sm">
-                <li>• Ask any spiritual question or describe a situation you're facing</li>
-                <li>• Get biblically-grounded answers with relevant Scripture references</li>
-                <li>• Conversation history maintained for context</li>
-                <li>• Available 24/7 for spiritual guidance and encouragement</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-white/90 mb-1">What Makes It Special</h3>
-              <ul className="ml-4 space-y-1 text-sm">
-                <li>• Powered by Anthropic Claude AI (Sonnet 4.5)</li>
-                <li>• Rooted in biblical wisdom and sound doctrine</li>
-                <li>• Thoughtful, compassionate responses to life's challenges</li>
-                <li>• Always points you back to Scripture</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-white/90 mb-1">Safety Features</h3>
-              <ul className="ml-4 space-y-1 text-sm">
-                <li>• <strong>Crisis Resources:</strong> Crisis keywords trigger 988 Lifeline information</li>
-                <li>• <strong>Biblical Foundation:</strong> All guidance is grounded in Scripture</li>
-                <li>• <strong>Not a Substitute:</strong> AI guidance should not replace pastoral counseling or professional care</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <div className={card.info}>
-          <h2 className={cn(typography.h2, 'mb-4')}>🙏 Prayer Center</h2>
-          <p className="text-white/80 light:text-black/80 mb-3">
-            Connect with your community through prayer requests and real-time notifications:
-          </p>
-          <div className="space-y-3 text-white/70 light:text-black/70">
-            <div>
-              <h3 className="font-semibold text-white/90 mb-1">Creating Prayer Requests</h3>
-              <ul className="ml-4 space-y-1 text-sm">
-                <li>• Choose between <strong>Private</strong> (saved locally) or <strong>Community</strong> (shared with others)</li>
-                <li>• Select a category (Health, Family, Work, Spiritual, Other)</li>
-                <li>• Post anonymously if you prefer privacy</li>
-                <li>• Community prayers require Google sign-in</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-white/90 mb-1">Praying for Others</h3>
-              <ul className="ml-4 space-y-1 text-sm">
-                <li>• Click the ❤️ "Pray" button on any community prayer</li>
-                <li>• The person who posted gets a <strong>push notification</strong> with sound</li>
-                <li>• Track how many people have prayed for each request</li>
-                <li>• Earn prayer warrior badges as you pray faithfully</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-white/90 mb-1">Push Notifications</h3>
-              <ul className="ml-4 space-y-1 text-sm">
-                <li>• Get notified when someone prays for YOUR request</li>
-                <li>• Hear a gentle notification sound</li>
-                <li>• Works even when the app is closed (if enabled)</li>
-                <li>• Manage notification preferences in your browser settings</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-white/90 mb-1">Safety Features</h3>
-              <ul className="ml-4 space-y-1 text-sm">
-                <li>• <strong>Crisis Detection:</strong> Prayers with concerning keywords automatically show 988 Suicide Prevention Lifeline</li>
-                <li>• <strong>Content Filtering:</strong> Inappropriate content is automatically flagged</li>
-                <li>• <strong>Report Button:</strong> Flag prayers that need attention</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <div className="card">
-          <h2 className="text-xl font-semibold mb-4 text-white/90 light:text-black/90">📚 Courses & Learning</h2>
-          <div className="space-y-2 text-white/80 light:text-black/80">
-            <p>
-              <strong>Spiritual Foundations Course:</strong> A 16-lesson interactive course perfect for
-              new believers or discipleship classes.
-            </p>
-            <ul className="ml-4 space-y-1 text-sm text-white/70 light:text-black/70">
-              <li>• Track your progress through all 16 lessons</li>
-              <li>• Interactive learning with scripture references</li>
-              <li>• Download a PDF certificate upon completion</li>
-              <li>• Based on material from Cornerstone Church, Mandeville, LA</li>
+            <ul className="text-sm text-white/70 light:text-black/70 space-y-1">
+              <li>• 7-day free trial for new users</li>
+              <li>• Have a promo code? Enter it on the paywall or Account page</li>
+              <li>• Manage your subscription anytime from Account</li>
             </ul>
           </div>
         </div>
 
+        {/* Tips */}
         <div className="card">
-          <h2 className="text-xl font-semibold mb-4 text-white/90 light:text-black/90">📝 Notes & Library</h2>
-          <div className="space-y-2 text-white/80 light:text-black/80">
-            <p>
-              <strong>Add Notes:</strong> Click "Add Notes" on any study to save personal insights. 
-              Notes are automatically tied to the Bible reference.
-            </p>
-            <p>
-              <strong>Save Studies:</strong> Click "Save to Library" to bookmark passages for later.
-            </p>
-            <p>
-              <strong>Library Page:</strong> Access all your saved studies and notes. You can:
-            </p>
-            <ul className="ml-4 space-y-1 text-sm text-white/70 light:text-black/70">
-              <li>• View and search all your notes</li>
-              <li>• Click any note to expand/collapse the full text</li>
-              <li>• Copy individual notes</li>
-              <li>• Export all notes as a professional PDF</li>
-              <li>• Print all notes</li>
-              <li>• Reopen saved studies</li>
-            </ul>
-            <p className="text-sm text-white/60 light:text-black/60 mt-3">
-              💾 Everything is stored locally on your device - complete privacy!
-            </p>
-          </div>
-        </div>
-
-        <div className="card">
-          <h2 className="text-xl font-semibold mb-4 text-white/90 light:text-black/90">📄 Export Features</h2>
-          <ul className="space-y-2 text-white/80 light:text-black/80">
-            <li>
-              <strong className="text-white/90 light:text-black/90">Export Outline PDF:</strong> Clean, formatted PDF with 
-              all your study points, references, and application notes. Perfect for printing or 
-              sharing with your teaching team.
+          <h2 className="text-xl font-semibold mb-4 text-white/90 light:text-black/90">💡 Tips & Tricks</h2>
+          <ul className="space-y-2 text-white/70 light:text-black/70 text-sm">
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400">•</span>
+              <span>Hover over words in the ESV text for Greek/Hebrew insights</span>
             </li>
-            <li>
-              <strong className="text-white/90 light:text-black/90">Export Notes PDF:</strong> All your personal notes 
-              in a professional document, organized by reference with dates.
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400">•</span>
+              <span>Click cross-references in outlines to jump straight to that passage</span>
             </li>
-            <li>
-              <strong className="text-white/90 light:text-black/90">Course Certificates:</strong> Download PDF certificates 
-              when you complete the Spiritual Foundations course.
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400">•</span>
+              <span>Use the A-/A+ buttons to adjust text size</span>
             </li>
-            <li>
-              <strong className="text-white/90 light:text-black/90">Copy Functions:</strong> Quickly copy outlines, 
-              commentaries, or individual notes to paste into your sermon prep software.
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400">•</span>
+              <span>Enable notifications to know when someone prays for you</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-400">•</span>
+              <span>Export your outline as PDF for sermon prep or sharing</span>
             </li>
           </ul>
         </div>
 
-        <div className="card">
-          <h2 className="text-xl font-semibold mb-4 text-white/90 light:text-black/90">💡 Pro Tips</h2>
-          <ul className="space-y-2 text-white/70 light:text-black/70">
-            <li className="flex items-start gap-2">
-              <span className="text-yellow-400">•</span>
-              <span>Toggle Light/Dark mode anytime - your preference is saved</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-yellow-400">•</span>
-              <span>Adjust font size with A- and A+ buttons in the header</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-yellow-400">•</span>
-              <span>Enable push notifications to stay connected with your prayer community (works on web and iOS)</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-yellow-400">•</span>
-              <span>Click cross-references in outlines to instantly load them in the ESV reader</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-yellow-400">•</span>
-              <span>Use the "Show Recent Studies" button on the home page for quick access</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-yellow-400">•</span>
-              <span>Save AI commentaries directly from Deep Study - great for research!</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-yellow-400">•</span>
-              <span>Search your notes in the Library to find specific topics quickly</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-yellow-400">•</span>
-              <span>Pray for others regularly to earn prayer warrior badges</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-yellow-400">•</span>
-              <span>Use Ask the Pastor to get biblical counsel and spiritual guidance on real-life situations</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-yellow-400">•</span>
-              <span><strong>iOS Users:</strong> Download the native iOS app from the App Store for offline access and better performance</span>
-            </li>
-          </ul>
-        </div>
-
+        {/* Crisis Resources */}
         <div className="card bg-red-500/10 border-red-500/30">
-          <h2 className="text-xl font-semibold mb-3 text-white/90 light:text-black/90">🛡️ Safety & Crisis Resources</h2>
+          <h2 className="text-xl font-semibold mb-3 text-white/90 light:text-black/90">🛡️ Crisis Resources</h2>
           <p className="text-white/80 light:text-black/80 mb-3">
-            If you or someone you know is in crisis:
+            If you or someone you know needs immediate help:
           </p>
           <div className="bg-red-500/20 border border-red-500/40 rounded-lg p-4 mb-3">
             <p className="text-white font-semibold mb-1">988 Suicide & Crisis Lifeline</p>
             <p className="text-white/90 text-lg font-bold mb-1">Call or Text: 988</p>
-            <p className="text-sm text-white/70">Available 24/7 for free, confidential support</p>
+            <p className="text-sm text-white/70">Free, confidential support 24/7</p>
           </div>
           <p className="text-sm text-white/70 light:text-black/70">
-            Our prayer system automatically provides these resources when crisis keywords are detected. 
-            You are not alone, and help is always available.
+            You're not alone. Help is always available.
           </p>
         </div>
 
+        {/* Important Note */}
         <div className="card bg-yellow-400/10 border-yellow-400/30">
-          <h2 className="text-xl font-semibold mb-3 text-white/90 light:text-black/90">⚠️ Important Disclaimer</h2>
-          <p className="text-white/80 light:text-black/80 italic">
+          <h2 className="text-xl font-semibold mb-3 text-white/90 light:text-black/90">📌 A Note About AI</h2>
+          <p className="text-white/80 light:text-black/80 italic mb-2">
             "This app is not meant to replace diligent study and listening to the Holy Spirit."
           </p>
-          <p className="text-sm text-white/70 light:text-black/70 mt-2">
-            AI-generated content is a helpful starting point, but should always be verified against 
-            Scripture and refined through prayer and the guidance of the Holy Spirit. The Prayer Center 
-            is not a substitute for professional counseling or medical care.
+          <p className="text-sm text-white/70 light:text-black/70">
+            AI is a helpful starting point, but always verify against Scripture and seek guidance
+            through prayer. For serious concerns, please consult your pastor or a professional counselor.
           </p>
         </div>
 
-        <div className="card">
-          <h2 className="text-xl font-semibold mb-3 text-white/90 light:text-black/90">⚙️ Technical Information</h2>
-          <p className="text-white/80 light:text-black/80 mb-3">
-            Built with modern web technologies for reliability and performance:
+        {/* Contact */}
+        <div className={cn(card.default, 'text-center')}>
+          <h2 className={cn(typography.h3, 'mb-2')}>Need More Help?</h2>
+          <p className={cn(typography.small, 'text-white/70 mb-4')}>
+            We'd love to hear from you — questions, feedback, or just to say hi.
           </p>
-          <ul className="grid md:grid-cols-2 gap-2 text-sm text-white/70 light:text-black/70">
-            <li>• Next.js 15 + TypeScript</li>
-            <li>• Firebase Cloud Functions</li>
-            <li>• Real-time Firestore Database</li>
-            <li>• Firebase Cloud Messaging</li>
-            <li>• Anthropic Claude AI (Sonnet 4.5)</li>
-            <li>• OpenAI Embeddings API</li>
-            <li>• Supabase + pgvector</li>
-            <li>• ESV Bible API</li>
-            <li>• Capacitor (iOS Native)</li>
-            <li>• OneDrive API Integration</li>
-          </ul>
-          <p className="text-sm text-white/60 light:text-black/60 mt-3">
-            All running on modern, secure infrastructure with 99.9% uptime. Available as a web app and native iOS app.
-          </p>
-        </div>
-
-        <div className="card bg-green-500/10 border-green-500/30">
-          <h2 className="text-xl font-semibold mb-3 text-white/90 light:text-black/90">📱 iOS App Features</h2>
-          <p className="text-white/80 light:text-black/80 mb-3">
-            The native iOS app offers enhanced functionality:
-          </p>
-          <ul className="space-y-2 text-sm text-white/70 light:text-black/70">
-            <li className="flex items-start gap-2">
-              <span className="text-yellow-400">•</span>
-              <span><strong>Native Performance:</strong> Faster load times and smoother interactions</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-yellow-400">•</span>
-              <span><strong>Offline Support:</strong> Access saved content without internet connection</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-yellow-400">•</span>
-              <span><strong>Push Notifications:</strong> Receive prayer notifications even when app is closed</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-yellow-400">•</span>
-              <span><strong>Native Storage:</strong> Secure local storage using iOS Keychain</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-yellow-400">•</span>
-              <span><strong>Share Integration:</strong> Native iOS share sheet for sharing content</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-yellow-400">•</span>
-              <span><strong>Optimized for iPad:</strong> Works beautifully on both iPhone and iPad</span>
-            </li>
-          </ul>
-        </div>
-
-        <div className="card">
-          <h2 className="text-xl font-semibold mb-3 text-white/90 light:text-black/90">Need More Help?</h2>
-          <p className="text-white/80 light:text-black/80">
-            Have questions or feedback?{" "}
-            <Link href="/contact" className="text-yellow-400 hover:text-yellow-300 underline underline-offset-4">
-              Contact us
-            </Link>{" "}
-            — we'd love to hear from you!
-          </p>
+          <Link
+            href="/contact"
+            className={button.primary}
+          >
+            Contact Us
+          </Link>
         </div>
       </section>
 
       <footer className="mt-12 text-center text-xs text-white/40">
-        © {new Date().getFullYear()} Cornerstone Church, Mandeville, LA — The Busy Christian • v{APP_VERSION}
+        © {new Date().getFullYear()} Cornerstone Church, Mandeville, LA — The Busy Christian v{APP_VERSION}
       </footer>
     </main>
   );

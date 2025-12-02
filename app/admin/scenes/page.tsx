@@ -120,6 +120,7 @@ export default function AdminScenesPage() {
         sceneId,
         expiresAt,
         customPrompt: null,
+        customSvg: null,
       },
     });
   };

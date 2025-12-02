@@ -88,52 +88,112 @@ export default function WeatherHeader({ onSceneReady }: { onSceneReady?: (scene:
         return;
       }
 
-      try {
-        const geoRes = await fetch('https://ipapi.co/json/');
-        const geoData = await geoRes.json();
+      // Helper to fetch weather and determine scene
+      const fetchWeatherAndSetScene = async (lat: number, lon: number) => {
+        const weatherRes = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=weather_code,is_day`
+        );
+        const weatherData = await weatherRes.json();
 
-        if (geoData.latitude && geoData.longitude) {
-          const weatherRes = await fetch(
-            `https://api.open-meteo.com/v1/forecast?latitude=${geoData.latitude}&longitude=${geoData.longitude}&current=weather_code,is_day`
+        const code = weatherData.current?.weather_code || 0;
+        const isDay = weatherData.current?.is_day === 1;
+
+        let type: SceneType = 'partly-cloudy';
+
+        if (!isDay) {
+          // Nighttime weather detection
+          if (code >= 95) type = 'stormy';
+          else if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) type = 'rainy';
+          else if (code >= 71 && code <= 77) type = 'snowy';
+          else if (code <= 3) type = 'night-clear';
+          else type = 'night-cloudy';
+        } else if (code === 0) {
+          type = 'sunny';
+        } else if (code <= 3) {
+          type = 'partly-cloudy';
+        } else if (code >= 45 && code <= 48) {
+          type = 'foggy';
+        } else if (code <= 48) {
+          type = 'cloudy';
+        } else if (code <= 67 || (code >= 80 && code <= 82)) {
+          type = 'rainy';
+        } else if (code >= 95 && code <= 99) {
+          type = 'stormy';
+        } else if (code >= 71 && code <= 77) {
+          type = 'snowy';
+        }
+
+        if (settings?.disabledScenes?.includes(type)) {
+          type = 'partly-cloudy';
+        }
+
+        console.log('Weather:', { lat, lon, code, isDay, type });
+        setScene(type);
+        onSceneReady?.(type);
+      };
+
+      // Try browser geolocation first (more accurate, no rate limits)
+      const tryBrowserGeolocation = (): Promise<{lat: number, lon: number} | null> => {
+        return new Promise((resolve) => {
+          if (!navigator.geolocation) {
+            resolve(null);
+            return;
+          }
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              resolve({ lat: position.coords.latitude, lon: position.coords.longitude });
+            },
+            () => {
+              resolve(null);
+            },
+            { timeout: 5000, maximumAge: 300000 } // 5s timeout, cache for 5 min
           );
-          const weatherData = await weatherRes.json();
+        });
+      };
 
-          const code = weatherData.current?.weather_code || 0;
-          const isDay = weatherData.current?.is_day === 1;
-
-          let type: SceneType = 'partly-cloudy';
-
-          if (!isDay) {
-            // Nighttime weather detection
-            if (code >= 95) type = 'stormy';
-            else if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) type = 'rainy';
-            else if (code >= 71 && code <= 77) type = 'snowy';
-            else if (code <= 3) type = 'night-clear';
-            else type = 'night-cloudy';
-          } else if (code === 0) {
-            type = 'sunny';
-          } else if (code <= 3) {
-            type = 'partly-cloudy';
-          } else if (code >= 45 && code <= 48) {
-            type = 'foggy';
-          } else if (code <= 48) {
-            type = 'cloudy';
-          } else if (code <= 67 || (code >= 80 && code <= 82)) {
-            type = 'rainy';
-          } else if (code >= 95 && code <= 99) {
-            type = 'stormy';
-          } else if (code >= 71 && code <= 77) {
-            type = 'snowy';
+      // Try IP-based geolocation as fallback
+      const tryIPGeolocation = async (): Promise<{lat: number, lon: number} | null> => {
+        try {
+          // Try ipapi.co first
+          const res = await fetch('https://ipapi.co/json/');
+          const data = await res.json();
+          if (data.latitude && data.longitude) {
+            return { lat: data.latitude, lon: data.longitude };
           }
+        } catch (e) {
+          console.log('ipapi.co failed, trying backup');
+        }
 
-          if (settings?.disabledScenes?.includes(type)) {
-            type = 'partly-cloudy';
+        try {
+          // Backup: ip-api.com (no API key needed, 45 requests/min)
+          const res = await fetch('http://ip-api.com/json/?fields=lat,lon');
+          const data = await res.json();
+          if (data.lat && data.lon) {
+            return { lat: data.lat, lon: data.lon };
           }
+        } catch (e) {
+          console.log('ip-api.com also failed');
+        }
 
-          setScene(type);
-          onSceneReady?.(type);
+        return null;
+      };
+
+      try {
+        // Try browser geolocation first
+        let coords = await tryBrowserGeolocation();
+
+        // Fall back to IP geolocation
+        if (!coords) {
+          coords = await tryIPGeolocation();
+        }
+
+        if (coords) {
+          await fetchWeatherAndSetScene(coords.lat, coords.lon);
+        } else {
+          throw new Error('No geolocation available');
         }
       } catch (err) {
+        console.log('Weather detection failed:', err);
         const hour = new Date().getHours();
         const fallback = hour < 6 || hour >= 20 ? 'night-clear' : 'partly-cloudy';
         setScene(fallback);

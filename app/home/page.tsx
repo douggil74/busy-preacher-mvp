@@ -1147,11 +1147,10 @@ const handleKeywordResultSelect = (reference: string) => {
 
       {isOnboarded && !passageRef && !theme && !passageOutline && !themeOutline && !combinedOutline && (
         <section
-          className="rounded-2xl mb-8 relative overflow-hidden transition-opacity duration-500"
+          className="rounded-2xl mb-8 relative overflow-hidden"
           style={{
             border: '1px solid var(--card-border)',
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
-            opacity: sceneReady ? 1 : 0
           }}
         >
           {/* Weather-aware animated art - visible at top */}

@@ -34,6 +34,8 @@ const ADMIN_EMAILS = [
 // ========================================
 const PREMIUM_EMAILS = [
   'cory.gilford@gmail.com',
+  // Apple App Store Review demo account
+  'thebusychristianapp@gmail.com',
 ];
 
 // Cache for Firestore whitelist checks (5 min TTL)

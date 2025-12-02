@@ -1688,7 +1688,7 @@ const handleKeywordResultSelect = (reference: string) => {
           </div>
 
           <div className="flex items-center gap-2">
-            <button onClick={bpFetch} disabled={esvLoading} className="btn">
+            <button onClick={bpFetch} disabled={esvLoading} className="btn-primary">
               {esvLoading ? "Loading…" : "Get ESV"}
             </button>
             {bpText && (

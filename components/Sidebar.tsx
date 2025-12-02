@@ -12,7 +12,6 @@ import {
   Library,
   GraduationCap,
   Calendar,
-  Settings,
   User,
   HelpCircle,
   Info,
@@ -40,10 +39,10 @@ const mainNavItems: NavItem[] = [
   { id: 'home', icon: Home, label: 'Home', href: '/home', color: '#facc15' },
   { id: 'guidance', icon: MessageCircle, label: 'Ask the Pastor', href: '/pastoral-guidance', color: '#facc15' },
   { id: 'prayer', icon: Heart, label: 'Prayer Center', href: '/prayer', color: '#ef4444' },
-  { id: 'library', icon: Library, label: 'My Library', href: '/library', color: '#60a5fa' },
-  { id: 'courses', icon: GraduationCap, label: 'Study Courses', href: '/courses', color: '#22c55e' },
   { id: 'deep-study', icon: Languages, label: 'Deep Study', href: '/deep-study', color: '#a78bfa' },
+  { id: 'courses', icon: GraduationCap, label: 'Study Courses', href: '/courses', color: '#22c55e' },
   { id: 'reading', icon: Calendar, label: 'Reading Plans', href: '/reading-plans', color: '#f472b6' },
+  { id: 'library', icon: Library, label: 'My Library', href: '/library', color: '#60a5fa' },
 ];
 
 const menuItems: NavItem[] = [
@@ -265,20 +264,6 @@ export default function Sidebar() {
                   </Link>
                 )
               ))}
-
-              {/* Settings */}
-              <button
-                onClick={() => {
-                  window.dispatchEvent(new CustomEvent('openSettings'));
-                  setMenuOpen(false);
-                }}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all hover:bg-white/10"
-              >
-                <Settings className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
-                <span className="text-sm" style={{ color: 'var(--text-primary)' }}>
-                  Settings
-                </span>
-              </button>
 
               {/* Sign Out */}
               {isAuthenticated && (

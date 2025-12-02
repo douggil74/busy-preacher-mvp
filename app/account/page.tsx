@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { usePlatform } from '@/hooks/usePlatform';
 import { getUserSubscription, Subscription } from '@/lib/subscription';
 import { APP_VERSION } from '@/lib/version';
-import { Camera, User, Mail, Calendar, CreditCard, FileText, HelpCircle, Shield, LogOut, ChevronRight, Clock, CheckCircle, XCircle, AlertCircle, RotateCcw } from 'lucide-react';
+import { Camera, User, Mail, Calendar, CreditCard, FileText, HelpCircle, Shield, LogOut, ChevronRight, Clock, CheckCircle, XCircle, AlertCircle, RotateCcw, Settings } from 'lucide-react';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -325,6 +325,24 @@ export default function AccountPage() {
               </div>
             </div>
           </div>
+        </section>
+
+        {/* Preferences Button */}
+        <section className="mb-6">
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent('openSettings'))}
+            className="w-full rounded-xl p-4 flex items-center justify-between transition-colors hover:opacity-80"
+            style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
+          >
+            <div className="flex items-center gap-3">
+              <Settings className="w-5 h-5" style={{ color: 'var(--accent-color)' }} />
+              <div className="text-left">
+                <span className="text-sm font-medium block" style={{ color: 'var(--text-primary)' }}>Preferences</span>
+                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>Study style, notifications, data & privacy</span>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5" style={{ color: 'var(--text-secondary)' }} />
+          </button>
         </section>
 
         {/* Subscription Status Card */}

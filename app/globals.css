@@ -73,8 +73,9 @@ body,
   height: 100%; 
 }
 
-html { 
-  font-size: calc(1rem * var(--bc-font-scale, 1)); 
+html {
+  font-size: calc(1rem * var(--bc-font-scale, 1));
+  scroll-behavior: smooth;
 }
 
 body {
@@ -83,7 +84,25 @@ body {
   color: var(--text-primary);
   font-family: var(--font-family);
   font-size: var(--font-size);
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  /* iOS momentum scrolling */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Smooth scrolling for all scrollable containers */
+*,
+*::before,
+*::after {
+  scroll-behavior: smooth;
+}
+
+/* Better scroll performance */
+.overflow-y-auto,
+.overflow-y-scroll,
+.overflow-auto,
+[style*="overflow"] {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 /* Better text wrapping */

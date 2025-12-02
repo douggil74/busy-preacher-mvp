@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { Playfair_Display, Nunito_Sans } from "next/font/google";
 import { useAuth } from "@/contexts/AuthContext";
 import { ConfirmationResult } from "firebase/auth";
+import { isFromIOSApp } from "@/lib/platform-detector";
 
 const playfair = Playfair_Display({
   weight: ["600", "700"],
@@ -55,6 +56,13 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
   const [verificationCode, setVerificationCode] = useState('');
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   const [phoneStep, setPhoneStep] = useState<'enter' | 'verify'>('enter');
+
+  // Platform detection
+  const [isIOS, setIsIOS] = useState(false);
+
+  useEffect(() => {
+    setIsIOS(isFromIOSApp());
+  }, []);
 
   const [data, setData] = useState<OnboardingData>({
     name: "",
@@ -505,23 +513,40 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
                           No credit card required to start your free trial.
                         </p>
                         <div className="pt-3 border-t border-white/10 space-y-2">
-                          <div className="flex items-center justify-center gap-2 text-white/50 text-xs">
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                            </svg>
-                            Secure payment via Square after trial
-                          </div>
-                          <div className="flex items-center justify-center gap-3 text-white/40 text-xs">
-                            <span>Credit/Debit</span>
-                            <span>•</span>
-                            <span>Apple Pay</span>
-                            <span>•</span>
-                            <span>Google Pay</span>
-                          </div>
-                          <p className="text-white/40 text-xs leading-relaxed">
-                            After your 7-day trial, subscription auto-renews at $2.99/mo or $35.88/yr.
-                            Cancel anytime.
-                          </p>
+                          {isIOS ? (
+                            <>
+                              <div className="flex items-center justify-center gap-2 text-white/50 text-xs">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                </svg>
+                                Subscription via App Store
+                              </div>
+                              <p className="text-white/40 text-xs leading-relaxed">
+                                After your 7-day trial, subscription auto-renews at $2.99/mo or $35.88/yr.
+                                Cancel anytime in Settings.
+                              </p>
+                            </>
+                          ) : (
+                            <>
+                              <div className="flex items-center justify-center gap-2 text-white/50 text-xs">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                </svg>
+                                Secure payment via Square after trial
+                              </div>
+                              <div className="flex items-center justify-center gap-3 text-white/40 text-xs">
+                                <span>Credit/Debit</span>
+                                <span>•</span>
+                                <span>Apple Pay</span>
+                                <span>•</span>
+                                <span>Google Pay</span>
+                              </div>
+                              <p className="text-white/40 text-xs leading-relaxed">
+                                After your 7-day trial, subscription auto-renews at $2.99/mo or $35.88/yr.
+                                Cancel anytime.
+                              </p>
+                            </>
+                          )}
                         </div>
                       </div>
                     )}

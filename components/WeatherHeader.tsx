@@ -104,7 +104,10 @@ export default function WeatherHeader({ onSceneReady }: { onSceneReady?: (scene:
           let type: SceneType = 'partly-cloudy';
 
           if (!isDay) {
+            // Nighttime weather detection
             if (code >= 95) type = 'stormy';
+            else if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) type = 'rainy';
+            else if (code >= 71 && code <= 77) type = 'snowy';
             else if (code <= 3) type = 'night-clear';
             else type = 'night-cloudy';
           } else if (code === 0) {

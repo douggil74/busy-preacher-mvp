@@ -1159,10 +1159,10 @@ const handleKeywordResultSelect = (reference: string) => {
             style={{ backgroundColor: 'var(--card-bg)' }}
           >
             <div className="relative text-center mb-6 pt-2" style={{ zIndex: 5 }}>
-            <h2 className={`${nunitoSans.className} text-2xl md:text-3xl font-bold mb-2`} style={{ color: 'var(--text-primary)' }}>
+            <h2 className={`${nunitoSans.className} text-3xl md:text-4xl font-bold mb-2`} style={{ color: 'var(--text-primary)' }}>
               {greetingPrefix}, {userName}{greetingPrefix === "Late night" ? "?" : "."}
             </h2>
-            <p className="text-base" style={{ color: 'var(--text-secondary)' }}>
+            <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
               {weatherGreeting || personalGreeting}
             </p>
           </div>

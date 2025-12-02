@@ -36,8 +36,15 @@ function getHoliday(): SceneType | null {
   return null;
 }
 
+// Get instant default scene based on time of day (no async, no delay)
+function getInstantDefaultScene(): SceneType {
+  const hour = new Date().getHours();
+  return hour < 6 || hour >= 20 ? 'night-clear' : 'partly-cloudy';
+}
+
 export default function WeatherHeader({ onSceneReady }: { onSceneReady?: (scene: SceneType | 'custom') => void } = {}) {
-  const [scene, setScene] = useState<SceneType | 'custom' | null>(null);
+  // Start with instant default scene - no blank loading state
+  const [scene, setScene] = useState<SceneType | 'custom'>(getInstantDefaultScene());
   const [customSvg, setCustomSvg] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -211,8 +218,8 @@ export default function WeatherHeader({ onSceneReady }: { onSceneReady?: (scene:
     determineScene();
   }, [onSceneReady]);
 
-  if (!mounted || isLoading || !scene) {
-    // Show subtle loading state - just the background
+  // Don't render on server to avoid hydration mismatch
+  if (!mounted) {
     return (
       <div
         className="absolute inset-0 overflow-hidden pointer-events-none rounded-t-2xl"
@@ -220,6 +227,8 @@ export default function WeatherHeader({ onSceneReady }: { onSceneReady?: (scene:
       />
     );
   }
+
+  // Always render scene immediately - no waiting for weather data
 
   // Determine if it's a night scene for temperature styling
   const isNightScene = scene === 'night-clear' || scene === 'night-cloudy' || scene === 'christmas' || scene === 'new-years';

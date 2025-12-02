@@ -92,10 +92,10 @@ export const card = {
   // Base card class (always use this)
   base: 'rounded-xl p-6 backdrop-blur border',
 
-  // Variants
-  default: 'rounded-xl p-6 backdrop-blur border border-white/10 bg-white/5',
+  // Variants - theme-aware with light mode support
+  default: 'rounded-xl p-6 backdrop-blur border border-white/10 light:border-black/10 bg-white/5 light:bg-black/5',
 
-  highlight: 'rounded-xl p-6 backdrop-blur border-2 border-yellow-400/30 bg-gradient-to-br from-yellow-400/5 to-transparent',
+  highlight: 'rounded-xl p-6 backdrop-blur border-2 border-yellow-400/30 light:border-amber-500/30 bg-gradient-to-br from-yellow-400/5 to-transparent light:from-amber-500/5',
 
   success: 'rounded-xl p-6 backdrop-blur border border-green-500/30 bg-green-500/5',
 
@@ -126,14 +126,14 @@ export const card = {
 // BUTTON VARIANTS
 // ========================================
 export const button = {
-  // Primary - Main call-to-action
-  primary: 'px-6 py-3 bg-yellow-400 text-slate-900 rounded-lg font-semibold hover:bg-yellow-300 active:scale-95 transition-all shadow-lg shadow-yellow-400/20 disabled:opacity-50 disabled:cursor-not-allowed',
+  // Primary - Main call-to-action (works in both modes)
+  primary: 'px-6 py-3 bg-yellow-400 light:bg-amber-500 text-slate-900 rounded-lg font-semibold hover:bg-yellow-300 light:hover:bg-amber-400 active:scale-95 transition-all shadow-lg shadow-yellow-400/20 light:shadow-amber-500/20 disabled:opacity-50 disabled:cursor-not-allowed',
 
   // Secondary - Supporting actions
-  secondary: 'px-6 py-3 bg-white/10 border border-white/20 text-white rounded-lg font-medium hover:bg-white/15 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed',
+  secondary: 'px-6 py-3 bg-white/10 light:bg-black/10 border border-white/20 light:border-black/20 text-white light:text-black rounded-lg font-medium hover:bg-white/15 light:hover:bg-black/15 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed',
 
   // Tertiary - Low emphasis
-  tertiary: 'px-4 py-2 text-yellow-400 hover:text-yellow-300 underline underline-offset-4 transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
+  tertiary: 'px-4 py-2 text-yellow-400 light:text-amber-600 hover:text-yellow-300 light:hover:text-amber-500 underline underline-offset-4 transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
 
   // Danger - Destructive actions
   danger: 'px-6 py-3 bg-red-500/10 border border-red-500/30 text-red-500 rounded-lg font-medium hover:bg-red-500/20 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed',
@@ -142,7 +142,7 @@ export const button = {
   success: 'px-6 py-3 bg-green-500/10 border border-green-500/30 text-green-500 rounded-lg font-medium hover:bg-green-500/20 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed',
 
   // Ghost - Minimal style
-  ghost: 'px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
+  ghost: 'px-4 py-2 text-white/80 light:text-black/80 hover:text-white light:hover:text-black hover:bg-white/5 light:hover:bg-black/5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
 
   // Sizes
   size: {
@@ -156,22 +156,22 @@ export const button = {
 // INPUT FIELD VARIANTS
 // ========================================
 export const input = {
-  // Base input styles - uses white text for dark theme app
-  base: 'w-full px-4 py-3 rounded-lg bg-white/5 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed',
+  // Base input styles - theme-aware with light mode support
+  base: 'w-full px-4 py-3 rounded-lg bg-white/5 light:bg-black/5 border border-white/20 light:border-black/20 text-white light:text-black placeholder-white/40 light:placeholder-black/40 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 light:focus:ring-amber-500/50 focus:border-yellow-400 light:focus:border-amber-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed',
 
   // With icon (add pl-10 for left icon, pr-10 for right icon)
-  withLeftIcon: 'w-full pl-10 pr-4 py-3 rounded-lg bg-white/5 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all duration-200',
+  withLeftIcon: 'w-full pl-10 pr-4 py-3 rounded-lg bg-white/5 light:bg-black/5 border border-white/20 light:border-black/20 text-white light:text-black placeholder-white/40 light:placeholder-black/40 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 light:focus:ring-amber-500/50 focus:border-yellow-400 light:focus:border-amber-500 transition-all duration-200',
 
-  withRightIcon: 'w-full pl-4 pr-10 py-3 rounded-lg bg-white/5 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all duration-200',
+  withRightIcon: 'w-full pl-4 pr-10 py-3 rounded-lg bg-white/5 light:bg-black/5 border border-white/20 light:border-black/20 text-white light:text-black placeholder-white/40 light:placeholder-black/40 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 light:focus:ring-amber-500/50 focus:border-yellow-400 light:focus:border-amber-500 transition-all duration-200',
 
   // Error state
-  error: 'w-full px-4 py-3 rounded-lg bg-red-500/5 border border-red-500/50 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-red-400/50 focus:border-red-400 transition-all duration-200',
+  error: 'w-full px-4 py-3 rounded-lg bg-red-500/5 border border-red-500/50 text-white light:text-black placeholder-white/40 light:placeholder-black/40 focus:outline-none focus:ring-2 focus:ring-red-400/50 focus:border-red-400 transition-all duration-200',
 
   // Success state
-  success: 'w-full px-4 py-3 rounded-lg bg-green-500/5 border border-green-500/50 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-green-400/50 focus:border-green-400 transition-all duration-200',
+  success: 'w-full px-4 py-3 rounded-lg bg-green-500/5 border border-green-500/50 text-white light:text-black placeholder-white/40 light:placeholder-black/40 focus:outline-none focus:ring-2 focus:ring-green-400/50 focus:border-green-400 transition-all duration-200',
 
   // Textarea
-  textarea: 'w-full px-4 py-3 rounded-lg bg-white/5 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all duration-200 min-h-[120px] resize-y',
+  textarea: 'w-full px-4 py-3 rounded-lg bg-white/5 light:bg-black/5 border border-white/20 light:border-black/20 text-white light:text-black placeholder-white/40 light:placeholder-black/40 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 light:focus:ring-amber-500/50 focus:border-yellow-400 light:focus:border-amber-500 transition-all duration-200 min-h-[120px] resize-y',
 } as const;
 
 // ========================================

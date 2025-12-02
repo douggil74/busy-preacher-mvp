@@ -46,6 +46,12 @@ service cloud.firestore {
       allow write: if true; // Admin dashboard is password-protected at app level
     }
 
+    // Scene settings (weather/holiday overrides) - admin protected at app level
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if true; // Admin dashboard is password-protected at app level
+    }
+
     // Moderation logs - authenticated users only
     match /moderation_logs/{logId} {
       allow read: if request.auth != null;

@@ -965,29 +965,29 @@ html.light .input:focus {
   animation: float-slower 8s ease-in-out infinite;
 }
 
-/* Cloud drifting */
+/* Cloud drifting - very slow, barely perceptible */
 @keyframes drift {
   0% { transform: translateX(0); }
-  100% { transform: translateX(30px); }
+  100% { transform: translateX(15px); }
 }
 .animate-drift {
-  animation: drift 20s ease-in-out infinite alternate;
+  animation: drift 90s linear infinite alternate;
 }
 
 @keyframes drift-slow {
   0% { transform: translateX(0); }
-  100% { transform: translateX(20px); }
+  100% { transform: translateX(12px); }
 }
 .animate-drift-slow {
-  animation: drift-slow 25s ease-in-out infinite alternate;
+  animation: drift-slow 120s linear infinite alternate;
 }
 
 @keyframes drift-slower {
   0% { transform: translateX(0); }
-  100% { transform: translateX(15px); }
+  100% { transform: translateX(10px); }
 }
 .animate-drift-slower {
-  animation: drift-slower 30s ease-in-out infinite alternate;
+  animation: drift-slower 150s linear infinite alternate;
 }
 
 /* Rain falling - very gentle, realistic pace */
@@ -1023,21 +1023,41 @@ html.light .input:focus {
   animation: rain-fast 5s linear infinite;
 }
 
-/* Snow falling */
+/* Snow falling - slow straight drift */
 @keyframes snow {
   0% {
-    transform: translateY(-10px) translateX(0) rotate(0deg);
+    transform: translateY(-15px);
     opacity: 0;
   }
-  10% { opacity: 0.6; }
-  90% { opacity: 0.6; }
+  10% { opacity: 0.7; }
+  90% { opacity: 0.7; }
   100% {
-    transform: translateY(250px) translateX(20px) rotate(360deg);
+    transform: translateY(220px);
     opacity: 0;
   }
 }
 .animate-snow {
-  animation: snow 4s linear infinite;
+  animation: snow 8s linear infinite;
+}
+
+/* Snowflake floating - gentle drift with slight sway */
+@keyframes snow-float {
+  0% {
+    transform: translateY(-20px) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% { opacity: 0.8; }
+  25% { transform: translateY(40px) translateX(8px) rotate(15deg); }
+  50% { transform: translateY(100px) translateX(-5px) rotate(-10deg); }
+  75% { transform: translateY(160px) translateX(10px) rotate(20deg); }
+  90% { opacity: 0.8; }
+  100% {
+    transform: translateY(220px) translateX(3px) rotate(30deg);
+    opacity: 0;
+  }
+}
+.animate-snow-float {
+  animation: snow-float 12s ease-in-out infinite;
 }
 
 /* Lightning flash */
@@ -1052,15 +1072,21 @@ html.light .input:focus {
   animation: flash 4s ease-in-out infinite;
 }
 
-/* Star twinkling - continuous sparkle effect */
+/* Star twinkling - pure brightness fluctuation, no movement */
 @keyframes twinkle {
-  0%, 100% { opacity: 0.6; transform: scale(1); }
-  25% { opacity: 1; transform: scale(1.15); }
-  50% { opacity: 0.7; transform: scale(1.05); }
-  75% { opacity: 0.9; transform: scale(1.1); }
+  0%, 100% { opacity: 0.5; }
+  10% { opacity: 0.7; }
+  20% { opacity: 1; }
+  30% { opacity: 0.8; }
+  40% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+  60% { opacity: 0.9; }
+  70% { opacity: 0.4; }
+  80% { opacity: 0.7; }
+  90% { opacity: 0.5; }
 }
 .animate-twinkle {
-  animation: twinkle 2s ease-in-out infinite;
+  animation: twinkle 3s linear infinite;
 }
 
 /* Fall leaf animation for Thanksgiving */
@@ -1084,13 +1110,3 @@ html.light .input:focus {
   animation: float 3s ease-in-out infinite;
 }
 
-/* Shooting star animation */
-@keyframes shooting-star {
-  0% { transform: translateX(0) translateY(0); opacity: 1; }
-  70% { opacity: 1; }
-  100% { transform: translateX(150px) translateY(60px); opacity: 0; }
-}
-.animate-shooting-star {
-  animation: shooting-star 4s ease-out infinite;
-  animation-delay: 2s;
-}

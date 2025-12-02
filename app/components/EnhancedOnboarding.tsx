@@ -99,7 +99,7 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
 
   if (!isOpen) return null;
 
-  const totalSteps = 6;
+  const totalSteps = 5;
 
   const updateData = (updates: Partial<OnboardingData>) => {
     setData({ ...data, ...updates });
@@ -285,8 +285,6 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
       case 4:
         return true;
       case 5:
-        return true;
-      case 6:
         return true;
       default:
         return false;
@@ -751,75 +749,8 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
             </div>
           )}
 
-          {/* Step 5: Feature Preferences */}
+          {/* Step 5: Confirmation */}
           {step === 5 && (
-            <div className="space-y-6">
-              <div className="text-center mb-6">
-                <div className="text-5xl mb-4">⚙️</div>
-                <h2 className={`${playfair.className} text-2xl font-bold text-yellow-400 mb-3`}>
-                  Customize Your Experience
-                </h2>
-                <p className="text-white/70">
-                  Enable the features that work best for you
-                </p>
-              </div>
-
-              <div className="space-y-4">
-                {[
-                  {
-                    key: "enableDevotional" as const,
-                    emoji: "🌅",
-                    title: "Daily Devotional",
-                    description: "Start each day with a fresh devotional",
-                  },
-                  {
-                    key: "enableReadingPlan" as const,
-                    emoji: "📖",
-                    title: "Reading Plan Widget",
-                    description: "Track your progress through Bible reading plans",
-                  },
-                  {
-                    key: "enableReminders" as const,
-                    emoji: "🔔",
-                    title: "Study Reminders",
-                    description: "Gentle encouragement when you haven't studied",
-                  },
-                ].map((feature) => (
-                  <button
-                    key={feature.key}
-                    onClick={() => updateData({ [feature.key]: !data[feature.key] })}
-                    className={`w-full text-left rounded-xl border-2 p-5 transition-all ${
-                      data[feature.key]
-                        ? "border-yellow-400 bg-yellow-400/10"
-                        : "border-white/10 bg-white/5 hover:bg-white/10"
-                    }`}
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className="text-3xl">{feature.emoji}</div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-lg mb-1">{feature.title}</h3>
-                        <p className="text-white/70 text-sm">{feature.description}</p>
-                      </div>
-                      <div
-                        className={`w-12 h-6 rounded-full transition-all relative ${
-                          data[feature.key] ? "bg-yellow-400" : "bg-white/20"
-                        }`}
-                      >
-                        <div
-                          className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${
-                            data[feature.key] ? "left-7" : "left-1"
-                          }`}
-                        />
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Step 6: Confirmation */}
-          {step === 6 && (
             <div className="space-y-6 text-center">
               <div className="text-5xl mb-4">🎉</div>
               <h2 className={`${playfair.className} text-2xl font-bold text-yellow-400 mb-3`}>

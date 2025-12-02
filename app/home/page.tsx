@@ -15,7 +15,6 @@ import { useStudyStyle } from "@/hooks/useStudyStyle";
 import { useStudyJourney } from "@/hooks/useStudyJourney";
 import { EnhancedOnboarding } from "@/components/EnhancedOnboarding";
 import { StyleSelectorModal } from "@/components/StyleSelectorModal";
-import { PastoralInsightBanner } from "@/components/PastoralInsightBanner";
 import { CheckInModal } from "@/components/CheckInModal";
 import { JourneyDashboard } from "@/components/JourneyDashboard";
 import { SettingsModal } from "@/components/SettingsModal";
@@ -27,7 +26,7 @@ import { EncouragingBanner } from "@/components/EncouragingBanner";
 import { safeStorage } from "@/utils/safeStorage";
 import { KeywordSearchResults } from "@/components/KeywordSearchResults";
 import WordStudyModal from "@/components/WordStudyModal";
-import { getTimeBasedGreeting, getLoadingMessage, getPastorNote } from "@/lib/personalMessages";
+import { getTimeBasedGreeting, getTimeGreetingPrefix, getWeatherAwareGreeting, getLoadingMessage, getPastorNote } from "@/lib/personalMessages";
 import RequireAuth from '@/components/RequireAuth';
 import { Paywall } from '@/components/Paywall';
 import { TrialWelcomeModal } from '@/components/TrialWelcomeModal';
@@ -365,6 +364,9 @@ const [searchedKeyword, setSearchedKeyword] = useState("");
   const [showDevotionalModal, setShowDevotionalModal] = useState(false);
   const [showReadingPlan, setShowReadingPlan] = useState(true);
   const [personalGreeting, setPersonalGreeting] = useState("");
+  const [greetingPrefix, setGreetingPrefix] = useState("");
+  const [weatherGreeting, setWeatherGreeting] = useState<string | null>(null);
+  const [sceneReady, setSceneReady] = useState(false);
   const [pastorNote, setPastorNote] = useState("");
   const hoverTimer = useRef<NodeJS.Timeout | null>(null);
   const statusWords = ["Fetching…", "Researching…", "Synthesizing…", "Formatting…", "Ready"];
@@ -390,6 +392,7 @@ const [searchedKeyword, setSearchedKeyword] = useState("");
 
   // Generate dynamic personal messages
   useEffect(() => {
+    setGreetingPrefix(getTimeGreetingPrefix());
     setPersonalGreeting(getTimeBasedGreeting());
     setPastorNote(getPastorNote());
   }, []);
@@ -1140,42 +1143,49 @@ const handleKeywordResultSelect = (reference: string) => {
     <RequireAuth>
     <Paywall>
     <main className="px-6 pt-10 pb-8 max-w-4xl mx-auto relative">
-      {insight && insight.priority < 100 && !passageOutline && !themeOutline && !combinedOutline && (
-        <PastoralInsightBanner
-          message={insight.message}
-          emoji={insight.emoji}
-          type={insight.type}
-          onDismiss={dismissInsight}
-        />
-      )}
 
 
       {isOnboarded && !passageRef && !theme && !passageOutline && !themeOutline && !combinedOutline && (
         <section
-          className="rounded-2xl mb-8 relative overflow-hidden"
+          className="rounded-2xl mb-8 relative overflow-hidden transition-opacity duration-500"
           style={{
             border: '1px solid var(--card-border)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)'
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+            opacity: sceneReady ? 1 : 0
           }}
         >
           {/* Weather-aware animated art - visible at top */}
           <div className="relative h-40 md:h-48 overflow-hidden rounded-t-2xl">
-            <WeatherHeader />
+            <WeatherHeader onSceneReady={(scene) => {
+              setSceneReady(true);
+              const weatherMsg = getWeatherAwareGreeting(scene);
+              if (weatherMsg) setWeatherGreeting(weatherMsg);
+            }} />
+            {/* Gradient fade to blend into content below */}
+            <div
+              className="absolute bottom-0 left-0 right-0 h-16 pointer-events-none"
+              style={{
+                background: 'linear-gradient(to bottom, transparent 0%, var(--card-bg) 100%)'
+              }}
+            />
           </div>
 
-          {/* Content area with padding - overlaps weather slightly */}
+          {/* Content area with padding */}
           <div
-            className="px-6 pb-4 -mt-8 relative rounded-b-2xl"
+            className="px-6 pb-4 relative rounded-b-2xl"
             style={{ backgroundColor: 'var(--card-bg)' }}
           >
-            <div className="relative text-center mb-4 pt-2" style={{ zIndex: 5 }}>
-            <h2 className={`${nunitoSans.className} text-xl md:text-2xl font-bold`} style={{ color: 'var(--text-primary)' }}>
-              {userName}, {personalGreeting}
+            <div className="relative text-center mb-6 pt-2" style={{ zIndex: 5 }}>
+            <h2 className={`${nunitoSans.className} text-xl md:text-2xl font-bold mb-2`} style={{ color: 'var(--text-primary)' }}>
+              {greetingPrefix}, {userName}.
             </h2>
+            <p className="text-base" style={{ color: 'var(--text-secondary)' }}>
+              {weatherGreeting || personalGreeting}
+            </p>
           </div>
 
           {/* Daily Verse Card */}
-          <div className="mb-6 relative" style={{ zIndex: 5 }}>
+          <div className="mb-6 mt-8 relative" style={{ zIndex: 5 }}>
             <DailyVerseCard
               onStudyVerse={(reference) => {
                 setPassageRef(reference);

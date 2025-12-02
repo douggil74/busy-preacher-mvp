@@ -1,71 +1,181 @@
 // Personal messages to make the app feel alive and conversational
-// Like Doug is right there with you
+// Warm, empathetic, friendly - like a good friend who cares
 
 export function getTimeBasedGreeting(): string {
   const hour = new Date().getHours();
 
   if (hour < 6) {
     const greetings = [
-      "Up early seeking the Lord? I love it!",
-      "Early morning with God is the best time.",
-      "You're up early! Let's spend some time in the Word.",
-      "Can't sleep? God's got something to tell you."
+      "We all need moments of quiet before the world wakes up. This is yours.",
+      "There's something special about these early hours. God meets us here.",
+      "The stillness of early morning is a gift. Let's not waste it.",
+      "Rest can be hard to find. Maybe peace is what you're really looking for.",
+      "Before the chaos begins, there's space to breathe. Take it.",
+      "Early risers often carry heavy hearts. God knows yours.",
+      "The best conversations happen when the world is still sleeping.",
+      "This quiet moment matters more than you might think.",
+      "Some of the deepest growth happens in the dark hours before dawn."
     ];
     return greetings[Math.floor(Math.random() * greetings.length)];
   } else if (hour < 12) {
     const greetings = [
-      "Good morning! Let's start this day right.",
-      "Morning! Ready to dig into God's Word?",
-      "Hey there! Great morning to grow in faith.",
-      "Good morning! What's God teaching you today?",
-      "Morning! Let's make today count for the Kingdom."
+      "A new day, a fresh start. We all need those.",
+      "Mornings remind us that God's mercies are new every day.",
+      "Whatever today holds, you don't have to face it alone.",
+      "Starting the day grounded makes everything else easier.",
+      "There's grace for today. That's all we need to know.",
+      "Every morning is proof that God gives second chances.",
+      "The weight of yesterday doesn't have to follow you into today.",
+      "You woke up. That alone is a gift worth acknowledging.",
+      "Today has possibilities you haven't even imagined yet.",
+      "Morning light has a way of making things clearer."
     ];
     return greetings[Math.floor(Math.random() * greetings.length)];
   } else if (hour < 17) {
     const greetings = [
-      "Good afternoon! Taking a break to refuel?",
-      "Hey! Perfect time for some spiritual refreshment.",
-      "Good afternoon! God has something good for you today.",
-      "Good afternoon! Need some encouragement today?",
-      "Hey there! Glad you're here."
+      "The middle of the day can feel heavy. God's strength is real.",
+      "Taking time to pause matters. You're doing something important right now.",
+      "We all need a moment to catch our breath. This is yours.",
+      "Life gets busy, but God never stops being present.",
+      "A few minutes with God can change the whole rest of your day.",
+      "Sometimes the best thing we can do is just stop for a moment.",
+      "Afternoons can feel like the hardest stretch. You're not imagining it.",
+      "Right in the middle of everything, God is still working.",
+      "This pause you're taking? It's not weakness. It's wisdom.",
+      "You don't have to power through alone. Help is here."
     ];
     return greetings[Math.floor(Math.random() * greetings.length)];
   } else if (hour < 22) {
     const greetings = [
-      "Good evening! Ending your day with God?",
-      "Evening! Let's wind down with some truth.",
-      "Hey! Perfect time to reflect on God's goodness.",
-      "Evening! Let's close the day well together.",
-      "Good evening! So glad you're here right now.",
-      "Evening! God's been waiting to spend time with you.",
-      "Hey friend! Perfect moment to pause and reflect.",
-      "Good evening! Let's end this day strong together.",
-      "Evening! You made it through another day. Well done.",
-      "Hey! What a blessing to close the day in God's Word.",
-      "Good evening! This is sacred time between you and God.",
-      "Evening! He's been with you all day. Let's acknowledge that.",
-      "Hey there! Before the day ends, let's meet with Jesus.",
-      "Good evening! The best way to close any day is with Him.",
-      "Evening! Take a breath. You're exactly where you need to be.",
-      "Hey! God sees how hard you worked today. Rest in Him now.",
-      "Good evening! Nothing better than ending the day in His presence.",
-      "Evening! Let the peace of God settle over you right now."
+      "God's peace is what we all need. This app will help you find it.",
+      "The day's almost done. Let's end it with something meaningful.",
+      "Evening is a beautiful time to reflect on what matters most.",
+      "You made it through today. That's worth acknowledging.",
+      "There's rest waiting for you in God's presence tonight.",
+      "Sometimes we just need to be still. This is that moment.",
+      "The noise of the day fades here. Just you and God now.",
+      "Whatever happened today, grace covers it all.",
+      "You showed up. That's what matters. God honors that.",
+      "Evenings are for exhaling. Let the tension go.",
+      "The day may have been hard, but it doesn't get the final word.",
+      "Before sleep comes, there's room for gratitude.",
+      "God doesn't keep score of your mistakes. Neither should you.",
+      "Rest isn't earned. It's a gift. Receive it tonight."
     ];
     return greetings[Math.floor(Math.random() * greetings.length)];
   } else {
     const greetings = [
-      "Late night? You know, these are often the best times with God.",
-      "Hey friend, late night study sessions are some of my favorites too.",
-      "Can't sleep? I get it. God's got something good for you right now.",
-      "Burning the midnight oil? I'm so glad you're here. Let me help.",
-      "Night owl? You know, these quiet moments with God are so precious.",
-      "Still up? So is He. He never sleeps, and He's been thinking about you.",
-      "Late nights with God — honestly, some of my best conversations happen now too.",
-      "Hey, the house is quiet, and it's just you and God. I love this for you.",
-      "Late night crew! There's something special about seeking God when the world is asleep."
+      "Late nights can be lonely, but you're not alone. God is here.",
+      "The quiet hours are often when God speaks the clearest.",
+      "Can't sleep? Maybe there's something God wants you to hear.",
+      "The world is asleep, but God never is. He sees you right now.",
+      "These moments of stillness are precious. Don't rush them.",
+      "Whatever's keeping you up, you can bring it to God.",
+      "Night seasons can be hard. But God's presence is real, even now.",
+      "The darkness isn't as empty as it feels. God fills it.",
+      "Late night thoughts hit different. God can handle them all.",
+      "When sleep won't come, peace still can.",
+      "The midnight hours have heard more prayers than any church.",
+      "You're not the only one awake right now. God is too."
     ];
     return greetings[Math.floor(Math.random() * greetings.length)];
   }
+}
+
+export function getTimeGreetingPrefix(): string {
+  const hour = new Date().getHours();
+
+  if (hour < 6) return "Early morning";
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  if (hour < 22) return "Good evening";
+  return "Late night";
+}
+
+// Weather-aware greetings - returns null if shouldn't show (random ~35% chance)
+export function getWeatherAwareGreeting(scene: string | null): string | null {
+  // Only show weather greeting about 35% of the time
+  if (Math.random() > 0.35) return null;
+  if (!scene) return null;
+
+  const weatherGreetings: Record<string, string[]> = {
+    'sunny': [
+      "Beautiful day outside. Even better day to grow closer to God.",
+      "The sun is shining. So is God's love for you.",
+      "Clear skies today. A perfect reminder of God's faithfulness.",
+    ],
+    'partly-cloudy': [
+      "Partly cloudy outside. Let God clear your mind today.",
+      "A few clouds in the sky. God sees clearly through them all.",
+      "Mixed skies today. God's love remains constant through it all.",
+    ],
+    'cloudy': [
+      "Overcast today. But nothing clouds God's view of you.",
+      "Gray skies outside. God's light still breaks through.",
+      "Cloudy day. Sometimes we need the clouds to appreciate the sun.",
+    ],
+    'rainy': [
+      "It's raining outside. Let God's Word wash over you today.",
+      "Rain is falling. Growth often comes in the rainy seasons.",
+      "Wet weather out there. A good day to stay in and stay close to God.",
+    ],
+    'stormy': [
+      "Storms outside. Let's find shelter in God's Word together.",
+      "Wild weather today. The One who calms storms is with you.",
+      "It's storming. Perfect time to remember who controls the wind and waves.",
+    ],
+    'snowy': [
+      "Snow falling outside. God makes all things white as snow.",
+      "A snowy day. There's something peaceful about it, isn't there?",
+      "Winter weather. A good day to be warm with God's presence.",
+    ],
+    'night-clear': [
+      "Clear night sky. The same God who placed the stars knows your name.",
+      "Stars are out tonight. Each one placed by the same hands that hold you.",
+      "Beautiful night. God's wonders are on full display.",
+    ],
+    'night-cloudy': [
+      "Quiet night outside. God is awake, even when the world sleeps.",
+      "Cloudy evening. God sees through the darkness just fine.",
+    ],
+    'foggy': [
+      "Foggy outside. Sometimes life feels that way too. God sees clearly.",
+      "Hazy day. When the path seems unclear, God still knows the way.",
+    ],
+    'tornado': [
+      "Dangerous weather outside. Stay safe. God is your refuge.",
+      "Severe weather warning. Let this be a moment to trust the One who protects.",
+    ],
+    'hurricane': [
+      "Storm warnings out there. You're safe here with God.",
+      "Major storm approaching. Our God is bigger than any hurricane.",
+    ],
+    'christmas': [
+      "Christmas season. The Light of the World came for you.",
+      "Merry Christmas. Emmanuel — God with us.",
+    ],
+    'thanksgiving': [
+      "Thanksgiving time. Gratitude changes everything.",
+      "Season of thanks. What's one thing you're grateful for today?",
+    ],
+    'easter': [
+      "Easter season. He is risen. That changes everything.",
+      "Resurrection time. Because He lives, we have hope.",
+    ],
+    'new-years': [
+      "New year energy. Fresh mercies are waiting.",
+      "New beginnings. God makes all things new.",
+    ],
+    'valentines': [
+      "Love is in the air. God's love is the greatest of all.",
+      "Valentine's season. You are deeply loved by God.",
+    ],
+  };
+
+  const greetings = weatherGreetings[scene];
+  if (!greetings || greetings.length === 0) return null;
+
+  return greetings[Math.floor(Math.random() * greetings.length)];
 }
 
 export function getLoadingMessage(): string {

@@ -19,6 +19,8 @@ const ALL_SCENES = [
   { id: 'foggy', name: 'Foggy', category: 'weather' },
   { id: 'night-clear', name: 'Night Clear', category: 'weather' },
   { id: 'night-cloudy', name: 'Night Cloudy', category: 'weather' },
+  { id: 'tornado', name: 'Tornado Warning', category: 'severe' },
+  { id: 'hurricane', name: 'Hurricane Warning', category: 'severe' },
   { id: 'christmas', name: 'Christmas', category: 'holiday' },
   { id: 'thanksgiving', name: 'Thanksgiving', category: 'holiday' },
   { id: 'easter', name: 'Easter', category: 'holiday' },
@@ -35,6 +37,7 @@ interface SceneSettings {
     sceneId: SceneId | null;
     expiresAt: string | null; // ISO date string
     customPrompt: string | null;
+    customSvg: string | null; // AI-generated SVG content
   };
 }
 
@@ -45,6 +48,7 @@ const DEFAULT_SETTINGS: SceneSettings = {
     sceneId: null,
     expiresAt: null,
     customPrompt: null,
+    customSvg: null,
   },
 };
 
@@ -58,6 +62,7 @@ export default function AdminScenesPage() {
   const [customPrompt, setCustomPrompt] = useState('');
   const [overrideHours, setOverrideHours] = useState(24);
   const [generatingCustom, setGeneratingCustom] = useState(false);
+  const [generatedSvg, setGeneratedSvg] = useState<string | null>(null);
 
   // Load settings from Firestore
   useEffect(() => {
@@ -127,7 +132,7 @@ export default function AdminScenesPage() {
     });
   };
 
-  // Generate custom scene with OpenAI (placeholder for future implementation)
+  // Generate custom scene with OpenAI
   const generateCustomScene = async () => {
     if (!customPrompt.trim()) {
       alert('Please enter a description for the custom scene');
@@ -135,16 +140,45 @@ export default function AdminScenesPage() {
     }
 
     setGeneratingCustom(true);
+    setGeneratedSvg(null);
     try {
-      // TODO: Call OpenAI API to generate custom SVG
-      // For now, just show the prompt was received
-      alert(`Custom scene generation coming soon!\n\nYour prompt: "${customPrompt}"\n\nFor now, you can select a pre-built scene as an override.`);
-    } catch (err) {
+      const response = await fetch('/api/generate-scene', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: customPrompt.trim() }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate scene');
+      }
+
+      setGeneratedSvg(data.svg);
+    } catch (err: any) {
       console.error('Error generating custom scene:', err);
-      alert('Failed to generate custom scene');
+      alert(`Failed to generate custom scene: ${err.message}`);
     } finally {
       setGeneratingCustom(false);
     }
+  };
+
+  // Apply generated custom scene as override
+  const applyCustomScene = async () => {
+    if (!generatedSvg) return;
+
+    const expiresAt = new Date(Date.now() + overrideHours * 60 * 60 * 1000).toISOString();
+    await saveSettings({
+      ...settings,
+      customOverride: {
+        enabled: true,
+        sceneId: 'custom' as any,
+        expiresAt,
+        customPrompt: customPrompt.trim(),
+        customSvg: generatedSvg,
+      },
+    });
+    alert('Custom scene applied as override!');
   };
 
   // Check if override has expired
@@ -187,92 +221,115 @@ export default function AdminScenesPage() {
             </div>
           </div>
 
-          {/* Active Override Banner */}
-          {isOverrideActive && (
-            <div className="mb-6 p-4 bg-yellow-400/20 border border-yellow-400/40 rounded-xl">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-yellow-400 font-semibold">Override Active</h3>
-                  <p className="text-white/70 text-sm">
-                    Showing "{settings.customOverride.sceneId}" for {timeRemaining} more hours
-                  </p>
-                </div>
-                <button
-                  onClick={clearOverride}
-                  className="px-4 py-2 bg-red-500/20 border border-red-500/40 rounded-lg text-red-400 hover:bg-red-500/30 transition"
-                >
-                  Clear Override
-                </button>
+          {/* Large Preview at Top */}
+          <div className="mb-8">
+            {/* Preview Container - Large */}
+            <div className="relative h-56 md:h-72 rounded-2xl overflow-hidden border border-white/20 mb-4">
+              <ScenePreview sceneId={selectedScene} />
+              {/* Scene name overlay */}
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+                <h2 className="text-xl font-bold text-white">
+                  {ALL_SCENES.find(s => s.id === selectedScene)?.name}
+                </h2>
               </div>
             </div>
-          )}
 
-          <div className="grid lg:grid-cols-2 gap-8">
-            {/* Preview Panel */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-yellow-400">Preview</h2>
-
-              {/* Scene Selector */}
-              <div className="flex gap-2 flex-wrap">
-                <select
-                  value={selectedScene}
-                  onChange={(e) => setSelectedScene(e.target.value as SceneId)}
-                  className="px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white"
+            {/* Scene Selector Buttons */}
+            <div className="flex flex-wrap gap-2 mb-6">
+              {ALL_SCENES.map((scene) => (
+                <button
+                  key={scene.id}
+                  onClick={() => setSelectedScene(scene.id)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                    selectedScene === scene.id
+                      ? scene.category === 'severe'
+                        ? 'bg-red-500 text-white'
+                        : 'bg-yellow-400 text-slate-900'
+                      : scene.category === 'severe'
+                        ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                  }`}
                 >
-                  <optgroup label="Weather">
-                    {ALL_SCENES.filter(s => s.category === 'weather').map(scene => (
-                      <option key={scene.id} value={scene.id}>{scene.name}</option>
-                    ))}
-                  </optgroup>
-                  <optgroup label="Holidays">
-                    {ALL_SCENES.filter(s => s.category === 'holiday').map(scene => (
-                      <option key={scene.id} value={scene.id}>{scene.name}</option>
-                    ))}
-                  </optgroup>
-                </select>
+                  {scene.name}
+                </button>
+              ))}
+            </div>
+
+            {/* Override Controls - Prominent */}
+            <div className="p-5 bg-white/5 border border-white/10 rounded-xl">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-yellow-400">Scene Override</h3>
+                {isOverrideActive && (
+                  <span className="px-3 py-1 bg-green-500/20 border border-green-500/40 rounded-full text-green-400 text-sm font-medium">
+                    Active
+                  </span>
+                )}
               </div>
 
-              {/* Preview Container */}
-              <div
-                className="relative h-48 rounded-2xl overflow-hidden border border-white/10"
-                style={{ backgroundColor: 'var(--card-bg)' }}
-              >
-                <ScenePreview sceneId={selectedScene} />
-              </div>
-
-              {/* Override Controls */}
-              <div className="p-4 bg-white/5 border border-white/10 rounded-xl space-y-4">
-                <h3 className="font-medium">Manual Override</h3>
-                <div className="flex gap-2 items-center">
-                  <label className="text-sm text-white/60">Duration:</label>
-                  <select
-                    value={overrideHours}
-                    onChange={(e) => setOverrideHours(Number(e.target.value))}
-                    className="px-3 py-1 bg-white/10 border border-white/20 rounded text-sm"
-                  >
-                    <option value={1}>1 hour</option>
-                    <option value={6}>6 hours</option>
-                    <option value={12}>12 hours</option>
-                    <option value={24}>24 hours</option>
-                    <option value={48}>48 hours</option>
-                    <option value={168}>1 week</option>
-                  </select>
+              {/* Active Override Status */}
+              {isOverrideActive ? (
+                <div className="mb-4 p-4 bg-yellow-400/10 border border-yellow-400/30 rounded-xl">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-yellow-400 font-medium">
+                        Currently showing: {settings.customOverride.sceneId}
+                      </p>
+                      <p className="text-white/60 text-sm mt-1">
+                        ⏱️ {timeRemaining} hour{timeRemaining !== 1 ? 's' : ''} remaining
+                      </p>
+                      {settings.customOverride.expiresAt && (
+                        <p className="text-white/40 text-xs mt-1">
+                          Expires: {new Date(settings.customOverride.expiresAt).toLocaleString()}
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      onClick={clearOverride}
+                      className="px-4 py-2 bg-red-500/20 border border-red-500/40 rounded-lg text-red-400 hover:bg-red-500/30 transition"
+                    >
+                      Clear
+                    </button>
+                  </div>
                 </div>
+              ) : (
+                <p className="text-white/50 text-sm mb-4">
+                  No override active. Weather scenes will show based on current conditions.
+                </p>
+              )}
+
+              {/* Set New Override */}
+              <div className="flex flex-wrap gap-3 items-center">
+                <span className="text-sm text-white/60">Set override for:</span>
+                <select
+                  value={overrideHours}
+                  onChange={(e) => setOverrideHours(Number(e.target.value))}
+                  className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-sm"
+                >
+                  <option value={1}>1 hour</option>
+                  <option value={6}>6 hours</option>
+                  <option value={12}>12 hours</option>
+                  <option value={24}>24 hours</option>
+                  <option value={48}>2 days</option>
+                  <option value={168}>1 week</option>
+                  <option value={720}>1 month</option>
+                </select>
                 <button
                   onClick={() => setOverride(selectedScene)}
                   disabled={saving}
-                  className="w-full px-4 py-2 bg-yellow-400 text-slate-900 rounded-lg font-medium hover:bg-yellow-300 transition disabled:opacity-50"
+                  className="flex-1 min-w-[200px] px-4 py-2 bg-yellow-400 text-slate-900 rounded-lg font-medium hover:bg-yellow-300 transition disabled:opacity-50"
                 >
-                  {saving ? 'Saving...' : `Set "${ALL_SCENES.find(s => s.id === selectedScene)?.name}" as Override`}
+                  {saving ? 'Saving...' : `Override with "${ALL_SCENES.find(s => s.id === selectedScene)?.name}"`}
                 </button>
               </div>
             </div>
+          </div>
 
+          <div className="grid lg:grid-cols-2 gap-8">
             {/* Settings Panel */}
             <div className="space-y-6">
               {/* Custom Scene Generator */}
               <div className="p-4 bg-white/5 border border-white/10 rounded-xl space-y-4">
-                <h2 className="text-lg font-semibold text-yellow-400">Custom Scene (Coming Soon)</h2>
+                <h2 className="text-lg font-semibold text-purple-400">AI Custom Scene Generator</h2>
                 <p className="text-sm text-white/60">
                   Describe a custom scene and AI will generate it for you.
                 </p>
@@ -280,17 +337,59 @@ export default function AdminScenesPage() {
                   value={customPrompt}
                   onChange={(e) => setCustomPrompt(e.target.value)}
                   placeholder="e.g., A peaceful sunrise over mountains with birds flying..."
-                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 min-h-[100px]"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 min-h-[80px]"
                 />
                 <button
                   onClick={generateCustomScene}
                   disabled={generatingCustom || !customPrompt.trim()}
                   className="w-full px-4 py-2 bg-purple-500/20 border border-purple-500/40 text-purple-400 rounded-lg font-medium hover:bg-purple-500/30 transition disabled:opacity-50"
                 >
-                  {generatingCustom ? 'Generating...' : 'Generate Custom Scene'}
+                  {generatingCustom ? 'Generating... (may take 10-15 seconds)' : 'Generate Custom Scene'}
                 </button>
-              </div>
 
+                {/* Generated SVG Preview */}
+                {generatedSvg && (
+                  <div className="mt-4 space-y-3">
+                    <h3 className="text-sm font-medium text-green-400">Generated Scene Preview:</h3>
+                    <div
+                      className="relative h-32 rounded-lg overflow-hidden border border-green-500/30 bg-slate-800"
+                      dangerouslySetInnerHTML={{ __html: generatedSvg }}
+                    />
+                    <div className="flex gap-2">
+                      <select
+                        value={overrideHours}
+                        onChange={(e) => setOverrideHours(Number(e.target.value))}
+                        className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-sm"
+                      >
+                        <option value={1}>1 hour</option>
+                        <option value={6}>6 hours</option>
+                        <option value={12}>12 hours</option>
+                        <option value={24}>24 hours</option>
+                        <option value={48}>2 days</option>
+                        <option value={168}>1 week</option>
+                        <option value={720}>1 month</option>
+                      </select>
+                      <button
+                        onClick={applyCustomScene}
+                        disabled={saving}
+                        className="flex-1 px-4 py-2 bg-green-500/20 border border-green-500/40 text-green-400 rounded-lg font-medium hover:bg-green-500/30 transition disabled:opacity-50"
+                      >
+                        {saving ? 'Applying...' : 'Apply as Override'}
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => setGeneratedSvg(null)}
+                      className="w-full px-4 py-2 text-sm text-white/50 hover:text-white/70 transition"
+                    >
+                      Discard & Try Again
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Enable/Disable Panel */}
+            <div className="space-y-6">
               {/* Scene Enable/Disable */}
               <div className="p-4 bg-white/5 border border-white/10 rounded-xl space-y-4">
                 <h2 className="text-lg font-semibold text-yellow-400">Enable/Disable Scenes</h2>
@@ -301,6 +400,22 @@ export default function AdminScenesPage() {
                 <div className="space-y-2">
                   <h3 className="text-sm font-medium text-white/80 mt-4">Weather</h3>
                   {ALL_SCENES.filter(s => s.category === 'weather').map(scene => (
+                    <label
+                      key={scene.id}
+                      className="flex items-center justify-between p-2 hover:bg-white/5 rounded cursor-pointer"
+                    >
+                      <span className="text-sm">{scene.name}</span>
+                      <input
+                        type="checkbox"
+                        checked={!settings.disabledScenes.includes(scene.id)}
+                        onChange={() => toggleScene(scene.id)}
+                        className="w-4 h-4 rounded border-white/20 bg-white/5 text-yellow-400 focus:ring-yellow-400"
+                      />
+                    </label>
+                  ))}
+
+                  <h3 className="text-sm font-medium text-red-400 mt-4">Severe Weather Warnings</h3>
+                  {ALL_SCENES.filter(s => s.category === 'severe').map(scene => (
                     <label
                       key={scene.id}
                       className="flex items-center justify-between p-2 hover:bg-white/5 rounded cursor-pointer"
@@ -340,190 +455,11 @@ export default function AdminScenesPage() {
   );
 }
 
-// Scene Preview Component - renders the selected scene
+// Scene Preview Component - renders the selected scene using actual WeatherScene
 function ScenePreview({ sceneId }: { sceneId: string }) {
   return (
     <div className="absolute inset-0">
-      {/* We'll create a standalone preview version */}
-      <WeatherPreviewScene type={sceneId} />
+      <WeatherScene type={sceneId as SceneType} />
     </div>
-  );
-}
-
-// Simplified preview scene renderer
-function WeatherPreviewScene({ type }: { type: string }) {
-  // Import the scene colors and render logic
-  const colors: Record<string, { primary: string; secondary: string; accent: string }> = {
-    sunny: { primary: '#D4890D', secondary: '#E9A825', accent: '#F5C842' },
-    'partly-cloudy': { primary: '#546E7A', secondary: '#607D8B', accent: '#78909C' },
-    cloudy: { primary: '#455A64', secondary: '#546E7A', accent: '#607D8B' },
-    rainy: { primary: '#3F51B5', secondary: '#5C6BC0', accent: '#7986CB' },
-    stormy: { primary: '#37474F', secondary: '#455A64', accent: '#FFC107' },
-    snowy: { primary: '#64B5F6', secondary: '#90CAF9', accent: '#BBDEFB' },
-    'night-clear': { primary: '#5E35B1', secondary: '#7E57C2', accent: '#FFB300' },
-    'night-cloudy': { primary: '#3F51B5', secondary: '#5C6BC0', accent: '#7986CB' },
-    foggy: { primary: '#78909C', secondary: '#90A4AE', accent: '#B0BEC5' },
-    tornado: { primary: '#455A64', secondary: '#546E7A', accent: '#78909C' },
-    hurricane: { primary: '#37474F', secondary: '#455A64', accent: '#607D8B' },
-    christmas: { primary: '#C62828', secondary: '#2E7D32', accent: '#FFD700' },
-    thanksgiving: { primary: '#E65100', secondary: '#BF360C', accent: '#FFB300' },
-    easter: { primary: '#AB47BC', secondary: '#7CB342', accent: '#FFEB3B' },
-    'new-years': { primary: '#FFD700', secondary: '#C0C0C0', accent: '#FFFFFF' },
-    valentines: { primary: '#E91E63', secondary: '#F48FB1', accent: '#FF4081' },
-  };
-
-  const c = colors[type] || colors['partly-cloudy'];
-
-  return (
-    <svg className="w-full h-full" viewBox="0 0 800 200" preserveAspectRatio="xMidYMid slice">
-      <defs>
-        <linearGradient id={`preview-gradient-${type}`} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor={c.primary} stopOpacity="0.15" />
-          <stop offset="100%" stopColor={c.secondary} stopOpacity="0.05" />
-        </linearGradient>
-        <filter id="preview-glow">
-          <feGaussianBlur stdDeviation="4" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </defs>
-
-      <rect width="800" height="200" fill={`url(#preview-gradient-${type})`} />
-
-      {/* Scene label */}
-      <text x="400" y="180" textAnchor="middle" fill={c.accent} fontSize="14" opacity="0.8">
-        {type.replace('-', ' ').toUpperCase()}
-      </text>
-
-      {/* Simple scene indicators */}
-      {type === 'sunny' && (
-        <g>
-          <circle cx="680" cy="70" r="40" fill={c.accent} opacity="0.4" />
-          <circle cx="680" cy="70" r="30" fill="none" stroke={c.primary} strokeWidth="3" />
-        </g>
-      )}
-
-      {type === 'night-clear' && (
-        <g>
-          <circle cx="680" cy="70" r="28" fill="none" stroke={c.accent} strokeWidth="2.5" opacity="0.75" />
-          {[100, 200, 300, 400, 500, 600].map((x, i) => (
-            <circle key={i} cx={x} cy={40 + (i % 3) * 30} r="3" fill={c.accent} opacity="0.7" className="animate-twinkle" style={{ animationDelay: `${i * 0.3}s` }} />
-          ))}
-        </g>
-      )}
-
-      {type === 'christmas' && (
-        <g transform="translate(650, 20)">
-          <polygon points="50,0 90,100 10,100" fill={c.secondary} opacity="0.8" />
-          <polygon points="50,0 53,10 63,10 55,16 58,26 50,20 42,26 45,16 37,10 47,10" fill={c.accent} />
-          <circle cx="35" cy="60" r="5" fill={c.primary} />
-          <circle cx="65" cy="50" r="5" fill={c.accent} />
-        </g>
-      )}
-
-      {type === 'thanksgiving' && (
-        <g transform="translate(620, 40)">
-          <ellipse cx="80" cy="50" rx="50" ry="60" fill={c.secondary} opacity="0.6" />
-          <ellipse cx="80" cy="50" rx="40" ry="50" fill={c.primary} opacity="0.7" />
-          <ellipse cx="40" cy="80" rx="30" ry="25" fill="#8B4513" opacity="0.8" />
-        </g>
-      )}
-
-      {type === 'easter' && (
-        <g>
-          <g transform="translate(650, 30)">
-            <rect x="-4" y="0" width="8" height="80" fill={c.primary} opacity="0.7" />
-            <rect x="-25" y="20" width="50" height="8" fill={c.primary} opacity="0.7" />
-          </g>
-          {[100, 250, 400, 550].map((x, i) => (
-            <ellipse key={i} cx={x} cy={120} rx="15" ry="20" fill={i % 2 === 0 ? c.primary : c.secondary} opacity="0.8" />
-          ))}
-        </g>
-      )}
-
-      {type === 'new-years' && (
-        <g>
-          {[150, 350, 550, 700].map((x, i) => (
-            <g key={i} className="animate-twinkle" style={{ animationDelay: `${i * 0.5}s` }}>
-              {[...Array(8)].map((_, j) => (
-                <line
-                  key={j}
-                  x1={x} y1={70}
-                  x2={x + Math.cos(j * Math.PI / 4) * 30}
-                  y2={70 + Math.sin(j * Math.PI / 4) * 30}
-                  stroke={j % 2 === 0 ? c.primary : c.accent}
-                  strokeWidth="2"
-                />
-              ))}
-            </g>
-          ))}
-        </g>
-      )}
-
-      {type === 'valentines' && (
-        <g>
-          {[100, 250, 400, 550, 700].map((x, i) => (
-            <path
-              key={i}
-              d={`M${x} 70 C${x - 15} 50 ${x - 25} 70 ${x} 100 C${x + 25} 70 ${x + 15} 50 ${x} 70`}
-              fill={i % 2 === 0 ? c.primary : c.secondary}
-              opacity="0.7"
-              className="animate-float"
-              style={{ animationDelay: `${i * 0.3}s` }}
-            />
-          ))}
-        </g>
-      )}
-
-      {(type === 'rainy' || type === 'stormy') && (
-        <g>
-          {[...Array(20)].map((_, i) => (
-            <line
-              key={i}
-              x1={40 + i * 40}
-              y1={0}
-              x2={40 + i * 40 - 10}
-              y2={200}
-              stroke={c.secondary}
-              strokeWidth="1.5"
-              opacity="0.4"
-            />
-          ))}
-        </g>
-      )}
-
-      {type === 'snowy' && (
-        <g>
-          {[...Array(15)].map((_, i) => (
-            <circle
-              key={i}
-              cx={50 + i * 50}
-              cy={30 + (i % 4) * 40}
-              r="4"
-              fill={c.accent}
-              opacity="0.7"
-            />
-          ))}
-        </g>
-      )}
-
-      {type === 'cloudy' && (
-        <g>
-          {[50, 300, 550].map((x, i) => (
-            <ellipse key={i} cx={x + 100} cy={80} rx="80" ry="40" fill={c.secondary} opacity="0.4" />
-          ))}
-        </g>
-      )}
-
-      {type === 'foggy' && (
-        <g>
-          {[...Array(5)].map((_, i) => (
-            <rect key={i} x="0" y={30 + i * 35} width="800" height="25" fill={c.secondary} opacity={0.15 - i * 0.02} />
-          ))}
-        </g>
-      )}
-    </svg>
   );
 }

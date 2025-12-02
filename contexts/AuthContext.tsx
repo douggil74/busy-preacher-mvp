@@ -125,12 +125,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               }
             }
 
-            // Update last sign in
+            // Update last sign in and track login data (IP, location)
             await setDoc(
               doc(db, 'users', firebaseUser.uid),
               { lastSignIn: serverTimestamp() },
               { merge: true }
             );
+
+            // Track login with IP and location (fire and forget)
+            fetch('/api/auth/track-login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId: firebaseUser.uid }),
+            }).catch(err => console.error('Login tracking failed:', err));
           } else {
             // Profile doesn't exist - create one with email info
             const profile: UserProfile = {

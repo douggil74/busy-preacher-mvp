@@ -3,40 +3,22 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import {
-  Shield,
-  Users,
-  MessageCircle,
-  Gift,
-  Bell,
-  Activity,
-  Database,
-  Settings,
-  ChevronDown,
-  ChevronUp,
-  ExternalLink,
   RefreshCw,
   Check,
   X,
   Eye,
   EyeOff,
-  Key,
-  Home,
   Loader2,
   Search,
-  UserPlus,
-  CreditCard,
-  Clock,
-  DollarSign,
-  Send,
-  TrendingUp,
-  Calendar,
-  UserCheck,
   Trash2,
   Pencil,
+  ExternalLink,
+  ChevronRight,
 } from 'lucide-react';
 import AdminAuth from '@/components/AdminAuth';
 import SetAdminBanner from '@/components/SetAdminBanner';
 import AdminPushNotification from '@/components/AdminPushNotification';
+import AdminToastManager from '@/components/AdminToastManager';
 import { setAdminPassword } from '@/lib/adminAuth';
 
 interface Stats {
@@ -84,15 +66,6 @@ interface UserResult {
   redeemedCodes?: string[];
 }
 
-interface ActivityItem {
-  id: string;
-  type: 'signup' | 'prayer' | 'promo' | 'subscription' | 'message';
-  title: string;
-  description: string;
-  timestamp: string;
-}
-
-
 interface WhitelistEntry {
   email: string;
   addedAt: string | null;
@@ -101,13 +74,12 @@ interface WhitelistEntry {
   isBuiltIn?: boolean;
 }
 
+type ActiveSection = 'dashboard' | 'users' | 'prayers' | 'promos' | 'whitelist' | 'toasts' | 'messages' | 'settings';
+
 export default function AdminConsole() {
-  // Stats
+  const [activeSection, setActiveSection] = useState<ActiveSection>('dashboard');
   const [stats, setStats] = useState<Stats | null>(null);
   const [loadingStats, setLoadingStats] = useState(true);
-
-  // Panel states
-  const [expandedPanel, setExpandedPanel] = useState<string | null>('activity');
 
   // Prayer moderation
   const [pendingPrayers, setPendingPrayers] = useState<PrayerRequest[]>([]);
@@ -128,11 +100,7 @@ export default function AdminConsole() {
   const [userSearchError, setUserSearchError] = useState('');
   const [grantingAccess, setGrantingAccess] = useState(false);
 
-  // Activity feed
-  const [activities, setActivities] = useState<ActivityItem[]>([]);
-  const [loadingActivity, setLoadingActivity] = useState(false);
-
-  // Whitelist management
+  // Whitelist
   const [whitelistEmails, setWhitelistEmails] = useState<WhitelistEntry[]>([]);
   const [loadingWhitelist, setLoadingWhitelist] = useState(false);
   const [newWhitelistEmail, setNewWhitelistEmail] = useState('');
@@ -152,15 +120,13 @@ export default function AdminConsole() {
   const [showPassword, setShowPassword] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState({ type: '', text: '' });
 
-  // Fetch all stats
+  // Fetch functions
   const fetchStats = async () => {
     setLoadingStats(true);
     try {
       const res = await fetch('/api/admin/stats');
       const data = await res.json();
-      if (!data.error) {
-        setStats(data);
-      }
+      if (!data.error) setStats(data);
     } catch (error) {
       console.error('Error fetching stats:', error);
     } finally {
@@ -168,11 +134,10 @@ export default function AdminConsole() {
     }
   };
 
-  // Fetch pending prayers
   const fetchPendingPrayers = async () => {
     setLoadingPrayers(true);
     try {
-      const res = await fetch('/api/prayers?status=pending&limit=5');
+      const res = await fetch('/api/prayers?status=pending&limit=10');
       const data = await res.json();
       setPendingPrayers(data.prayers || []);
     } catch (error) {
@@ -182,7 +147,6 @@ export default function AdminConsole() {
     }
   };
 
-  // Fetch promo codes
   const fetchPromoCodes = async () => {
     setLoadingPromos(true);
     try {
@@ -196,65 +160,6 @@ export default function AdminConsole() {
     }
   };
 
-  // Fetch activity feed
-  const fetchActivity = async () => {
-    setLoadingActivity(true);
-    try {
-      const res = await fetch('/api/admin/activity?limit=10');
-      const data = await res.json();
-      setActivities(data.activities || []);
-    } catch (error) {
-      console.error('Error fetching activity:', error);
-    } finally {
-      setLoadingActivity(false);
-    }
-  };
-
-  // Search user by email
-  const searchUser = async () => {
-    if (!userSearchEmail.trim()) return;
-    setSearchingUser(true);
-    setFoundUser(null);
-    setUserSearchError('');
-    try {
-      const res = await fetch(`/api/admin/users?email=${encodeURIComponent(userSearchEmail)}`);
-      const data = await res.json();
-      if (data.user) {
-        setFoundUser(data.user);
-      } else {
-        setUserSearchError('User not found');
-      }
-    } catch (error) {
-      setUserSearchError('Search failed');
-      console.error('Error searching user:', error);
-    } finally {
-      setSearchingUser(false);
-    }
-  };
-
-  // Grant access to user
-  const grantUserAccess = async (accessType: string) => {
-    if (!foundUser) return;
-    setGrantingAccess(true);
-    try {
-      const res = await fetch('/api/admin/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: foundUser.uid, accessType }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        // Refresh user data
-        searchUser();
-      }
-    } catch (error) {
-      console.error('Error granting access:', error);
-    } finally {
-      setGrantingAccess(false);
-    }
-  };
-
-  // Fetch whitelist
   const fetchWhitelist = async () => {
     setLoadingWhitelist(true);
     try {
@@ -268,94 +173,40 @@ export default function AdminConsole() {
     }
   };
 
-  // Add to whitelist
-  const addToWhitelist = async () => {
-    if (!newWhitelistEmail.trim()) return;
-    setAddingWhitelist(true);
-    setWhitelistError('');
+  const searchUser = async () => {
+    if (!userSearchEmail.trim()) return;
+    setSearchingUser(true);
+    setFoundUser(null);
+    setUserSearchError('');
     try {
-      const res = await fetch('/api/admin/whitelist', {
+      const res = await fetch(`/api/admin/users?email=${encodeURIComponent(userSearchEmail)}`);
+      const data = await res.json();
+      if (data.user) setFoundUser(data.user);
+      else setUserSearchError('User not found');
+    } catch (error) {
+      setUserSearchError('Search failed');
+    } finally {
+      setSearchingUser(false);
+    }
+  };
+
+  const grantUserAccess = async (accessType: string) => {
+    if (!foundUser) return;
+    setGrantingAccess(true);
+    try {
+      await fetch('/api/admin/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: newWhitelistEmail.toLowerCase().trim(),
-          note: newWhitelistNote.trim(),
-          role: newWhitelistRole,
-        }),
+        body: JSON.stringify({ userId: foundUser.uid, accessType }),
       });
-      const data = await res.json();
-      if (data.error) {
-        setWhitelistError(data.error);
-      } else {
-        setNewWhitelistEmail('');
-        setNewWhitelistNote('');
-        setNewWhitelistRole('user');
-        fetchWhitelist();
-      }
+      searchUser();
     } catch (error) {
-      setWhitelistError('Failed to add email');
-      console.error('Error adding to whitelist:', error);
+      console.error('Error granting access:', error);
     } finally {
-      setAddingWhitelist(false);
+      setGrantingAccess(false);
     }
   };
 
-  // Remove from whitelist
-  const removeFromWhitelist = async (email: string) => {
-    if (!confirm(`Remove ${email} from whitelist?`)) return;
-    try {
-      await fetch(`/api/admin/whitelist?email=${encodeURIComponent(email)}`, { method: 'DELETE' });
-      fetchWhitelist();
-    } catch (error) {
-      console.error('Error removing from whitelist:', error);
-    }
-  };
-
-  // Start editing a whitelist entry
-  const startEditingWhitelist = (entry: WhitelistEntry) => {
-    setEditingWhitelistEmail(entry.email);
-    setEditWhitelistRole((entry.role || 'user') as 'user' | 'admin' | 'developer' | 'owner');
-    setEditWhitelistNote(entry.note || '');
-  };
-
-  // Cancel editing
-  const cancelEditingWhitelist = () => {
-    setEditingWhitelistEmail(null);
-    setEditWhitelistRole('user');
-    setEditWhitelistNote('');
-  };
-
-  // Update whitelist entry
-  const updateWhitelist = async () => {
-    if (!editingWhitelistEmail) return;
-    setUpdatingWhitelist(true);
-    setWhitelistError('');
-    try {
-      const res = await fetch('/api/admin/whitelist', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: editingWhitelistEmail,
-          role: editWhitelistRole,
-          note: editWhitelistNote,
-        }),
-      });
-      const data = await res.json();
-      if (data.error) {
-        setWhitelistError(data.error);
-      } else {
-        cancelEditingWhitelist();
-        fetchWhitelist();
-      }
-    } catch (error) {
-      setWhitelistError('Failed to update entry');
-      console.error('Error updating whitelist:', error);
-    } finally {
-      setUpdatingWhitelist(false);
-    }
-  };
-
-  // Approve/reject prayer
   const handlePrayerAction = async (id: string, action: 'approve' | 'reject') => {
     setProcessingPrayer(id);
     try {
@@ -372,7 +223,6 @@ export default function AdminConsole() {
     }
   };
 
-  // Create quick promo code
   const handleQuickPromo = async () => {
     if (!newPromoCode.trim()) return;
     setCreatingPromo(true);
@@ -380,10 +230,7 @@ export default function AdminConsole() {
       const res = await fetch('/api/admin/promo-codes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          code: newPromoCode.toUpperCase(),
-          type: newPromoType,
-        }),
+        body: JSON.stringify({ code: newPromoCode.toUpperCase(), type: newPromoType }),
       });
       const data = await res.json();
       if (data.success) {
@@ -398,7 +245,6 @@ export default function AdminConsole() {
     }
   };
 
-  // Toggle promo status
   const togglePromoStatus = async (code: string, isActive: boolean) => {
     try {
       await fetch('/api/admin/promo-codes', {
@@ -412,7 +258,6 @@ export default function AdminConsole() {
     }
   };
 
-  // Delete promo
   const deletePromo = async (code: string) => {
     if (!confirm(`Delete "${code}"?`)) return;
     try {
@@ -424,7 +269,84 @@ export default function AdminConsole() {
     }
   };
 
-  // Change password
+  const addToWhitelist = async () => {
+    if (!newWhitelistEmail.trim()) return;
+    setAddingWhitelist(true);
+    setWhitelistError('');
+    try {
+      const res = await fetch('/api/admin/whitelist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: newWhitelistEmail.toLowerCase().trim(),
+          note: newWhitelistNote.trim(),
+          role: newWhitelistRole,
+        }),
+      });
+      const data = await res.json();
+      if (data.error) setWhitelistError(data.error);
+      else {
+        setNewWhitelistEmail('');
+        setNewWhitelistNote('');
+        setNewWhitelistRole('user');
+        fetchWhitelist();
+      }
+    } catch (error) {
+      setWhitelistError('Failed to add email');
+    } finally {
+      setAddingWhitelist(false);
+    }
+  };
+
+  const removeFromWhitelist = async (email: string) => {
+    if (!confirm(`Remove ${email}?`)) return;
+    try {
+      await fetch(`/api/admin/whitelist?email=${encodeURIComponent(email)}`, { method: 'DELETE' });
+      fetchWhitelist();
+    } catch (error) {
+      console.error('Error removing from whitelist:', error);
+    }
+  };
+
+  const startEditingWhitelist = (entry: WhitelistEntry) => {
+    setEditingWhitelistEmail(entry.email);
+    setEditWhitelistRole((entry.role || 'user') as 'user' | 'admin' | 'developer' | 'owner');
+    setEditWhitelistNote(entry.note || '');
+  };
+
+  const cancelEditingWhitelist = () => {
+    setEditingWhitelistEmail(null);
+    setEditWhitelistRole('user');
+    setEditWhitelistNote('');
+  };
+
+  const updateWhitelist = async () => {
+    if (!editingWhitelistEmail) return;
+    setUpdatingWhitelist(true);
+    setWhitelistError('');
+    try {
+      const res = await fetch('/api/admin/whitelist', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: editingWhitelistEmail,
+          role: editWhitelistRole,
+          note: editWhitelistNote,
+        }),
+      });
+      const data = await res.json();
+      if (data.error) setWhitelistError(data.error);
+      else {
+        cancelEditingWhitelist();
+        fetchWhitelist();
+      }
+    } catch (error) {
+      setWhitelistError('Failed to update');
+    } finally {
+      setUpdatingWhitelist(false);
+    }
+  };
+
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
     setPasswordMessage({ type: '', text: '' });
@@ -450,12 +372,10 @@ export default function AdminConsole() {
     }
   };
 
-  // Refresh all
   const refreshAll = () => {
     fetchStats();
     fetchPendingPrayers();
     fetchPromoCodes();
-    fetchActivity();
     fetchWhitelist();
   };
 
@@ -463,199 +383,339 @@ export default function AdminConsole() {
     refreshAll();
   }, []);
 
-  const togglePanel = (panel: string) => {
-    setExpandedPanel(expandedPanel === panel ? null : panel);
-  };
-
-  const formatTimeAgo = (timestamp: string) => {
-    const diff = Date.now() - new Date(timestamp).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 60) return `${mins}m ago`;
-    const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `${hrs}h ago`;
-    const days = Math.floor(hrs / 24);
-    return `${days}d ago`;
-  };
-
-  const getActivityIcon = (type: string) => {
-    switch (type) {
-      case 'signup': return <UserPlus className="w-4 h-4 text-green-500" />;
-      case 'prayer': return <Bell className="w-4 h-4 text-amber-500" />;
-      case 'promo': return <Gift className="w-4 h-4 text-teal-500" />;
-      case 'subscription': return <DollarSign className="w-4 h-4 text-purple-500" />;
-      default: return <Activity className="w-4 h-4 text-blue-500" />;
-    }
-  };
+  // Navigation items with emojis for teen-friendly UI
+  const navItems = [
+    { id: 'dashboard', emoji: '🏠', label: 'Dashboard' },
+    { id: 'users', emoji: '👥', label: 'Users' },
+    { id: 'prayers', emoji: '🙏', label: 'Prayers', badge: stats?.moderation?.pendingPrayers },
+    { id: 'promos', emoji: '🎁', label: 'Promos' },
+    { id: 'whitelist', emoji: '✅', label: 'VIP List' },
+    { id: 'toasts', emoji: '💬', label: 'Toasts' },
+    { id: 'messages', emoji: '💭', label: 'Pastor AI' },
+    { id: 'settings', emoji: '⚙️', label: 'Settings' },
+  ];
 
   return (
     <AdminAuth>
       <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
         {/* Header */}
-        <div className="sticky top-0 z-20 backdrop-blur-md" style={{ backgroundColor: 'rgba(var(--card-bg-rgb), 0.9)', borderBottom: '1px solid var(--card-border)' }}>
+        <div className="sticky top-0 z-20 backdrop-blur-md" style={{ backgroundColor: 'rgba(var(--card-bg-rgb), 0.95)', borderBottom: '1px solid var(--card-border)' }}>
           <div className="max-w-7xl mx-auto px-4 py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <Activity className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center text-xl">
+                  🎮
                 </div>
                 <div>
-                  <h1 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>Admin Console</h1>
+                  <h1 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>Control Center</h1>
                   <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>The Busy Christian App</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <button onClick={refreshAll} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" title="Refresh">
+              <button onClick={refreshAll} className="p-2 rounded-xl hover:bg-white/10 transition-colors" title="Refresh">
                   <RefreshCw className={`w-5 h-5 ${loadingStats ? 'animate-spin' : ''}`} style={{ color: 'var(--text-secondary)' }} />
                 </button>
-                <Link href="/account" className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" title="Account / Subscription">
-                  <CreditCard className="w-5 h-5" style={{ color: 'var(--text-secondary)' }} />
-                </Link>
-                <Link href="/" className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" title="Home">
-                  <Home className="w-5 h-5" style={{ color: 'var(--text-secondary)' }} />
-                </Link>
-              </div>
             </div>
           </div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 py-4">
-          {/* Live Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
-            <StatCard label="Total Users" value={stats?.users.total || 0} icon={<Users className="w-4 h-4" />} color="blue" loading={loadingStats} />
-            <StatCard label="Today" value={stats?.users.recentSignups || 0} icon={<TrendingUp className="w-4 h-4" />} color="green" suffix=" new" loading={loadingStats} />
-            <StatCard label="Subscriptions" value={stats?.subscriptions.total || 0} icon={<DollarSign className="w-4 h-4" />} color="purple" loading={loadingStats} />
-            <StatCard label="Pending" value={stats?.moderation.pendingPrayers || 0} icon={<Bell className="w-4 h-4" />} color={stats?.moderation.pendingPrayers ? 'red' : 'green'} loading={loadingStats} />
-            <StatCard label="Promos" value={`${stats?.promoCodes.active || 0}/${stats?.promoCodes.total || 0}`} icon={<Gift className="w-4 h-4" />} color="teal" loading={loadingStats} />
+          {/* Quick Nav - Big Emoji Buttons */}
+          <div className="grid grid-cols-4 md:grid-cols-8 gap-2 mb-6">
+            {navItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setActiveSection(item.id as ActiveSection)}
+                className={`relative p-3 rounded-2xl flex flex-col items-center gap-1 transition-all hover:scale-105 ${
+                  activeSection === item.id
+                    ? 'bg-gradient-to-br from-purple-500/20 to-pink-500/20 ring-2 ring-purple-500'
+                    : 'bg-white/5 hover:bg-white/10'
+                }`}
+              >
+                <span className="text-2xl">{item.emoji}</span>
+                <span className="text-[10px] font-medium" style={{ color: activeSection === item.id ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+                  {item.label}
+                </span>
+                {item.badge && item.badge > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                    {item.badge}
+                  </span>
+                )}
+              </button>
+            ))}
           </div>
 
-          {/* Banner & Notifications */}
-          <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <SetAdminBanner />
-            <AdminPushNotification />
-          </div>
+          {/* Dashboard Section */}
+          {activeSection === 'dashboard' && (
+            <div className="space-y-4">
+              {/* Stats Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <StatCard emoji="👥" label="Total Users" value={stats?.users.total || 0} color="blue" loading={loadingStats} />
+                <StatCard emoji="🆕" label="New Today" value={stats?.users.recentSignups || 0} color="green" loading={loadingStats} />
+                <StatCard emoji="💎" label="Subscribers" value={stats?.subscriptions.total || 0} color="purple" loading={loadingStats} />
+                <StatCard emoji="🙏" label="Pending" value={stats?.moderation.pendingPrayers || 0} color={stats?.moderation.pendingPrayers ? 'red' : 'green'} loading={loadingStats} />
+              </div>
 
-          {/* Main Panels */}
-          <div className="space-y-3">
-            {/* Activity Feed */}
-            <ConsolePanel title="Activity Feed" icon={<Clock className="w-5 h-5" />} expanded={expandedPanel === 'activity'} onToggle={() => togglePanel('activity')}>
-              {loadingActivity ? (
-                <div className="flex justify-center py-6"><Loader2 className="w-6 h-6 animate-spin text-blue-500" /></div>
-              ) : activities.length === 0 ? (
-                <p className="text-center py-6 text-sm" style={{ color: 'var(--text-secondary)' }}>No recent activity</p>
-              ) : (
-                <div className="space-y-2">
-                  {activities.map((item) => (
-                    <div key={item.id} className="flex items-center gap-3 p-2 rounded-lg" style={{ backgroundColor: 'var(--card-hover)' }}>
-                      {getActivityIcon(item.type)}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{item.title}</p>
-                        <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{item.description}</p>
-                      </div>
-                      <span className="text-xs shrink-0" style={{ color: 'var(--text-secondary)' }}>{formatTimeAgo(item.timestamp)}</span>
-                    </div>
-                  ))}
+              {/* Quick Actions */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <SetAdminBanner />
+                <AdminPushNotification />
+              </div>
+
+              {/* Quick Links */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <QuickLink emoji="🖼️" label="Scenes" href="/admin/scenes" />
+                <QuickLink emoji="📜" label="Legal Docs" href="/admin/legal" />
+                <QuickLink emoji="🔥" label="Firebase" href="https://console.firebase.google.com" external />
+                <QuickLink emoji="▲" label="Vercel" href="https://vercel.com" external />
+              </div>
+            </div>
+          )}
+
+          {/* Users Section */}
+          {activeSection === 'users' && (
+            <div className="space-y-4">
+              <SectionHeader emoji="👥" title="Find a User" subtitle="Search by email to manage their account" />
+
+              {/* View All Users Link */}
+              <Link
+                href="/admin/users"
+                className="flex items-center justify-between p-4 rounded-2xl transition-all hover:scale-[1.02]"
+                style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">📋</span>
+                  <div>
+                    <p className="font-medium" style={{ color: 'var(--text-primary)' }}>View All Users</p>
+                    <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>See full list with IP & location data</p>
+                  </div>
                 </div>
-              )}
-            </ConsolePanel>
+                <ChevronRight className="w-5 h-5" style={{ color: 'var(--text-secondary)' }} />
+              </Link>
 
-            {/* User Lookup */}
-            <ConsolePanel title="User Lookup" icon={<Search className="w-5 h-5" />} expanded={expandedPanel === 'users'} onToggle={() => togglePanel('users')}>
-              <div className="space-y-4">
+              <div className="p-4 rounded-2xl" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
                 <div className="flex gap-2">
                   <input
                     type="email"
                     value={userSearchEmail}
                     onChange={(e) => setUserSearchEmail(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && searchUser()}
-                    placeholder="Search by email..."
-                    className="flex-1 px-3 py-2 rounded-lg text-sm"
+                    placeholder="Enter email address..."
+                    className="flex-1 px-4 py-3 rounded-xl text-sm"
                     style={{ backgroundColor: 'var(--input-bg)', border: '1px solid var(--input-border)', color: 'var(--text-primary)' }}
                   />
-                  <button onClick={searchUser} disabled={searchingUser} className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium disabled:opacity-50">
-                    {searchingUser ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Search'}
+                  <button
+                    onClick={searchUser}
+                    disabled={searchingUser}
+                    className="px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-xl font-medium disabled:opacity-50 transition-all"
+                  >
+                    {searchingUser ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
                   </button>
                 </div>
 
-                {userSearchError && <p className="text-sm text-red-500">{userSearchError}</p>}
+                {userSearchError && <p className="text-red-500 text-sm mt-3">{userSearchError}</p>}
 
                 {foundUser && (
-                  <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--card-hover)' }}>
-                    <div className="flex items-start justify-between mb-3">
+                  <div className="mt-4 p-4 rounded-xl" style={{ backgroundColor: 'var(--card-hover)' }}>
+                    <div className="flex items-start justify-between mb-4">
                       <div>
-                        <p className="font-medium" style={{ color: 'var(--text-primary)' }}>{foundUser.email}</p>
-                        <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{foundUser.displayName || 'No name'}</p>
-                        <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>Joined: {foundUser.createdAt ? new Date(foundUser.createdAt).toLocaleDateString() : 'Unknown'}</p>
+                        <p className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>{foundUser.email}</p>
+                        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{foundUser.displayName || 'No name set'}</p>
+                        <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
+                          Joined: {foundUser.createdAt ? new Date(foundUser.createdAt).toLocaleDateString() : 'Unknown'}
+                        </p>
                       </div>
-                      <div className="text-right">
-                        {foundUser.subscription?.hasPromoAccess && <span className="text-xs px-2 py-1 bg-green-500/10 text-green-500 rounded">Promo Access</span>}
-                        {foundUser.subscription?.hasIosSubscription && <span className="text-xs px-2 py-1 bg-purple-500/10 text-purple-500 rounded ml-1">iOS Sub</span>}
+                      <div className="flex gap-1">
+                        {foundUser.subscription?.hasPromoAccess && (
+                          <span className="text-xs px-2 py-1 bg-green-500/20 text-green-400 rounded-lg">Promo</span>
+                        )}
+                        {foundUser.subscription?.hasIosSubscription && (
+                          <span className="text-xs px-2 py-1 bg-purple-500/20 text-purple-400 rounded-lg">iOS</span>
+                        )}
                       </div>
                     </div>
                     <div className="flex gap-2 flex-wrap">
-                      <button onClick={() => grantUserAccess('free_forever')} disabled={grantingAccess} className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded text-xs font-medium disabled:opacity-50">
-                        Grant Free Access
-                      </button>
-                      <button onClick={() => grantUserAccess('extend_trial')} disabled={grantingAccess} className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs font-medium disabled:opacity-50">
-                        +30 Days Trial
-                      </button>
-                      <button onClick={() => grantUserAccess('revoke')} disabled={grantingAccess} className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded text-xs font-medium disabled:opacity-50">
-                        Revoke Access
-                      </button>
+                      <ActionButton onClick={() => grantUserAccess('free_forever')} disabled={grantingAccess} color="green">
+                        🎁 Free Forever
+                      </ActionButton>
+                      <ActionButton onClick={() => grantUserAccess('extend_trial')} disabled={grantingAccess} color="blue">
+                        ⏰ +30 Days
+                      </ActionButton>
+                      <ActionButton onClick={() => grantUserAccess('revoke')} disabled={grantingAccess} color="red">
+                        ❌ Revoke
+                      </ActionButton>
                     </div>
-                    {foundUser.redeemedCodes && foundUser.redeemedCodes.length > 0 && (
-                      <p className="text-xs mt-2" style={{ color: 'var(--text-secondary)' }}>Codes used: {foundUser.redeemedCodes.join(', ')}</p>
-                    )}
                   </div>
                 )}
               </div>
-            </ConsolePanel>
+            </div>
+          )}
 
-            {/* Whitelist Management */}
-            <ConsolePanel title="Whitelist Management" icon={<UserCheck className="w-5 h-5" />} badge={whitelistEmails.length || undefined} badgeColor="teal" expanded={expandedPanel === 'whitelist'} onToggle={() => togglePanel('whitelist')}>
-              <div className="space-y-4">
-                {/* Add email form */}
-                <div className="space-y-2">
+          {/* Prayers Section */}
+          {activeSection === 'prayers' && (
+            <div className="space-y-4">
+              <SectionHeader emoji="🙏" title="Prayer Requests" subtitle="Review and approve community prayers" />
+
+              {loadingPrayers ? (
+                <LoadingState />
+              ) : pendingPrayers.length === 0 ? (
+                <EmptyState emoji="✨" message="All caught up! No pending prayers." />
+              ) : (
+                <div className="space-y-3">
+                  {pendingPrayers.map((prayer) => (
+                    <div key={prayer.id} className="p-4 rounded-2xl" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <p className="font-medium" style={{ color: 'var(--text-primary)' }}>{prayer.name || 'Anonymous'}</p>
+                          <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>{prayer.request}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handlePrayerAction(prayer.id, 'approve')}
+                            disabled={processingPrayer === prayer.id}
+                            className="p-3 bg-green-500/20 hover:bg-green-500/30 rounded-xl transition-colors"
+                          >
+                            <Check className="w-5 h-5 text-green-500" />
+                          </button>
+                          <button
+                            onClick={() => handlePrayerAction(prayer.id, 'reject')}
+                            disabled={processingPrayer === prayer.id}
+                            className="p-3 bg-red-500/20 hover:bg-red-500/30 rounded-xl transition-colors"
+                          >
+                            <X className="w-5 h-5 text-red-500" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Promos Section */}
+          {activeSection === 'promos' && (
+            <div className="space-y-4">
+              <SectionHeader emoji="🎁" title="Promo Codes" subtitle="Create and manage discount codes" />
+
+              <div className="p-4 rounded-2xl" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
+                <div className="flex gap-2 mb-4">
+                  <input
+                    type="text"
+                    value={newPromoCode}
+                    onChange={(e) => setNewPromoCode(e.target.value.toUpperCase())}
+                    placeholder="CODE"
+                    className="flex-1 px-4 py-3 rounded-xl text-sm uppercase font-mono"
+                    style={{ backgroundColor: 'var(--input-bg)', border: '1px solid var(--input-border)', color: 'var(--text-primary)' }}
+                  />
+                  <select
+                    value={newPromoType}
+                    onChange={(e) => setNewPromoType(e.target.value)}
+                    className="px-4 py-3 rounded-xl text-sm"
+                    style={{ backgroundColor: 'var(--input-bg)', border: '1px solid var(--input-border)', color: 'var(--text-primary)' }}
+                  >
+                    <option value="free_forever">Free Forever</option>
+                    <option value="free_trial_extension">+30 Days</option>
+                    <option value="discount_percent">50% Off</option>
+                  </select>
+                  <button
+                    onClick={handleQuickPromo}
+                    disabled={creatingPromo || !newPromoCode.trim()}
+                    className="px-6 py-3 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white rounded-xl font-medium disabled:opacity-50 transition-all"
+                  >
+                    {creatingPromo ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Create'}
+                  </button>
+                </div>
+
+                {loadingPromos ? (
+                  <LoadingState />
+                ) : promoCodes.length === 0 ? (
+                  <EmptyState emoji="🎫" message="No promo codes yet" />
+                ) : (
+                  <div className="space-y-2">
+                    {promoCodes.map((promo) => (
+                      <div
+                        key={promo.code}
+                        className={`flex items-center justify-between p-3 rounded-xl ${!promo.isActive ? 'opacity-50' : ''}`}
+                        style={{ backgroundColor: 'var(--card-hover)' }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="font-mono font-bold" style={{ color: 'var(--text-primary)' }}>{promo.code}</span>
+                          <span className="text-xs px-2 py-1 rounded-lg bg-purple-500/20 text-purple-400">
+                            {promo.type === 'free_forever' ? 'FREE' : promo.type === 'free_trial_extension' ? '+30 DAYS' : '50% OFF'}
+                          </span>
+                          <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                            {promo.currentUses} uses
+                          </span>
+                        </div>
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => togglePromoStatus(promo.code, promo.isActive)}
+                            className={`p-2 rounded-lg ${promo.isActive ? 'bg-green-500/20' : 'bg-gray-500/20'}`}
+                          >
+                            {promo.isActive ? <Check className="w-4 h-4 text-green-500" /> : <X className="w-4 h-4 text-gray-500" />}
+                          </button>
+                          <button onClick={() => deletePromo(promo.code)} className="p-2 rounded-lg bg-red-500/20 hover:bg-red-500/30">
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Whitelist Section */}
+          {activeSection === 'whitelist' && (
+            <div className="space-y-4">
+              <SectionHeader emoji="✅" title="VIP List" subtitle="Premium access for special people" />
+
+              <div className="p-4 rounded-2xl" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
+                <div className="space-y-3 mb-4">
                   <div className="flex gap-2">
                     <input
                       type="email"
                       value={newWhitelistEmail}
                       onChange={(e) => setNewWhitelistEmail(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && addToWhitelist()}
                       placeholder="email@example.com"
-                      className="flex-1 px-3 py-2 rounded-lg text-sm"
+                      className="flex-1 px-4 py-3 rounded-xl text-sm"
                       style={{ backgroundColor: 'var(--input-bg)', border: '1px solid var(--input-border)', color: 'var(--text-primary)' }}
                     />
                     <select
                       value={newWhitelistRole}
                       onChange={(e) => setNewWhitelistRole(e.target.value as 'user' | 'admin' | 'developer' | 'owner')}
-                      className="px-3 py-2 rounded-lg text-sm"
+                      className="px-4 py-3 rounded-xl text-sm"
                       style={{ backgroundColor: 'var(--input-bg)', border: '1px solid var(--input-border)', color: 'var(--text-primary)' }}
                     >
-                      <option value="user">User (Premium only)</option>
+                      <option value="user">User</option>
                       <option value="admin">Admin</option>
                       <option value="developer">Developer</option>
                       <option value="owner">Owner</option>
                     </select>
-                    <button onClick={addToWhitelist} disabled={addingWhitelist || !newWhitelistEmail.trim()} className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg text-sm font-medium disabled:opacity-50">
-                      {addingWhitelist ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Add'}
+                    <button
+                      onClick={addToWhitelist}
+                      disabled={addingWhitelist || !newWhitelistEmail.trim()}
+                      className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium disabled:opacity-50"
+                    >
+                      {addingWhitelist ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Add'}
                     </button>
                   </div>
                   <input
                     type="text"
                     value={newWhitelistNote}
                     onChange={(e) => setNewWhitelistNote(e.target.value)}
-                    placeholder="Note (optional) - e.g. 'Pastor Smith'"
-                    className="w-full px-3 py-2 rounded-lg text-sm"
+                    placeholder="Note (optional)"
+                    className="w-full px-4 py-3 rounded-xl text-sm"
                     style={{ backgroundColor: 'var(--input-bg)', border: '1px solid var(--input-border)', color: 'var(--text-primary)' }}
                   />
-                  {whitelistError && <p className="text-sm text-red-500">{whitelistError}</p>}
+                  {whitelistError && <p className="text-red-500 text-sm">{whitelistError}</p>}
                 </div>
 
-                {/* Whitelisted emails list */}
                 {loadingWhitelist ? (
-                  <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-teal-500" /></div>
+                  <LoadingState />
                 ) : whitelistEmails.length === 0 ? (
-                  <p className="text-center py-4 text-sm" style={{ color: 'var(--text-secondary)' }}>No emails in whitelist</p>
+                  <EmptyState emoji="📋" message="VIP list is empty" />
                 ) : (
                   <div className="space-y-2">
                     {whitelistEmails.map((entry) => {
@@ -665,50 +725,41 @@ export default function AdminConsole() {
                         admin: 'bg-amber-500/20 text-amber-400',
                         user: 'bg-green-500/20 text-green-400',
                       };
-                      const role = entry.role || 'user';
                       const isEditing = editingWhitelistEmail === entry.email;
 
-                      // Edit mode
                       if (isEditing) {
                         return (
-                          <div key={entry.email} className="p-3 rounded-lg space-y-2" style={{ backgroundColor: 'var(--card-hover)', border: '1px solid var(--accent-primary, #3b82f6)' }}>
-                            <div className="flex items-center gap-2">
-                              <p className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>{entry.email}</p>
-                              <span className="text-xs px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400">editing</span>
-                            </div>
+                          <div key={entry.email} className="p-3 rounded-xl space-y-2" style={{ backgroundColor: 'var(--card-hover)', border: '2px solid var(--accent-primary, #8b5cf6)' }}>
+                            <p className="font-medium" style={{ color: 'var(--text-primary)' }}>{entry.email}</p>
                             <div className="flex gap-2">
                               <select
                                 value={editWhitelistRole}
                                 onChange={(e) => setEditWhitelistRole(e.target.value as 'user' | 'admin' | 'developer' | 'owner')}
-                                className="flex-1 px-2 py-1.5 rounded text-sm"
+                                className="flex-1 px-3 py-2 rounded-lg text-sm"
                                 style={{ backgroundColor: 'var(--input-bg)', border: '1px solid var(--input-border)', color: 'var(--text-primary)' }}
                               >
-                                <option value="user">User (Premium only)</option>
+                                <option value="user">User</option>
                                 <option value="admin">Admin</option>
                                 <option value="developer">Developer</option>
                                 <option value="owner">Owner</option>
                               </select>
+                              <input
+                                type="text"
+                                value={editWhitelistNote}
+                                onChange={(e) => setEditWhitelistNote(e.target.value)}
+                                placeholder="Note"
+                                className="flex-1 px-3 py-2 rounded-lg text-sm"
+                                style={{ backgroundColor: 'var(--input-bg)', border: '1px solid var(--input-border)', color: 'var(--text-primary)' }}
+                              />
                             </div>
-                            <input
-                              type="text"
-                              value={editWhitelistNote}
-                              onChange={(e) => setEditWhitelistNote(e.target.value)}
-                              placeholder="Note (optional)"
-                              className="w-full px-2 py-1.5 rounded text-sm"
-                              style={{ backgroundColor: 'var(--input-bg)', border: '1px solid var(--input-border)', color: 'var(--text-primary)' }}
-                            />
                             <div className="flex gap-2 justify-end">
-                              <button
-                                onClick={cancelEditingWhitelist}
-                                className="px-3 py-1 rounded text-sm"
-                                style={{ backgroundColor: 'var(--card-bg)', color: 'var(--text-primary)' }}
-                              >
+                              <button onClick={cancelEditingWhitelist} className="px-4 py-2 rounded-lg text-sm" style={{ backgroundColor: 'var(--card-bg)', color: 'var(--text-primary)' }}>
                                 Cancel
                               </button>
                               <button
                                 onClick={updateWhitelist}
                                 disabled={updatingWhitelist}
-                                className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm disabled:opacity-50"
+                                className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-sm disabled:opacity-50"
                               >
                                 {updatingWhitelist ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
                               </button>
@@ -717,24 +768,23 @@ export default function AdminConsole() {
                         );
                       }
 
-                      // Display mode
                       return (
-                        <div key={entry.email} className="flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: 'var(--card-hover)' }}>
+                        <div key={entry.email} className="flex items-center justify-between p-3 rounded-xl" style={{ backgroundColor: 'var(--card-hover)' }}>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                               <p className="font-medium text-sm truncate" style={{ color: 'var(--text-primary)' }}>{entry.email}</p>
-                              <span className={`text-xs px-1.5 py-0.5 rounded ${roleColors[role]}`}>{role}</span>
-                              {entry.isBuiltIn && <span className="text-xs px-1.5 py-0.5 rounded bg-gray-500/20 text-gray-400">built-in</span>}
+                              <span className={`text-xs px-2 py-0.5 rounded-lg ${roleColors[entry.role || 'user']}`}>
+                                {entry.role || 'user'}
+                              </span>
                             </div>
                             {entry.note && <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{entry.note}</p>}
-                            {entry.addedAt && <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>Added {new Date(entry.addedAt).toLocaleDateString()}</p>}
                           </div>
                           {!entry.isBuiltIn && (
                             <div className="flex gap-1 ml-2">
-                              <button onClick={() => startEditingWhitelist(entry)} className="p-2 rounded-lg bg-blue-500/10 hover:bg-blue-500/20" title="Edit">
+                              <button onClick={() => startEditingWhitelist(entry)} className="p-2 rounded-lg bg-blue-500/20 hover:bg-blue-500/30">
                                 <Pencil className="w-4 h-4 text-blue-500" />
                               </button>
-                              <button onClick={() => removeFromWhitelist(entry.email)} className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20" title="Remove">
+                              <button onClick={() => removeFromWhitelist(entry.email)} className="p-2 rounded-lg bg-red-500/20 hover:bg-red-500/30">
                                 <Trash2 className="w-4 h-4 text-red-500" />
                               </button>
                             </div>
@@ -744,247 +794,206 @@ export default function AdminConsole() {
                     })}
                   </div>
                 )}
-
-                <div className="text-xs text-center space-y-1" style={{ color: 'var(--text-secondary)' }}>
-                  <p>Roles: <span className="text-purple-400">owner</span>, <span className="text-blue-400">developer</span>, <span className="text-amber-400">admin</span> = Admin access</p>
-                  <p><span className="text-green-400">user</span> = Premium only (no admin)</p>
-                </div>
               </div>
-            </ConsolePanel>
+            </div>
+          )}
 
-            {/* Prayer Moderation */}
-            <ConsolePanel title="Prayer Moderation" icon={<Shield className="w-5 h-5" />} badge={pendingPrayers.length || undefined} badgeColor="amber" expanded={expandedPanel === 'moderation'} onToggle={() => togglePanel('moderation')}>
-              {loadingPrayers ? (
-                <div className="flex justify-center py-6"><Loader2 className="w-6 h-6 animate-spin text-blue-500" /></div>
-              ) : pendingPrayers.length === 0 ? (
-                <div className="text-center py-6">
-                  <Check className="w-8 h-8 mx-auto mb-2 text-green-500" />
-                  <p style={{ color: 'var(--text-secondary)' }}>All caught up!</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {pendingPrayers.map((prayer) => (
-                    <div key={prayer.id} className="p-3 rounded-lg" style={{ backgroundColor: 'var(--card-hover)' }}>
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>{prayer.name || 'Anonymous'}</p>
-                          <p className="text-sm mt-1 line-clamp-2" style={{ color: 'var(--text-secondary)' }}>{prayer.request}</p>
-                        </div>
-                        <div className="flex gap-2 shrink-0">
-                          <button onClick={() => handlePrayerAction(prayer.id, 'approve')} disabled={processingPrayer === prayer.id} className="p-2 bg-green-500/10 hover:bg-green-500/20 rounded-lg" title="Approve">
-                            <Check className="w-4 h-4 text-green-500" />
-                          </button>
-                          <button onClick={() => handlePrayerAction(prayer.id, 'reject')} disabled={processingPrayer === prayer.id} className="p-2 bg-red-500/10 hover:bg-red-500/20 rounded-lg" title="Reject">
-                            <X className="w-4 h-4 text-red-500" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  <Link href="/admin/prayer-moderation" className="block text-center text-sm text-blue-500 hover:text-blue-400 py-2">View all →</Link>
-                </div>
-              )}
-            </ConsolePanel>
+          {/* Toasts Section */}
+          {activeSection === 'toasts' && (
+            <div className="p-4 rounded-2xl" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
+              <AdminToastManager />
+            </div>
+          )}
 
-            {/* Promo Codes */}
-            <ConsolePanel title="Promo Codes" icon={<Gift className="w-5 h-5" />} badge={`${promoCodes.length}/10`} badgeColor="teal" expanded={expandedPanel === 'promos'} onToggle={() => togglePanel('promos')}>
-              <div className="flex gap-2 mb-4">
-                <input type="text" value={newPromoCode} onChange={(e) => setNewPromoCode(e.target.value.toUpperCase())} placeholder="CODE" className="flex-1 px-3 py-2 rounded-lg text-sm uppercase" style={{ backgroundColor: 'var(--input-bg)', border: '1px solid var(--input-border)', color: 'var(--text-primary)' }} />
-                <select value={newPromoType} onChange={(e) => setNewPromoType(e.target.value)} className="px-3 py-2 rounded-lg text-sm" style={{ backgroundColor: 'var(--input-bg)', border: '1px solid var(--input-border)', color: 'var(--text-primary)' }}>
-                  <option value="free_forever">Free Forever</option>
-                  <option value="free_trial_extension">+30 Days</option>
-                  <option value="discount_percent">50% Off</option>
-                </select>
-                <button onClick={handleQuickPromo} disabled={creatingPromo || !newPromoCode.trim() || promoCodes.length >= 10} className="px-4 py-2 bg-teal-500 hover:bg-teal-600 disabled:opacity-50 text-white rounded-lg text-sm font-medium">
-                  {creatingPromo ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Add'}
-                </button>
+          {/* Messages Section */}
+          {activeSection === 'messages' && (
+            <div className="space-y-4">
+              <SectionHeader emoji="💭" title="Pastor AI Stats" subtitle="Anonymous usage statistics" />
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <StatCard emoji="💬" label="Total Convos" value={stats?.pastoralGuidance?.totalConversations || 0} color="blue" loading={loadingStats} />
+                <StatCard emoji="📝" label="Messages" value={stats?.pastoralGuidance?.totalMessages || 0} color="purple" loading={loadingStats} />
+                <StatCard emoji="👍" label="Helpful" value={stats?.pastoralGuidance?.helpfulCount || 0} color="green" loading={loadingStats} />
+                <StatCard emoji="👎" label="Not Helpful" value={stats?.pastoralGuidance?.notHelpfulCount || 0} color="red" loading={loadingStats} />
               </div>
-              {loadingPromos ? (
-                <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-blue-500" /></div>
-              ) : promoCodes.length === 0 ? (
-                <p className="text-center py-4 text-sm" style={{ color: 'var(--text-secondary)' }}>No promo codes</p>
-              ) : (
-                <div className="space-y-2">
-                  {promoCodes.map((promo) => (
-                    <div key={promo.code} className={`flex items-center justify-between p-2 rounded-lg ${!promo.isActive ? 'opacity-50' : ''}`} style={{ backgroundColor: 'var(--card-hover)' }}>
-                      <div className="flex items-center gap-3">
-                        <span className="font-mono font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{promo.code}</span>
-                        <span className="text-xs px-2 py-0.5 rounded" style={{ backgroundColor: 'var(--card-bg)', color: 'var(--text-secondary)' }}>
-                          {promo.type === 'free_forever' ? 'FREE' : promo.type === 'free_trial_extension' ? '+TRIAL' : 'DISCOUNT'}
-                        </span>
-                        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{promo.currentUses}{promo.maxUses ? `/${promo.maxUses}` : ''}</span>
-                      </div>
-                      <div className="flex gap-1">
-                        <button onClick={() => togglePromoStatus(promo.code, promo.isActive)} className={`p-1.5 rounded ${promo.isActive ? 'bg-green-500/10' : 'bg-gray-500/10'}`}>
-                          {promo.isActive ? <Check className="w-3.5 h-3.5 text-green-500" /> : <X className="w-3.5 h-3.5 text-gray-500" />}
-                        </button>
-                        <button onClick={() => deletePromo(promo.code)} className="p-1.5 rounded bg-red-500/10 hover:bg-red-500/20">
-                          <X className="w-3.5 h-3.5 text-red-500" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </ConsolePanel>
 
-            {/* Pastoral Guidance Usage */}
-            <ConsolePanel title="Pastoral Guidance" icon={<MessageCircle className="w-5 h-5" />} expanded={expandedPanel === 'messages'} onToggle={() => togglePanel('messages')}>
-              <div className="space-y-4">
-                {/* Usage Stats Grid */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--card-hover)' }}>
-                    <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>Total Conversations</p>
-                    <p className="text-2xl font-bold text-blue-400">{stats?.pastoralGuidance?.totalConversations || 0}</p>
-                  </div>
-                  <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--card-hover)' }}>
-                    <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>Total Messages</p>
-                    <p className="text-2xl font-bold text-purple-400">{stats?.pastoralGuidance?.totalMessages || 0}</p>
-                  </div>
-                  <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--card-hover)' }}>
-                    <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>This Week</p>
-                    <p className="text-2xl font-bold text-green-400">{stats?.pastoralGuidance?.weeklyConversations || 0} <span className="text-sm font-normal">convos</span></p>
-                  </div>
-                  <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--card-hover)' }}>
-                    <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>User Feedback</p>
-                    <div className="flex items-center gap-2">
-                      <span className="text-green-400">👍 {stats?.pastoralGuidance?.helpfulCount || 0}</span>
-                      <span className="text-red-400">👎 {stats?.pastoralGuidance?.notHelpfulCount || 0}</span>
-                    </div>
-                  </div>
-                </div>
-                <p className="text-xs text-center" style={{ color: 'var(--text-secondary)' }}>
-                  Anonymous usage stats only - content not visible
+              <div className="p-4 rounded-2xl text-center" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
+                <p className="text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>
+                  Content is private. Only anonymous stats are shown.
                 </p>
-                <Link href="/admin/pastoral-messages" className="block text-center px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white rounded-lg text-sm font-medium">
+                <Link
+                  href="/admin/pastoral-messages"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl font-medium"
+                >
                   View Flagged Messages
+                  <ChevronRight className="w-4 h-4" />
                 </Link>
               </div>
-            </ConsolePanel>
+            </div>
+          )}
 
-            {/* Settings */}
-            <ConsolePanel title="Settings" icon={<Settings className="w-5 h-5" />} expanded={expandedPanel === 'settings'} onToggle={() => togglePanel('settings')}>
-              <div className="space-y-4">
-                {/* Password */}
-                <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--card-hover)' }}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Key className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
-                      <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Admin Password</span>
+          {/* Settings Section */}
+          {activeSection === 'settings' && (
+            <div className="space-y-4">
+              <SectionHeader emoji="⚙️" title="Settings" subtitle="Admin configuration" />
+
+              {/* Password */}
+              <div className="p-4 rounded-2xl" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">🔐</span>
+                    <div>
+                      <p className="font-medium" style={{ color: 'var(--text-primary)' }}>Admin Password</p>
+                      <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>Change your admin login</p>
                     </div>
-                    {!showPasswordForm && <button onClick={() => setShowPasswordForm(true)} className="text-sm text-blue-500">Change</button>}
                   </div>
-                  {showPasswordForm && (
-                    <form onSubmit={handlePasswordChange} className="mt-3 space-y-2">
-                      {passwordMessage.text && <div className={`p-2 rounded text-sm ${passwordMessage.type === 'error' ? 'bg-red-500/10 text-red-500' : 'bg-green-500/10 text-green-500'}`}>{passwordMessage.text}</div>}
-                      <div className="relative">
-                        <input type={showPassword ? 'text' : 'password'} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="New password" className="w-full px-3 py-2 rounded-lg text-sm pr-10" style={{ backgroundColor: 'var(--input-bg)', border: '1px solid var(--input-border)', color: 'var(--text-primary)' }} />
-                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-2 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-secondary)' }}>
-                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
-                      </div>
-                      <input type={showPassword ? 'text' : 'password'} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm" className="w-full px-3 py-2 rounded-lg text-sm" style={{ backgroundColor: 'var(--input-bg)', border: '1px solid var(--input-border)', color: 'var(--text-primary)' }} />
-                      <div className="flex gap-2">
-                        <button type="submit" className="flex-1 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium">Update</button>
-                        <button type="button" onClick={() => { setShowPasswordForm(false); setNewPassword(''); setConfirmPassword(''); }} className="px-3 py-2 rounded-lg text-sm" style={{ backgroundColor: 'var(--card-bg)', color: 'var(--text-primary)' }}>Cancel</button>
-                      </div>
-                    </form>
+                  {!showPasswordForm && (
+                    <button onClick={() => setShowPasswordForm(true)} className="px-4 py-2 bg-purple-500/20 text-purple-400 rounded-xl font-medium">
+                      Change
+                    </button>
                   )}
                 </div>
-                {/* Internal Links */}
-                <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--card-hover)' }}>
-                  <Link href="/admin/scenes" className="flex items-center justify-between hover:opacity-80 transition">
-                    <div className="flex items-center gap-2">
-                      <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Weather & Holiday Scenes</span>
+                {showPasswordForm && (
+                  <form onSubmit={handlePasswordChange} className="mt-4 space-y-3">
+                    {passwordMessage.text && (
+                      <div className={`p-3 rounded-xl text-sm ${passwordMessage.type === 'error' ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}>
+                        {passwordMessage.text}
+                      </div>
+                    )}
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="New password"
+                        className="w-full px-4 py-3 rounded-xl text-sm pr-12"
+                        style={{ backgroundColor: 'var(--input-bg)', border: '1px solid var(--input-border)', color: 'var(--text-primary)' }}
+                      />
+                      <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2">
+                        {showPassword ? <EyeOff className="w-5 h-5" style={{ color: 'var(--text-secondary)' }} /> : <Eye className="w-5 h-5" style={{ color: 'var(--text-secondary)' }} />}
+                      </button>
                     </div>
-                    <span className="text-xs text-purple-400">Manage →</span>
-                  </Link>
-                </div>
-                <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--card-hover)' }}>
-                  <Link href="/admin/legal" className="flex items-center justify-between hover:opacity-80 transition">
-                    <div className="flex items-center gap-2">
-                      <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Legal Documents</span>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Confirm password"
+                      className="w-full px-4 py-3 rounded-xl text-sm"
+                      style={{ backgroundColor: 'var(--input-bg)', border: '1px solid var(--input-border)', color: 'var(--text-primary)' }}
+                    />
+                    <div className="flex gap-2">
+                      <button type="submit" className="flex-1 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-xl font-medium">
+                        Update
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setShowPasswordForm(false); setNewPassword(''); setConfirmPassword(''); }}
+                        className="px-6 py-3 rounded-xl font-medium"
+                        style={{ backgroundColor: 'var(--card-hover)', color: 'var(--text-primary)' }}
+                      >
+                        Cancel
+                      </button>
                     </div>
-                    <span className="text-xs text-amber-400">Review →</span>
-                  </Link>
-                </div>
-                {/* External Links */}
-                <div className="grid grid-cols-2 gap-2">
-                  <ExternalLinkCard href="https://supabase.com/dashboard/project/fteolzeggftsjevmseyn" label="Supabase" icon={<Database className="w-4 h-4 text-green-500" />} />
-                  <ExternalLinkCard href="https://vercel.com/doug-gilfords-projects/busy-preacher-mvp" label="Vercel" icon={<Activity className="w-4 h-4 text-blue-500" />} />
-                  <ExternalLinkCard href="https://console.firebase.google.com" label="Firebase" icon={<Database className="w-4 h-4 text-amber-500" />} />
-                  <ExternalLinkCard href="https://squareup.com/dashboard" label="Square" icon={<DollarSign className="w-4 h-4 text-purple-500" />} />
-                </div>
+                  </form>
+                )}
               </div>
-            </ConsolePanel>
-          </div>
+
+              {/* External Links */}
+              <div className="grid grid-cols-2 gap-3">
+                <QuickLink emoji="🔥" label="Firebase Console" href="https://console.firebase.google.com" external />
+                <QuickLink emoji="▲" label="Vercel Dashboard" href="https://vercel.com" external />
+                <QuickLink emoji="💾" label="Supabase" href="https://supabase.com/dashboard" external />
+                <QuickLink emoji="💳" label="Square Dashboard" href="https://squareup.com/dashboard" external />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </AdminAuth>
   );
 }
 
-// Stat Card
-function StatCard({ label, value, icon, color, suffix = '', loading }: { label: string; value: number | string; icon: React.ReactNode; color: string; suffix?: string; loading?: boolean }) {
+// Helper Components
+function StatCard({ emoji, label, value, color, loading }: { emoji: string; label: string; value: number | string; color: string; loading?: boolean }) {
   const colors: Record<string, string> = {
-    blue: 'text-blue-500 bg-blue-500/10',
-    green: 'text-green-500 bg-green-500/10',
-    purple: 'text-purple-500 bg-purple-500/10',
-    amber: 'text-amber-500 bg-amber-500/10',
-    red: 'text-red-500 bg-red-500/10',
-    teal: 'text-teal-500 bg-teal-500/10',
+    blue: 'from-blue-500/20 to-cyan-500/20 text-blue-400',
+    green: 'from-green-500/20 to-emerald-500/20 text-green-400',
+    purple: 'from-purple-500/20 to-pink-500/20 text-purple-400',
+    red: 'from-red-500/20 to-orange-500/20 text-red-400',
   };
   return (
-    <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
-      <div className="flex items-center gap-2 mb-1">
-        <div className={`p-1 rounded ${colors[color]}`}>{icon}</div>
-        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{label}</span>
+    <div className={`p-4 rounded-2xl bg-gradient-to-br ${colors[color]}`} style={{ border: '1px solid var(--card-border)' }}>
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-xl">{emoji}</span>
+        <span className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{label}</span>
       </div>
       {loading ? (
-        <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+        <Loader2 className="w-6 h-6 animate-spin" />
       ) : (
-        <p className={`text-xl font-bold ${colors[color].split(' ')[0]}`}>{value}{suffix}</p>
+        <p className="text-2xl font-bold">{value}</p>
       )}
     </div>
   );
 }
 
-// Console Panel
-function ConsolePanel({ title, icon, badge, badgeColor = 'blue', expanded, onToggle, children }: { title: string; icon: React.ReactNode; badge?: string | number; badgeColor?: string; expanded: boolean; onToggle: () => void; children: React.ReactNode }) {
-  const badgeColors: Record<string, string> = {
-    blue: 'bg-blue-500/10 text-blue-500',
-    amber: 'bg-amber-500/10 text-amber-500',
-    teal: 'bg-teal-500/10 text-teal-500',
-    pink: 'bg-pink-500/10 text-pink-500',
-  };
+function SectionHeader({ emoji, title, subtitle }: { emoji: string; title: string; subtitle: string }) {
   return (
-    <div className="rounded-xl overflow-hidden" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
-      <button onClick={onToggle} className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-        <div className="flex items-center gap-3">
-          <div style={{ color: 'var(--text-primary)' }}>{icon}</div>
-          <span className="font-medium" style={{ color: 'var(--text-primary)' }}>{title}</span>
-          {badge !== undefined && <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${badgeColors[badgeColor]}`}>{badge}</span>}
-        </div>
-        {expanded ? <ChevronUp className="w-5 h-5" style={{ color: 'var(--text-secondary)' }} /> : <ChevronDown className="w-5 h-5" style={{ color: 'var(--text-secondary)' }} />}
-      </button>
-      {expanded && <div className="px-4 pb-4" style={{ borderTop: '1px solid var(--card-border)' }}><div className="pt-4">{children}</div></div>}
+    <div className="flex items-center gap-3 mb-2">
+      <span className="text-3xl">{emoji}</span>
+      <div>
+        <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{title}</h2>
+        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{subtitle}</p>
+      </div>
     </div>
   );
 }
 
-// External Link Card
-function ExternalLinkCard({ href, label, icon }: { href: string; label: string; icon: React.ReactNode }) {
+function QuickLink({ emoji, label, href, external }: { emoji: string; label: string; href: string; external?: boolean }) {
+  const Component = external ? 'a' : Link;
+  const props = external ? { href, target: '_blank', rel: 'noopener noreferrer' } : { href };
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" style={{ backgroundColor: 'var(--card-hover)' }}>
-      {icon}
-      <span className="text-sm" style={{ color: 'var(--text-primary)' }}>{label}</span>
-      <ExternalLink className="w-3 h-3 ml-auto" style={{ color: 'var(--text-secondary)' }} />
-    </a>
+    <Component
+      {...props}
+      className="flex items-center gap-3 p-4 rounded-2xl transition-all hover:scale-[1.02]"
+      style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
+    >
+      <span className="text-2xl">{emoji}</span>
+      <span className="font-medium flex-1" style={{ color: 'var(--text-primary)' }}>{label}</span>
+      {external ? <ExternalLink className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} /> : <ChevronRight className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />}
+    </Component>
+  );
+}
+
+function ActionButton({ onClick, disabled, color, children }: { onClick: () => void; disabled?: boolean; color: string; children: React.ReactNode }) {
+  const colors: Record<string, string> = {
+    green: 'from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600',
+    blue: 'from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600',
+    red: 'from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600',
+  };
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`px-4 py-2 bg-gradient-to-r ${colors[color]} text-white rounded-xl text-sm font-medium disabled:opacity-50 transition-all`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function LoadingState() {
+  return (
+    <div className="flex justify-center py-8">
+      <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+    </div>
+  );
+}
+
+function EmptyState({ emoji, message }: { emoji: string; message: string }) {
+  return (
+    <div className="text-center py-8">
+      <span className="text-4xl mb-3 block">{emoji}</span>
+      <p style={{ color: 'var(--text-secondary)' }}>{message}</p>
+    </div>
   );
 }

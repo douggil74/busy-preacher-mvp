@@ -33,6 +33,7 @@ import { TrialWelcomeModal } from '@/components/TrialWelcomeModal';
 import { usePlatform } from '@/hooks/usePlatform';
 import { useAuth } from '@/contexts/AuthContext';
 import WeatherHeader from '@/components/WeatherHeader';
+import InAppToast from '@/components/InAppToast';
 
 function copyToClipboard(text: string) {
   if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
@@ -1126,6 +1127,7 @@ const handleKeywordResultSelect = (reference: string) => {
   return (
     <RequireAuth>
     <Paywall>
+    <InAppToast />
     <main className="px-6 pt-10 pb-8 max-w-4xl mx-auto relative">
 
 

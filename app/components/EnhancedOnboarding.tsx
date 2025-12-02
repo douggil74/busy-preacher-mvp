@@ -292,10 +292,10 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="bg-slate-900 rounded-2xl border-2 border-yellow-400/30 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 pb-safe">
+      <div className="bg-slate-900 rounded-2xl border-2 border-yellow-400/30 max-w-2xl w-full max-h-[85vh] flex flex-col">
         {/* Progress Bar */}
-        <div className="sticky top-0 bg-slate-900/95 backdrop-blur px-8 pt-6 pb-4 border-b border-white/10">
+        <div className="flex-shrink-0 bg-slate-900 px-8 pt-6 pb-4 border-b border-white/10">
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm text-white/60">Step {step} of {totalSteps}</span>
             <span className="text-sm text-white/60">{Math.round((step / totalSteps) * 100)}%</span>
@@ -308,8 +308,8 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-8">
+        {/* Content - scrollable area */}
+        <div className="p-8 flex-1 overflow-y-auto">
           {/* Step 0: Sign In/Up */}
           {step === 0 && (
             <div className="space-y-6 text-center">
@@ -782,8 +782,8 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
           )}
         </div>
 
-        {/* Navigation */}
-        <div className="sticky bottom-0 bg-slate-900/95 backdrop-blur px-8 py-6 border-t border-white/10">
+        {/* Navigation - always visible at bottom */}
+        <div className="flex-shrink-0 bg-slate-900 px-8 py-4 border-t border-white/10">
           <div className="flex gap-4">
             {step > 1 && (
               <button

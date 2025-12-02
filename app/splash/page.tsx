@@ -141,11 +141,11 @@ export default function SplashPage() {
           top: '50%',
           left: '50%',
           transform: phase === 'enter'
-            ? 'translate(-50%, -50%) scale(0.9)'
+            ? 'translate(-50%, -50%) scale(0.95)'
             : phase === 'hold'
             ? 'translate(-50%, -50%) scale(1)'
-            : 'translate(-50%, -55%) scale(1.02)',
-          opacity: phase === 'hold' ? 1 : 0,
+            : 'translate(-50%, -52%) scale(1.02)',
+          opacity: phase === 'enter' ? 0.7 : phase === 'hold' ? 1 : 0,
           transition: 'all 0.8s ease-out',
           display: 'flex',
           flexDirection: 'column',

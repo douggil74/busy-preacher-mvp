@@ -391,7 +391,7 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
                         value={phoneFirstName}
                         onChange={(e) => setPhoneFirstName(e.target.value)}
                         placeholder="First name"
-                        className="w-full px-4 py-3 rounded-lg bg-white/5 border-2 border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
+                        className="w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:border-yellow-400/50 bg-slate-800 border-slate-600 text-white placeholder:text-slate-400"
                         required
                       />
                       <input
@@ -399,7 +399,7 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
                         value={formatPhoneDisplay(phoneNumber)}
                         onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
                         placeholder="(555) 555-5555"
-                        className="w-full px-4 py-3 rounded-lg bg-white/5 border-2 border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
+                        className="w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:border-yellow-400/50 bg-slate-800 border-slate-600 text-white placeholder:text-slate-400"
                         required
                       />
                       <button
@@ -417,7 +417,7 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
                         value={verificationCode}
                         onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                         placeholder="123456"
-                        className="w-full px-4 py-3 rounded-lg bg-white/5 border-2 border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50 text-center text-2xl tracking-widest"
+                        className="w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:border-yellow-400/50 text-center text-2xl tracking-widest bg-slate-800 border-slate-600 text-white placeholder:text-slate-400"
                         maxLength={6}
                         required
                       />
@@ -449,7 +449,7 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
                       value={authEmail}
                       onChange={(e) => setAuthEmail(e.target.value)}
                       placeholder="Email address"
-                      className="w-full px-4 py-3 rounded-lg bg-white/5 border-2 border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
+                      className="w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:border-yellow-400/50 bg-slate-800 border-slate-600 text-white placeholder:text-slate-400"
                       required
                     />
 
@@ -459,7 +459,7 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
                         value={authPassword}
                         onChange={(e) => setAuthPassword(e.target.value)}
                         placeholder="Password (min 6 characters)"
-                        className="w-full px-4 py-3 rounded-lg bg-white/5 border-2 border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50"
+                        className="w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:border-yellow-400/50 bg-slate-800 border-slate-600 text-white placeholder:text-slate-400"
                         required
                         minLength={6}
                       />
@@ -591,7 +591,7 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
                     value={data.name}
                     onChange={(e) => updateData({ name: e.target.value })}
                     placeholder="Enter your first name"
-                    className="w-full px-4 py-3 rounded-lg bg-white/5 border-2 border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50 transition-colors"
+                    className="w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:border-yellow-400/50 transition-colors bg-slate-800 border-slate-600 text-white placeholder:text-slate-400"
                     autoFocus
                   />
                 </div>
@@ -702,7 +702,7 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
               {data.studyGoal === "Other" && (
                 <textarea
                   placeholder="Tell us your specific goal..."
-                  className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400/50 min-h-[100px]"
+                  className="w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:border-yellow-400/50 min-h-[100px] bg-slate-800 border-slate-600 text-white placeholder:text-slate-400"
                   onChange={(e) => updateData({ studyGoal: e.target.value })}
                 />
               )}

@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { usePlatform } from '@/hooks/usePlatform';
 import { getUserSubscription, Subscription } from '@/lib/subscription';
 import { APP_VERSION } from '@/lib/version';
-import { Camera, User, Mail, Calendar, CreditCard, FileText, HelpCircle, Shield, LogOut, ChevronRight, Clock, CheckCircle, XCircle, AlertCircle, RotateCcw, Settings } from 'lucide-react';
+import { Camera, User, Mail, Calendar, CreditCard, FileText, HelpCircle, Shield, LogOut, ChevronRight, Clock, CheckCircle, XCircle, AlertCircle, RotateCcw, Settings, Trash2 } from 'lucide-react';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -41,6 +41,11 @@ export default function AccountPage() {
   const [promoCode, setPromoCode] = useState('');
   const [promoLoading, setPromoLoading] = useState(false);
   const [promoMessage, setPromoMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Delete account state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -219,6 +224,35 @@ export default function AccountPage() {
   const handleSignOut = async () => {
     await signOut();
     router.push('/');
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user?.uid || deleteConfirmText !== 'DELETE') return;
+
+    setDeletingAccount(true);
+    try {
+      const response = await fetch('/api/account/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.uid }),
+      });
+
+      if (response.ok) {
+        // Sign out and redirect
+        await signOut();
+        // Clear local storage
+        localStorage.clear();
+        router.push('/');
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to delete account. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      alert('Failed to delete account. Please try again.');
+    } finally {
+      setDeletingAccount(false);
+    }
   };
 
   const formatDate = (date: any) => {
@@ -654,6 +688,85 @@ export default function AccountPage() {
           <LogOut className="w-5 h-5 text-red-400" />
           <span className="text-red-400 font-medium">Sign Out</span>
         </button>
+
+        {/* Delete Account */}
+        <section className="mt-8">
+          <h2 className="text-sm font-medium mb-3 px-1 text-red-400/70">Danger Zone</h2>
+          {!showDeleteConfirm ? (
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="w-full py-4 rounded-xl flex items-center justify-center gap-2 transition-colors border border-red-500/30 hover:border-red-500/50"
+              style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)' }}
+            >
+              <Trash2 className="w-5 h-5 text-red-400" />
+              <span className="text-red-400 font-medium">Delete Account</span>
+            </button>
+          ) : (
+            <div className="rounded-xl p-5 border border-red-500/30" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)' }}>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
+                  <Trash2 className="w-5 h-5 text-red-400" />
+                </div>
+                <div>
+                  <h3 className="font-medium text-red-400">Delete Account Permanently</h3>
+                  <p className="text-xs text-red-400/70">This action cannot be undone</p>
+                </div>
+              </div>
+
+              <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  This will permanently delete:
+                </p>
+                <ul className="text-sm mt-2 space-y-1" style={{ color: 'var(--text-secondary)' }}>
+                  <li>• Your account and profile</li>
+                  <li>• All saved prayers and devotionals</li>
+                  <li>• Reading progress and history</li>
+                  <li>• Any active subscriptions</li>
+                </ul>
+              </div>
+
+              <div className="mb-4">
+                <label className="text-sm mb-2 block" style={{ color: 'var(--text-secondary)' }}>
+                  Type <strong className="text-red-400">DELETE</strong> to confirm:
+                </label>
+                <input
+                  type="text"
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value.toUpperCase())}
+                  placeholder="DELETE"
+                  className="w-full rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-red-500/50"
+                  style={{
+                    backgroundColor: 'var(--input-bg)',
+                    border: '1px solid var(--input-border)',
+                    color: 'var(--text-primary)'
+                  }}
+                  disabled={deletingAccount}
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    setDeleteConfirmText('');
+                  }}
+                  className="flex-1 py-3 text-sm rounded-lg transition-colors"
+                  style={{ backgroundColor: 'var(--card-hover)', color: 'var(--text-primary)' }}
+                  disabled={deletingAccount}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={deleteConfirmText !== 'DELETE' || deletingAccount}
+                  className="flex-1 py-3 text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {deletingAccount ? 'Deleting...' : 'Delete Forever'}
+                </button>
+              </div>
+            </div>
+          )}
+        </section>
 
         {/* Footer */}
         <p className="text-center text-xs mt-8" style={{ color: 'var(--text-secondary)' }}>

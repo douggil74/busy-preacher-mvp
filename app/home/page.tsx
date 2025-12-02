@@ -1585,7 +1585,7 @@ const handleKeywordResultSelect = (reference: string) => {
       </section>
 
       {/* SECTION 2: Keyword Search */}
-      <div id="keyword-section" className="mb-4 max-w-2xl mx-auto scroll-mt-20">
+      <div id="keyword-section" className="mb-4 scroll-mt-20">
         <h2 className={`${nunitoSans.className} text-xl font-semibold mb-1`} style={{ color: 'var(--accent-color)' }}>
           Keyword Search
         </h2>
@@ -1664,7 +1664,7 @@ const handleKeywordResultSelect = (reference: string) => {
       </section>
 
       {/* SECTION 3: Strong's Word Lookup */}
-      <div className="mb-4 max-w-2xl mx-auto">
+      <div className="mb-4">
         <h2 className={`${nunitoSans.className} text-xl font-semibold mb-1`} style={{ color: 'var(--accent-color)' }}>
           Strong's Word Lookup
         </h2>
@@ -1673,7 +1673,7 @@ const handleKeywordResultSelect = (reference: string) => {
         </p>
       </div>
 
-      <section id="ol-study" className="card">
+      <section id="ol-study" className="card section-spacing">
         <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
           <div>
             <label htmlFor="bpPassage" className="mb-2 block text-sm text-white/80">

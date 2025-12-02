@@ -374,9 +374,6 @@ html.light .input::placeholder {
    ======================================== */
 .card {
   width: 100%;
-  max-width: 48rem;
-  margin-left: auto;
-  margin-right: auto;
   border-radius: 1rem;
   border: none;
   background-color: var(--card-bg);

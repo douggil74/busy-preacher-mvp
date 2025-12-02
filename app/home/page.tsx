@@ -680,14 +680,6 @@ useEffect(() => {
         await progressTracker.checkAndNotifyProgress();
         progressTracker.trackOutlineGeneration(passageRef.trim(), theme.trim());
         
-        // ✅ Check if this is first study - show email modal
-        if (studies.length === 0) {
-const hasSubscribed = safeStorage.getItem("bc-subscribed");
-          if (!hasSubscribed) {
-            setTimeout(() => setShowEmailModal(true), 2000);
-          }
-        }
-        
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         const nextOutlines: { passage?: any; theme?: any } = {};
@@ -720,15 +712,7 @@ const hasSubscribed = safeStorage.getItem("bc-subscribed");
         refreshJourney();
         
         await progressTracker.checkAndNotifyProgress();
-        
-        // ✅ Check if this is first study - show email modal
-        if (studies.length === 0) {
-const hasSubscribed = safeStorage.getItem("bc-subscribed");
-          if (!hasSubscribed) {
-            setTimeout(() => setShowEmailModal(true), 2000);
-          }
-        }
-        
+
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     } catch (e: any) {

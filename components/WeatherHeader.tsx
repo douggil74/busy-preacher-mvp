@@ -352,24 +352,24 @@ function WeatherScene({ type }: { type: SceneType }) {
         <g>
           <rect width="800" height="200" fill="url(#skyBlue)" />
 
-          {/* Sun with glow */}
-          <circle cx="680" cy="55" r="80" fill="#FFE066" opacity="0.15" filter="url(#heavyBlur)" />
-          <circle cx="680" cy="55" r="50" fill="url(#sunGlow)" />
-          <circle cx="680" cy="55" r="35" fill="#FFE066" />
-          <circle cx="680" cy="55" r="28" fill="#FFFACD" opacity="0.9" />
+          {/* Sun with glow - positioned for mobile visibility */}
+          <circle cx="580" cy="55" r="80" fill="#FFE066" opacity="0.15" filter="url(#heavyBlur)" />
+          <circle cx="580" cy="55" r="50" fill="url(#sunGlow)" />
+          <circle cx="580" cy="55" r="35" fill="#FFE066" />
+          <circle cx="580" cy="55" r="28" fill="#FFFACD" opacity="0.9" />
 
           {/* Sun rays */}
-          <g className="animate-spin-slow" style={{ transformOrigin: '680px 55px' }}>
+          <g className="animate-spin-slow" style={{ transformOrigin: '580px 55px' }}>
             {[...Array(12)].map((_, i) => (
               <line
                 key={i}
-                x1="680" y1="-5"
-                x2="680" y2="20"
+                x1="580" y1="-5"
+                x2="580" y2="20"
                 stroke="#FFD700"
                 strokeWidth={i % 2 === 0 ? 3 : 2}
                 strokeLinecap="round"
                 opacity={0.5}
-                transform={`rotate(${i * 30} 680 55)`}
+                transform={`rotate(${i * 30} 580 55)`}
               />
             ))}
           </g>
@@ -410,10 +410,10 @@ function WeatherScene({ type }: { type: SceneType }) {
         <g>
           <rect width="800" height="200" fill="url(#skyBlue)" />
 
-          {/* Sun peeking */}
-          <circle cx="650" cy="50" r="60" fill="#FFE066" opacity="0.2" filter="url(#heavyBlur)" />
-          <circle cx="650" cy="50" r="40" fill="url(#sunGlow)" opacity="0.85" />
-          <circle cx="650" cy="50" r="30" fill="#FFE066" opacity="0.95" />
+          {/* Sun peeking - positioned for mobile visibility */}
+          <circle cx="550" cy="50" r="60" fill="#FFE066" opacity="0.2" filter="url(#heavyBlur)" />
+          <circle cx="550" cy="50" r="40" fill="url(#sunGlow)" opacity="0.85" />
+          <circle cx="550" cy="50" r="30" fill="#FFE066" opacity="0.95" />
 
           {/* Distant small clouds - background depth */}
           <g className="animate-drift-slower" style={{ animationDelay: '-20s' }}>
@@ -879,10 +879,10 @@ function WeatherScene({ type }: { type: SceneType }) {
           <ellipse cx="300" cy="85" rx="120" ry="20" fill="#20B2AA" opacity="0.06" filter="url(#heavyBlur)" />
           <ellipse cx="300" cy="85" rx="120" ry="20" fill="#60efff" opacity="0.08" filter="url(#heavyBlur)" className="animate-pulse" style={{ animationDuration: '10s', animationDelay: '3s' }} />
 
-          {/* Crescent moon */}
-          <circle cx="680" cy="55" r="50" fill="#FFF8E1" opacity="0.1" filter="url(#heavyBlur)" />
-          <circle cx="680" cy="55" r="30" fill="url(#moonGlow)" />
-          <circle cx="693" cy="55" r="26" fill="#0f0c29" opacity="0.95" />
+          {/* Crescent moon - positioned for mobile visibility */}
+          <circle cx="580" cy="55" r="50" fill="#FFF8E1" opacity="0.1" filter="url(#heavyBlur)" />
+          <circle cx="580" cy="55" r="30" fill="url(#moonGlow)" />
+          <circle cx="593" cy="55" r="26" fill="#0f0c29" opacity="0.95" />
 
           {/* Stars - stationary but twinkling with golden glow for light mode visibility */}
           {[
@@ -915,8 +915,8 @@ function WeatherScene({ type }: { type: SceneType }) {
         <g>
           <rect width="800" height="200" fill="url(#skyNight)" />
 
-          {/* Moon glow behind clouds */}
-          <circle cx="650" cy="55" r="55" fill="#FFF8E1" opacity="0.1" filter="url(#heavyBlur)" />
+          {/* Moon glow behind clouds - positioned for mobile visibility */}
+          <circle cx="550" cy="55" r="55" fill="#FFF8E1" opacity="0.1" filter="url(#heavyBlur)" />
 
           {/* Night clouds - darker fluffy clouds */}
           <g className="animate-drift-slow">

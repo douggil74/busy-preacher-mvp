@@ -285,9 +285,9 @@ export function SignInModal({ isOpen, onClose, message }: SignInModalProps) {
                   placeholder="First name"
                   className="w-full px-4 py-3 rounded-xl outline-none transition-all"
                   style={{
-                    backgroundColor: 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
-                    border: '2px solid var(--card-border)',
-                    color: 'var(--text-primary)',
+                    backgroundColor: 'var(--input-bg)',
+                    border: '2px solid var(--input-border)',
+                    color: 'var(--input-text)',
                   }}
                   required
                 />
@@ -298,9 +298,9 @@ export function SignInModal({ isOpen, onClose, message }: SignInModalProps) {
                   placeholder="(555) 555-5555"
                   className="w-full px-4 py-3 rounded-xl outline-none transition-all"
                   style={{
-                    backgroundColor: 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
-                    border: '2px solid var(--card-border)',
-                    color: 'var(--text-primary)',
+                    backgroundColor: 'var(--input-bg)',
+                    border: '2px solid var(--input-border)',
+                    color: 'var(--input-text)',
                   }}
                   required
                 />
@@ -326,9 +326,9 @@ export function SignInModal({ isOpen, onClose, message }: SignInModalProps) {
                   placeholder="123456"
                   className="w-full px-4 py-3 rounded-xl outline-none text-center text-2xl tracking-widest"
                   style={{
-                    backgroundColor: 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
-                    border: '2px solid var(--card-border)',
-                    color: 'var(--text-primary)',
+                    backgroundColor: 'var(--input-bg)',
+                    border: '2px solid var(--input-border)',
+                    color: 'var(--input-text)',
                   }}
                   maxLength={6}
                   required
@@ -369,9 +369,9 @@ export function SignInModal({ isOpen, onClose, message }: SignInModalProps) {
                   placeholder="First name"
                   className="w-full px-4 py-3 rounded-xl outline-none transition-all"
                   style={{
-                    backgroundColor: 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
-                    border: '2px solid var(--card-border)',
-                    color: 'var(--text-primary)',
+                    backgroundColor: 'var(--input-bg)',
+                    border: '2px solid var(--input-border)',
+                    color: 'var(--input-text)',
                   }}
                   required
                 />
@@ -383,9 +383,9 @@ export function SignInModal({ isOpen, onClose, message }: SignInModalProps) {
                 placeholder="Email address"
                 className="w-full px-4 py-3 rounded-xl outline-none transition-all"
                 style={{
-                  backgroundColor: 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
-                  border: '2px solid var(--card-border)',
-                  color: 'var(--text-primary)',
+                  backgroundColor: 'var(--input-bg)',
+                  border: '2px solid var(--input-border)',
+                  color: 'var(--input-text)',
                 }}
                 required
               />
@@ -397,9 +397,9 @@ export function SignInModal({ isOpen, onClose, message }: SignInModalProps) {
                   placeholder="Password"
                   className="w-full px-4 py-3 rounded-xl outline-none transition-all"
                   style={{
-                    backgroundColor: 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
-                    border: '2px solid var(--card-border)',
-                    color: 'var(--text-primary)',
+                    backgroundColor: 'var(--input-bg)',
+                    border: '2px solid var(--input-border)',
+                    color: 'var(--input-text)',
                   }}
                   required
                   minLength={6}

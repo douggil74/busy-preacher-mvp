@@ -52,6 +52,9 @@ const menuItems: NavItem[] = [
   { id: 'contact', icon: Mail, label: 'Contact', action: 'openContact', color: '#94a3b8' },
 ];
 
+// Pages where sidebar should be completely hidden
+const HIDDEN_SIDEBAR_PAGES = ['/splash', '/onboarding', '/personalize', '/welcome'];
+
 export default function Sidebar() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -62,6 +65,9 @@ export default function Sidebar() {
   const [contactModalOpen, setContactModalOpen] = useState(false);
   const pathname = usePathname();
   const { user, isAuthenticated, signOut } = useAuth();
+
+  // Hide sidebar completely on onboarding/tutorial pages
+  const shouldHideSidebar = HIDDEN_SIDEBAR_PAGES.some(page => pathname?.startsWith(page));
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -122,6 +128,11 @@ export default function Sidebar() {
     if (href === '/home') return pathname === '/home' || pathname === '/';
     return pathname === href || pathname?.startsWith(href + '/');
   };
+
+  // Don't render anything on onboarding pages
+  if (shouldHideSidebar) {
+    return null;
+  }
 
   return (
     <>

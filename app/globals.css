@@ -130,9 +130,9 @@ html.light {
   --text-muted: rgba(15, 23, 42, 0.4);
   --accent-color: #d97706;
   --accent-hover: #b45309;
-  /* Input Fields (light mode) */
-  --input-bg: rgba(15, 23, 42, 0.05);
-  --input-border: rgba(15, 23, 42, 0.2);
+  /* Input Fields (light mode) - enhanced visibility */
+  --input-bg: rgba(15, 23, 42, 0.08);
+  --input-border: rgba(15, 23, 42, 0.25);
   --input-text: #0f172a;
   --input-placeholder: rgba(15, 23, 42, 0.5);
 }

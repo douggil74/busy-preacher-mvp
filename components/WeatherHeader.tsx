@@ -41,6 +41,7 @@ export default function WeatherHeader({ onSceneReady }: { onSceneReady?: (scene:
   const [customSvg, setCustomSvg] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [temperature, setTemperature] = useState<number | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -91,12 +92,16 @@ export default function WeatherHeader({ onSceneReady }: { onSceneReady?: (scene:
       // Helper to fetch weather and determine scene
       const fetchWeatherAndSetScene = async (lat: number, lon: number) => {
         const weatherRes = await fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=weather_code,is_day`
+          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=weather_code,is_day,temperature_2m&temperature_unit=fahrenheit`
         );
         const weatherData = await weatherRes.json();
 
         const code = weatherData.current?.weather_code || 0;
         const isDay = weatherData.current?.is_day === 1;
+        const temp = weatherData.current?.temperature_2m;
+        if (typeof temp === 'number') {
+          setTemperature(Math.round(temp));
+        }
 
         let type: SceneType = 'partly-cloudy';
 
@@ -216,6 +221,9 @@ export default function WeatherHeader({ onSceneReady }: { onSceneReady?: (scene:
     );
   }
 
+  // Determine if it's a night scene for temperature styling
+  const isNightScene = scene === 'night-clear' || scene === 'night-cloudy' || scene === 'christmas' || scene === 'new-years';
+
   return (
     <div
       className="absolute inset-0 overflow-hidden pointer-events-none rounded-t-2xl transition-opacity duration-500"
@@ -238,6 +246,39 @@ export default function WeatherHeader({ onSceneReady }: { onSceneReady?: (scene:
           background: 'linear-gradient(to bottom, transparent 0%, transparent 50%, var(--card-bg) 100%)'
         }}
       />
+
+      {/* Temperature display - glass effect */}
+      {temperature !== null && (
+        <div
+          className="absolute top-3 right-3 flex items-center gap-1 px-2.5 py-1 rounded-xl"
+          style={{
+            background: isNightScene
+              ? 'rgba(255, 255, 255, 0.12)'
+              : 'rgba(255, 255, 255, 0.35)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            border: isNightScene
+              ? '1px solid rgba(255, 255, 255, 0.2)'
+              : '1px solid rgba(255, 255, 255, 0.5)',
+            boxShadow: isNightScene
+              ? '0 2px 8px rgba(0, 0, 0, 0.3)'
+              : '0 2px 8px rgba(0, 0, 0, 0.1)',
+          }}
+        >
+          <span
+            className="text-lg font-semibold"
+            style={{
+              color: isNightScene ? 'rgba(255, 255, 255, 0.9)' : 'rgba(30, 41, 59, 0.85)',
+              textShadow: isNightScene
+                ? '0 1px 2px rgba(0, 0, 0, 0.3)'
+                : '0 1px 2px rgba(255, 255, 255, 0.5)',
+              letterSpacing: '-0.02em',
+            }}
+          >
+            {temperature}°
+          </span>
+        </div>
+      )}
     </div>
   );
 }
@@ -246,27 +287,30 @@ export { WeatherScene };
 export type { SceneType };
 
 // Fluffy cloud component - realistic puffy cumulus shape with light mode outline
-function FluffyCloud({ x, y, scale = 1, opacity = 0.9, color = '#FFF', shadowColor = '#D0D8E0' }: {
+function FluffyCloud({ x, y, scale = 1, opacity = 0.9, color = '#FFFFFF', shadowColor = '#90A4AE' }: {
   x: number; y: number; scale?: number; opacity?: number; color?: string; shadowColor?: string;
 }) {
   return (
     <g transform={`translate(${x}, ${y}) scale(${scale})`}>
-      {/* Outer subtle outline for light mode visibility */}
-      <circle cx="0" cy="0" r="32" fill="none" stroke="#B0C4DE" strokeWidth="1" opacity={opacity * 0.2} />
-      <circle cx="-25" cy="5" r="24" fill="none" stroke="#B0C4DE" strokeWidth="1" opacity={opacity * 0.15} />
-      <circle cx="28" cy="3" r="26" fill="none" stroke="#B0C4DE" strokeWidth="1" opacity={opacity * 0.15} />
+      {/* Drop shadow for depth */}
+      <ellipse cx="5" cy="18" rx="55" ry="15" fill="#607D8B" opacity={opacity * 0.15} />
 
-      {/* Shadow/depth layer */}
-      <circle cx="0" cy="8" r="28" fill={shadowColor} opacity={opacity * 0.5} />
-      <circle cx="35" cy="12" r="22" fill={shadowColor} opacity={opacity * 0.4} />
-      <circle cx="-30" cy="10" r="20" fill={shadowColor} opacity={opacity * 0.4} />
+      {/* Outer subtle outline for light mode visibility */}
+      <circle cx="0" cy="0" r="32" fill="none" stroke="#78909C" strokeWidth="1.5" opacity={opacity * 0.3} />
+      <circle cx="-25" cy="5" r="24" fill="none" stroke="#78909C" strokeWidth="1" opacity={opacity * 0.25} />
+      <circle cx="28" cy="3" r="26" fill="none" stroke="#78909C" strokeWidth="1" opacity={opacity * 0.25} />
+
+      {/* Shadow/depth layer - more vivid */}
+      <circle cx="0" cy="8" r="28" fill={shadowColor} opacity={opacity * 0.6} />
+      <circle cx="35" cy="12" r="22" fill={shadowColor} opacity={opacity * 0.5} />
+      <circle cx="-30" cy="10" r="20" fill={shadowColor} opacity={opacity * 0.5} />
 
       {/* Main cloud body - overlapping circles for fluffy look */}
       <circle cx="0" cy="0" r="30" fill={color} opacity={opacity} />
       <circle cx="-25" cy="5" r="22" fill={color} opacity={opacity} />
       <circle cx="28" cy="3" r="24" fill={color} opacity={opacity} />
-      <circle cx="-40" cy="12" r="18" fill={color} opacity={opacity * 0.95} />
-      <circle cx="45" cy="10" r="20" fill={color} opacity={opacity * 0.95} />
+      <circle cx="-40" cy="12" r="18" fill={color} opacity={opacity * 0.98} />
+      <circle cx="45" cy="10" r="20" fill={color} opacity={opacity * 0.98} />
       <circle cx="12" cy="-8" r="20" fill={color} opacity={opacity} />
       <circle cx="-12" cy="-5" r="18" fill={color} opacity={opacity} />
 
@@ -344,8 +388,9 @@ function WeatherScene({ type }: { type: SceneType }) {
       <defs>
         {/* Gradient definitions */}
         <linearGradient id="skyBlue" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#87CEEB" stopOpacity="0.4" />
-          <stop offset="100%" stopColor="#B0E0E6" stopOpacity="0.2" />
+          <stop offset="0%" stopColor="#4FC3F7" stopOpacity="0.7" />
+          <stop offset="50%" stopColor="#81D4FA" stopOpacity="0.5" />
+          <stop offset="100%" stopColor="#B3E5FC" stopOpacity="0.3" />
         </linearGradient>
 
         <linearGradient id="skyNight" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -363,10 +408,11 @@ function WeatherScene({ type }: { type: SceneType }) {
         </linearGradient>
 
         <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#FFE066" stopOpacity="1" />
-          <stop offset="40%" stopColor="#FFD93D" stopOpacity="0.8" />
-          <stop offset="70%" stopColor="#FFA500" stopOpacity="0.3" />
-          <stop offset="100%" stopColor="#FF8C00" stopOpacity="0" />
+          <stop offset="0%" stopColor="#FFF176" stopOpacity="1" />
+          <stop offset="30%" stopColor="#FFEB3B" stopOpacity="0.95" />
+          <stop offset="60%" stopColor="#FFC107" stopOpacity="0.6" />
+          <stop offset="85%" stopColor="#FF9800" stopOpacity="0.3" />
+          <stop offset="100%" stopColor="#FF6F00" stopOpacity="0" />
         </radialGradient>
 
         <radialGradient id="moonGlow" cx="30%" cy="30%" r="60%">
@@ -416,22 +462,23 @@ function WeatherScene({ type }: { type: SceneType }) {
           <rect width="800" height="200" fill="url(#skyBlue)" />
 
           {/* Sun with glow - positioned for mobile visibility */}
-          <circle cx="580" cy="55" r="80" fill="#FFE066" opacity="0.15" filter="url(#heavyBlur)" />
+          <circle cx="580" cy="55" r="100" fill="#FFD54F" opacity="0.25" filter="url(#heavyBlur)" />
+          <circle cx="580" cy="55" r="70" fill="#FFEB3B" opacity="0.35" filter="url(#softBlur)" />
           <circle cx="580" cy="55" r="50" fill="url(#sunGlow)" />
-          <circle cx="580" cy="55" r="35" fill="#FFE066" />
-          <circle cx="580" cy="55" r="28" fill="#FFFACD" opacity="0.9" />
+          <circle cx="580" cy="55" r="38" fill="#FFEB3B" />
+          <circle cx="580" cy="55" r="30" fill="#FFF59D" opacity="0.95" />
 
           {/* Sun rays */}
           <g className="animate-spin-slow" style={{ transformOrigin: '580px 55px' }}>
             {[...Array(12)].map((_, i) => (
               <line
                 key={i}
-                x1="580" y1="-5"
-                x2="580" y2="20"
-                stroke="#FFD700"
-                strokeWidth={i % 2 === 0 ? 3 : 2}
+                x1="580" y1="-15"
+                x2="580" y2="15"
+                stroke="#FFC107"
+                strokeWidth={i % 2 === 0 ? 4 : 3}
                 strokeLinecap="round"
-                opacity={0.5}
+                opacity={0.7}
                 transform={`rotate(${i * 30} 580 55)`}
               />
             ))}
@@ -474,9 +521,11 @@ function WeatherScene({ type }: { type: SceneType }) {
           <rect width="800" height="200" fill="url(#skyBlue)" />
 
           {/* Sun peeking - positioned for mobile visibility */}
-          <circle cx="550" cy="50" r="60" fill="#FFE066" opacity="0.2" filter="url(#heavyBlur)" />
-          <circle cx="550" cy="50" r="40" fill="url(#sunGlow)" opacity="0.85" />
-          <circle cx="550" cy="50" r="30" fill="#FFE066" opacity="0.95" />
+          <circle cx="550" cy="50" r="80" fill="#FFD54F" opacity="0.3" filter="url(#heavyBlur)" />
+          <circle cx="550" cy="50" r="55" fill="#FFEB3B" opacity="0.4" filter="url(#softBlur)" />
+          <circle cx="550" cy="50" r="42" fill="url(#sunGlow)" opacity="0.95" />
+          <circle cx="550" cy="50" r="32" fill="#FFEB3B" />
+          <circle cx="550" cy="50" r="24" fill="#FFF59D" opacity="0.9" />
 
           {/* Distant small clouds - background depth */}
           <g className="animate-drift-slower" style={{ animationDelay: '-20s' }}>

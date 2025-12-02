@@ -29,9 +29,12 @@ export default function SplashPage() {
       document.activeElement.blur();
     }
 
-    // Check destination
+    // Check destination:
+    // - If completed onboarding → home
+    // - If returning user (has logged in before) → welcome (will show sign in)
+    // - Otherwise → welcome (will show choice screen)
     const hasCompletedOnboarding = localStorage.getItem("onboarding_completed") === "true";
-    const destination = hasCompletedOnboarding ? "/home" : "/onboarding";
+    const destination = hasCompletedOnboarding ? "/home" : "/welcome";
 
     // Smooth timing: fade in (0.8s) -> hold (2s) -> fade out (0.8s) -> navigate
     const holdTimer = setTimeout(() => setPhase('hold'), 200);

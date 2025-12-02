@@ -320,6 +320,11 @@ html.light .input:focus {
     0 0 0 2px color-mix(in srgb, var(--accent-color) 30%, transparent);
 }
 
+html.light .input::placeholder {
+  color: rgba(15, 23, 42, 0.5);
+  opacity: 1;
+}
+
 /* ========================================
    BUTTONS
    ======================================== */

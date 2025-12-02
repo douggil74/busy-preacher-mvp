@@ -583,7 +583,7 @@ export default function PastoralGuidancePage() {
 
       {/* Header */}
       <div className="max-w-4xl mx-auto px-4 py-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-4">
           <button
             onClick={() => router.push('/')}
             className="flex items-center gap-2 text-sm transition-colors"
@@ -592,62 +592,9 @@ export default function PastoralGuidancePage() {
             <ArrowLeft className="w-4 h-4" />
             Back
           </button>
-
-          {/* Export buttons - only show when there are messages */}
-          {messages.length > 0 && (
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleExportPDF}
-                disabled={isExporting}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all hover:opacity-80 disabled:opacity-50"
-                style={{
-                  backgroundColor: 'var(--card-bg)',
-                  borderWidth: '1px',
-                  borderStyle: 'solid',
-                  borderColor: 'var(--card-border)',
-                  color: 'var(--text-primary)',
-                }}
-                title="Export conversation to PDF"
-              >
-                <Download className="w-4 h-4" />
-                <span className="hidden sm:inline">{isExporting ? 'Exporting...' : 'PDF'}</span>
-              </button>
-              <button
-                onClick={handleEmailTranscript}
-                disabled={isEmailing}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all hover:opacity-80 disabled:opacity-50"
-                style={{
-                  backgroundColor: 'var(--card-bg)',
-                  borderWidth: '1px',
-                  borderStyle: 'solid',
-                  borderColor: 'var(--card-border)',
-                  color: 'var(--text-primary)',
-                }}
-                title="Email transcript to yourself"
-              >
-                <Mail className="w-4 h-4" />
-                <span className="hidden sm:inline">{isEmailing ? 'Sending...' : 'Email'}</span>
-              </button>
-              <button
-                onClick={handleNewChat}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all hover:opacity-80"
-                style={{
-                  backgroundColor: 'var(--card-bg)',
-                  borderWidth: '1px',
-                  borderStyle: 'solid',
-                  borderColor: 'var(--card-border)',
-                  color: 'var(--text-primary)',
-                }}
-                title="Clear conversation and start new chat"
-              >
-                <Trash2 className="w-4 h-4" />
-                <span>Clear</span>
-              </button>
-            </div>
-          )}
         </div>
 
-        <div className="text-center mb-6">
+        <div className="text-center mb-4">
           <h1 className={cn(playfair.className, typography.h1, 'mb-3')} style={{ color: 'var(--text-primary)' }}>
             Ask the Pastor
           </h1>
@@ -656,6 +603,59 @@ export default function PastoralGuidancePage() {
             Biblical wisdom and guidance for life's questions - ask anything on your heart
           </p>
         </div>
+
+        {/* Action buttons - positioned below title to avoid header overlap on mobile */}
+        {messages.length > 0 && (
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <button
+              onClick={handleExportPDF}
+              disabled={isExporting}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all hover:opacity-80 disabled:opacity-50"
+              style={{
+                backgroundColor: 'var(--card-bg)',
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                borderColor: 'var(--card-border)',
+                color: 'var(--text-primary)',
+              }}
+              title="Export conversation to PDF"
+            >
+              <Download className="w-4 h-4" />
+              <span className="hidden sm:inline">{isExporting ? 'Exporting...' : 'PDF'}</span>
+            </button>
+            <button
+              onClick={handleEmailTranscript}
+              disabled={isEmailing}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all hover:opacity-80 disabled:opacity-50"
+              style={{
+                backgroundColor: 'var(--card-bg)',
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                borderColor: 'var(--card-border)',
+                color: 'var(--text-primary)',
+              }}
+              title="Email transcript to yourself"
+            >
+              <Mail className="w-4 h-4" />
+              <span className="hidden sm:inline">{isEmailing ? 'Sending...' : 'Email'}</span>
+            </button>
+            <button
+              onClick={handleNewChat}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all hover:opacity-80"
+              style={{
+                backgroundColor: 'var(--card-bg)',
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                borderColor: 'var(--card-border)',
+                color: 'var(--text-primary)',
+              }}
+              title="Clear conversation and start new chat"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>Clear</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Input Form - Shows at top when no messages, hides when conversation starts */}

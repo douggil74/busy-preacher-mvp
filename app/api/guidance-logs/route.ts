@@ -31,6 +31,73 @@ function detectSubject(question: string): string {
   return 'General Spiritual';
 }
 
+// Detect emotional state from the message
+interface EmotionResult {
+  emotion: string;
+  intensity: 'low' | 'medium' | 'high';
+  needsExtraEmpathy: boolean;
+}
+
+function detectEmotion(question: string): EmotionResult {
+  const q = question.toLowerCase();
+
+  // High intensity indicators
+  const highIntensity = /(can't take it|i can't|so hard|really struggling|desperate|overwhelmed|breaking|falling apart|at my limit|don't know what to do|help me|please help|losing my mind|going crazy|too much|unbearable)/i;
+  const isHighIntensity = highIntensity.test(q);
+
+  // Medium intensity indicators
+  const mediumIntensity = /(struggling|difficult|hard time|confused|unsure|worried|stressed|anxious|frustrated|hurt|painful|challenging)/i;
+  const isMediumIntensity = !isHighIntensity && mediumIntensity.test(q);
+
+  // Emotion detection with priority order
+  const emotions: { pattern: RegExp; emotion: string; needsExtraEmpathy: boolean }[] = [
+    // Crisis emotions - highest priority
+    { pattern: /(suicid|want to die|end my life|kill myself|self.?harm|hurt myself|no reason to live)/i, emotion: 'crisis', needsExtraEmpathy: true },
+
+    // Deep pain emotions
+    { pattern: /(grief|griev|mourn|loss|died|death|lost my|passed away)/i, emotion: 'grief', needsExtraEmpathy: true },
+    { pattern: /(depress|hopeless|empty|numb|dark|darkness|void)/i, emotion: 'despair', needsExtraEmpathy: true },
+    { pattern: /(betray|cheated|affair|unfaithful|backstab)/i, emotion: 'betrayal', needsExtraEmpathy: true },
+    { pattern: /(abus|trauma|ptsd|flashback|nightmare)/i, emotion: 'trauma', needsExtraEmpathy: true },
+    { pattern: /(lonely|alone|isolated|no one|nobody|by myself)/i, emotion: 'loneliness', needsExtraEmpathy: true },
+
+    // Strong emotions
+    { pattern: /(anxiet|anxious|panic|terrified|scared|fearful|worry|worri)/i, emotion: 'anxiety', needsExtraEmpathy: true },
+    { pattern: /(angry|anger|furious|rage|mad|pissed|livid|hate)/i, emotion: 'anger', needsExtraEmpathy: false },
+    { pattern: /(guilt|guilty|shame|ashamed|regret|remorse)/i, emotion: 'guilt', needsExtraEmpathy: true },
+    { pattern: /(confus|lost|unsure|don't know|uncertain|torn)/i, emotion: 'confusion', needsExtraEmpathy: false },
+    { pattern: /(frustrat|annoyed|irritat|stuck|stagnant)/i, emotion: 'frustration', needsExtraEmpathy: false },
+
+    // Moderate emotions
+    { pattern: /(sad|unhappy|down|blue|melancholy)/i, emotion: 'sadness', needsExtraEmpathy: true },
+    { pattern: /(stress|overwhelm|pressure|burden|weight)/i, emotion: 'stress', needsExtraEmpathy: false },
+    { pattern: /(disappoint|let down|failed|failure)/i, emotion: 'disappointment', needsExtraEmpathy: true },
+    { pattern: /(jealous|envy|envious|covet)/i, emotion: 'jealousy', needsExtraEmpathy: false },
+
+    // Seeking emotions (less negative)
+    { pattern: /(doubt|question|wonder|skeptic|uncertain about god|is god real)/i, emotion: 'doubt', needsExtraEmpathy: false },
+    { pattern: /(curious|interest|want to know|learn|understand|explain)/i, emotion: 'curiosity', needsExtraEmpathy: false },
+    { pattern: /(hope|hoping|wish|pray for|looking for)/i, emotion: 'hope', needsExtraEmpathy: false },
+
+    // Positive emotions
+    { pattern: /(grateful|thankful|blessed|appreciat|praise)/i, emotion: 'gratitude', needsExtraEmpathy: false },
+    { pattern: /(excit|happy|joy|wonderful|amazing|great news)/i, emotion: 'joy', needsExtraEmpathy: false },
+    { pattern: /(peace|calm|serene|content|at rest)/i, emotion: 'peace', needsExtraEmpathy: false },
+  ];
+
+  for (const { pattern, emotion, needsExtraEmpathy } of emotions) {
+    if (pattern.test(q)) {
+      return {
+        emotion,
+        intensity: isHighIntensity ? 'high' : (isMediumIntensity ? 'medium' : 'low'),
+        needsExtraEmpathy: needsExtraEmpathy || isHighIntensity,
+      };
+    }
+  }
+
+  return { emotion: 'neutral', intensity: 'low', needsExtraEmpathy: false };
+}
+
 export async function POST(req: Request) {
   try {
     if (!supabaseUrl || !supabaseServiceKey) {
@@ -38,12 +105,13 @@ export async function POST(req: Request) {
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const { firstName, question, answer, flagged } = await req.json();
+    const { firstName, question, answer, flagged, sessionId, messageId } = await req.json();
 
-    // Auto-detect subject
+    // Auto-detect subject and emotion
     const subject = detectSubject(question);
+    const emotionResult = detectEmotion(question);
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('guidance_logs')
       .insert({
         first_name: firstName || 'Anonymous',
@@ -52,15 +120,45 @@ export async function POST(req: Request) {
         flagged: flagged || false,
         subject: subject,
         is_learning_example: false,
+        // New emotion tracking fields
+        emotion_detected: emotionResult.emotion,
+        emotion_intensity: emotionResult.intensity,
+        needs_extra_empathy: emotionResult.needsExtraEmpathy,
+        // Feedback fields (set later by user)
+        feedback_rating: null,
+        feedback_comment: null,
+        // Session tracking
+        session_id: sessionId || null,
+        message_id: messageId || null,
         created_at: new Date().toISOString(),
-      });
+      })
+      .select('id')
+      .single();
 
     if (error) {
       console.error('Error logging guidance question:', error);
-      return NextResponse.json({ error: 'Failed to log question' }, { status: 500 });
+      // Try without new fields if they don't exist yet
+      const { data: fallbackData, error: fallbackError } = await supabase
+        .from('guidance_logs')
+        .insert({
+          first_name: firstName || 'Anonymous',
+          question: question,
+          answer: answer,
+          flagged: flagged || false,
+          subject: subject,
+          is_learning_example: false,
+          created_at: new Date().toISOString(),
+        })
+        .select('id')
+        .single();
+
+      if (fallbackError) {
+        return NextResponse.json({ error: 'Failed to log question' }, { status: 500 });
+      }
+      return NextResponse.json({ success: true, logId: fallbackData?.id, emotion: emotionResult });
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, logId: data?.id, emotion: emotionResult });
   } catch (error) {
     console.error('Guidance log error:', error);
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });

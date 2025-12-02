@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, Send, MessageCircle, Download, Mail, Trash2 } from 'lucide-react';
+import { ArrowLeft, Send, MessageCircle, Download, Mail, Trash2, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Playfair_Display } from 'next/font/google';
 import { card, button, input, typography, cn } from '@/lib/ui-constants';
@@ -47,9 +47,33 @@ export default function PastoralGuidancePage() {
   const [pastorNote, setPastorNote] = useState<string>("");
   const [showDisclaimerModal, setShowDisclaimerModal] = useState(false);
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(true); // Start true to avoid flash
+  const [feedbackGiven, setFeedbackGiven] = useState<Set<string>>(new Set()); // Track which messages got feedback
+  const [showFeedback, setShowFeedback] = useState(false); // Show feedback buttons after AI response
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const modalShownForMessages = useRef<Set<string>>(new Set());
+
+  // Handle feedback submission
+  const handleFeedback = async (messageId: string, rating: 1 | -1) => {
+    // Mark as given immediately for UI
+    setFeedbackGiven(prev => new Set(prev).add(messageId));
+    setShowFeedback(false);
+
+    try {
+      await fetch('/api/guidance-feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messageId,
+          sessionId,
+          rating,
+        }),
+      });
+      console.log(`Feedback recorded: ${rating === 1 ? '👍' : '👎'} for message ${messageId}`);
+    } catch (error) {
+      console.error('Failed to submit feedback:', error);
+    }
+  };
 
   // Generate dynamic pastor message
   useEffect(() => {
@@ -798,12 +822,38 @@ export default function PastoralGuidancePage() {
                       </p>
                     </div>
                     {showTimestamp && (
-                      <p
-                        className="text-xs mt-1 px-2"
-                        style={{ color: 'var(--text-secondary)' }}
-                      >
-                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </p>
+                      <div className="flex items-center gap-3 mt-1 px-2">
+                        <p
+                          className="text-xs"
+                          style={{ color: 'var(--text-secondary)' }}
+                        >
+                          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                        {/* Subtle feedback buttons - only show for assistant messages that haven't been rated */}
+                        {message.role === 'assistant' && !feedbackGiven.has(message.id) && (
+                          <div className="flex items-center gap-1 opacity-40 hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => handleFeedback(message.id, 1)}
+                              className="p-1 rounded hover:bg-green-500/20 transition-colors"
+                              title="Helpful"
+                            >
+                              <ThumbsUp className="w-3 h-3" style={{ color: 'var(--text-secondary)' }} />
+                            </button>
+                            <button
+                              onClick={() => handleFeedback(message.id, -1)}
+                              className="p-1 rounded hover:bg-red-500/20 transition-colors"
+                              title="Not helpful"
+                            >
+                              <ThumbsDown className="w-3 h-3" style={{ color: 'var(--text-secondary)' }} />
+                            </button>
+                          </div>
+                        )}
+                        {message.role === 'assistant' && feedbackGiven.has(message.id) && (
+                          <span className="text-xs" style={{ color: 'var(--text-secondary)', opacity: 0.5 }}>
+                            Thanks!
+                          </span>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>

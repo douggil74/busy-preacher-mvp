@@ -142,7 +142,8 @@ export async function POST(request: NextRequest) {
     const abusivePatterns = /\b(fuck|shit|bitch|asshole|damn you|screw you|hate god|god is dead|stupid religion|religious idiots|go to hell)\b/i;
     const spamPatterns = /\b(buy now|click here|viagra|casino|lottery|crypto|investment opportunity|make money|free gift)\b/i;
     const offTopicPatterns = /\b(weather|sports scores|stock prices|movie times|recipe for|how to cook|math problem|homework help|write my essay|do my homework)\b/i;
-    const testingPatterns = /^(test|testing|hello|hi|hey|sup|yo)$/i;
+    // Common greetings and slang - respond warmly, don't trigger any detection
+    const testingPatterns = /^(test|testing|hello|hi|hey|sup|yo|wyd|wassup|whats up|what's up|whatup|heyy|heyyy|hola|howdy|good morning|good evening|good afternoon|gm|anyone there|u there|you there|anybody home)[\s\?\!\.]*$/i;
 
     const isAbusive = abusivePatterns.test(question);
     const isSpam = spamPatterns.test(question);
@@ -208,7 +209,17 @@ export async function POST(request: NextRequest) {
 
     if (isTesting) {
       console.log('[MODERATION] Testing/greeting detected:', question);
-      const warmGreetings = [
+      // Check if it's casual slang like "wyd"
+      const casualSlang = /^(wyd|wassup|whats up|what's up|whatup|sup)[\s\?\!\.]*$/i;
+      const isCasualSlang = casualSlang.test(question.trim());
+
+      const warmGreetings = isCasualSlang ? [
+        `hey! 😊 just here ready to chat. what's going on with you?`,
+        `not much tbh... just waiting to talk to someone like you 😊 what's up?`,
+        `yo! 😊 I'm here. what's on your mind today?`,
+        `hey hey! 😊 glad you stopped by. how can I help?`,
+        `chillin here waiting for you lol 😊 what's happening in your world?`,
+      ] : [
         `Hey there! 😊 So good to hear from you. I'm here whenever you need someone to talk to - whether it's something heavy on your heart or just a question about faith. What's going on in your world today?`,
         `Hello friend! 😊 Really glad you reached out. Life can be a lot sometimes, and I'm here to walk through it with you. What's on your mind?`,
         `Hey! 😊 Thanks for stopping by. You know, some of the best conversations start with a simple hello. What's stirring in your heart today?`,

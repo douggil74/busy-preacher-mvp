@@ -1,7 +1,8 @@
 // app/api/lexplain/route.ts
 // FIXED: Prevents over-theologizing simple words
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
+import { checkRateLimit, getIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/rateLimit';
 
 function getSourceLanguage(bookName: string): 'Greek' | 'Hebrew' {
   const oldTestamentBooks = [
@@ -104,11 +105,21 @@ function getSimpleExplanation(word: string, language: 'Greek' | 'Hebrew' | null)
   return null;
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    // Rate limiting - 15 requests per minute (AI-heavy)
+    const identifier = getIdentifier(req);
+    const rateLimit = checkRateLimit({
+      ...RATE_LIMITS.AI_STUDY,
+      identifier,
+    });
+    if (!rateLimit.success) {
+      return rateLimitResponse(rateLimit.resetIn);
+    }
+
     const { surface, book } = (await req.json()) as { surface?: string; book?: string };
     const cleaned = String(surface ?? "").trim();
-    
+
     if (!cleaned) {
       return NextResponse.json({ error: "Missing surface word." }, { status: 400 });
     }

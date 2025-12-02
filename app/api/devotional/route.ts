@@ -1,9 +1,20 @@
 // app/api/devotional/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { format } from 'date-fns';
+import { checkRateLimit, getIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/rateLimit';
 
 export async function GET(request: NextRequest) {
   try {
+    // Rate limiting - 60 requests per minute (standard, not AI-heavy)
+    const identifier = getIdentifier(request);
+    const rateLimit = checkRateLimit({
+      ...RATE_LIMITS.STANDARD,
+      identifier,
+    });
+    if (!rateLimit.success) {
+      return rateLimitResponse(rateLimit.resetIn);
+    }
+
     // Get today's date or a specific date from query params
     const searchParams = request.nextUrl.searchParams;
     const dateParam = searchParams.get('date');

@@ -1,6 +1,7 @@
 // app/api/word-study/route.ts
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
+import { checkRateLimit, getIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/rateLimit';
 
 // In-memory cache for word study results (persists between requests)
 const wordStudyCache = new Map<string, { data: any; timestamp: number }>();
@@ -16,8 +17,18 @@ function cleanExpiredCache() {
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    // Rate limiting - 15 requests per minute (AI-heavy)
+    const identifier = getIdentifier(req);
+    const rateLimit = checkRateLimit({
+      ...RATE_LIMITS.AI_STUDY,
+      identifier,
+    });
+    if (!rateLimit.success) {
+      return rateLimitResponse(rateLimit.resetIn);
+    }
+
     const { surface, lemma, strongs, book } = await req.json();
 
     // Create cache key from word identifiers

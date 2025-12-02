@@ -1,5 +1,6 @@
 // app/api/deep-study/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import { checkRateLimit, getIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/rateLimit';
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -116,6 +117,16 @@ function generateStudyLinks(reference: string) {
 
 export async function GET(request: NextRequest) {
   try {
+    // Rate limiting - 15 requests per minute
+    const identifier = getIdentifier(request);
+    const rateLimit = checkRateLimit({
+      ...RATE_LIMITS.AI_STUDY,
+      identifier,
+    });
+    if (!rateLimit.success) {
+      return rateLimitResponse(rateLimit.resetIn);
+    }
+
     const searchParams = request.nextUrl.searchParams;
     const reference = searchParams.get("reference");
 

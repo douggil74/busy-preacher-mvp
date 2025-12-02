@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
+import { checkRateLimit, getIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/rateLimit';
 
 export const runtime = "edge";
 
@@ -13,8 +14,18 @@ type Body = {
   audience?: string;
 };
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    // Rate limiting - 10 requests per minute (AI generation - most expensive)
+    const identifier = getIdentifier(req);
+    const rateLimit = checkRateLimit({
+      ...RATE_LIMITS.AI_GENERATION,
+      identifier,
+    });
+    if (!rateLimit.success) {
+      return rateLimitResponse(rateLimit.resetIn);
+    }
+
     const body = (await req.json()) as Body;
 
     if (!body.passage && !body.theme) {

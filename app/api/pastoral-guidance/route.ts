@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { Resend } from 'resend';
+import { checkRateLimit, getIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/rateLimit';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -125,8 +126,19 @@ const signOffOptions = [
 
 export async function POST(request: NextRequest) {
   try {
-    const { question, conversationHistory, userName, userEmail, sessionId } = await request.json();
+    const body = await request.json();
+    const { question, conversationHistory, userName, userEmail, sessionId } = body;
     const firstName = userName; // Alias for clarity in code below
+
+    // Rate limiting - 20 requests per minute per user
+    const identifier = getIdentifier(request, userEmail);
+    const rateLimit = checkRateLimit({
+      ...RATE_LIMITS.AI_CHAT,
+      identifier,
+    });
+    if (!rateLimit.success) {
+      return rateLimitResponse(rateLimit.resetIn);
+    }
 
     // Select a random sign-off for this response
     const signOff = signOffOptions[Math.floor(Math.random() * signOffOptions.length)];

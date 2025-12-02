@@ -1,8 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
+import { checkRateLimit, getIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/rateLimit';
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting - 15 requests per minute (AI-heavy)
+    const identifier = getIdentifier(request);
+    const rateLimit = checkRateLimit({
+      ...RATE_LIMITS.AI_STUDY,
+      identifier,
+    });
+    if (!rateLimit.success) {
+      return rateLimitResponse(rateLimit.resetIn);
+    }
+
     const { reference, translations } = await request.json();
 
     if (!reference) {

@@ -105,7 +105,7 @@
 
 	<!-- Location (optional - for community features) -->
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Your location helps us connect you with nearby prayer warriors and community groups.</string>
+	<string>Your location helps show local weather conditions and connect you with nearby prayer groups.</string>
 
 	<!-- Status bar style -->
 	<key>UIStatusBarStyle</key>

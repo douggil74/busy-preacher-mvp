@@ -1,10 +1,12 @@
 import type { Config } from "tailwindcss";
+import plugin from "tailwindcss/plugin";
 
 export default {
   content: [
     "./app/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
   ],
+  darkMode: 'class', // Enable class-based dark mode
   theme: {
     extend: {
       fontFamily: {
@@ -20,5 +22,10 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    // Custom 'light:' variant for light mode classes
+    plugin(function({ addVariant }) {
+      addVariant('light', 'html.light &');
+    }),
+  ],
 } satisfies Config;

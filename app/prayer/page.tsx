@@ -375,7 +375,7 @@ export default function PrayerPage() {
   return (
     <RequireAuth>
     <Paywall>
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white">
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-color)', color: 'var(--text-primary)' }}>
       <div className="page-container">
         {pastorNote && <EncouragingBanner message={pastorNote} />}
 
@@ -472,7 +472,7 @@ function Header({ userName }: { userName?: string | null }) {
       </h1>
       <div className="h-[2px] w-20 bg-gradient-to-r from-yellow-400 to-amber-400 mb-4"></div>
       <PastorNote variant="encouragement" className="mb-4" />
-      <p className={cn(typography.small, 'text-white/70')}>
+      <p className={cn(typography.small, 'text-white/70 light:text-black/70')}>
         {userName
           ? `Welcome, ${getFirstName(userName)}! Share with community or keep private.`
           : 'Create prayers and share them with the community.'
@@ -545,7 +545,7 @@ function PrayerSubmissionForm({
             className={`px-2.5 py-1 rounded text-xs font-medium capitalize transition-all ${
               category === cat
                 ? 'bg-yellow-400/20 border border-yellow-400 text-yellow-400'
-                : 'border border-white/10 bg-white/5 text-white/60 hover:border-white/20'
+                : 'border border-white/10 light:border-black/10 bg-white/5 light:bg-black/5 text-white/60 light:text-black/60 hover:border-white/20 light:hover:border-black/20'
             }`}
           >
             {cat}
@@ -562,12 +562,12 @@ function PrayerSubmissionForm({
               onChange={(e) => setIsAnonymous(e.target.checked)}
               className="w-3.5 h-3.5 rounded border-white/10 bg-white/5 text-yellow-400"
             />
-            <span className="text-white/80">Post anonymously</span>
+            <span className="text-white/80 light:text-black/80">Post anonymously</span>
           </label>
         </div>
       )}
 
-      <div className="flex items-center gap-6 mb-3 p-3 bg-white/5 rounded-lg border border-white/10">
+      <div className="flex items-center gap-6 mb-3 p-3 bg-white/5 light:bg-black/5 rounded-lg border border-white/10 light:border-black/10">
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="radio"
@@ -575,7 +575,7 @@ function PrayerSubmissionForm({
             onChange={() => setIsPrivate(false)}
             className="w-4 h-4 text-yellow-400"
           />
-          <span className="text-sm text-white/80">
+          <span className="text-sm text-white/80 light:text-black/80">
             🌍 Share with Community
           </span>
         </label>
@@ -586,7 +586,7 @@ function PrayerSubmissionForm({
             onChange={() => setIsPrivate(true)}
             className="w-4 h-4 text-yellow-400"
           />
-          <span className="text-sm text-white/80">🔒 Keep Private</span>
+          <span className="text-sm text-white/80 light:text-black/80">🔒 Keep Private</span>
         </label>
       </div>
 
@@ -700,7 +700,7 @@ function CommunityPrayerList({
 }: CommunityPrayerListProps) {
   if (prayers.length === 0) {
     return (
-      <div className={cn(typography.small, 'text-center py-20 text-white/50')}>
+      <div className={cn(typography.small, 'text-center py-20 text-white/50 light:text-black/50')}>
         No community prayers yet, but that's okay! Someone needs to be first. Why not you? Your prayer could be exactly what someone else needs to see today.
       </div>
     );
@@ -724,10 +724,10 @@ function CommunityPrayerList({
             <div className="flex items-start justify-between gap-3 mb-2">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="font-medium text-white text-sm truncate">
+                  <span className="font-medium text-white light:text-black text-sm truncate">
                     {prayer.isAnonymous ? 'Anonymous' : getFirstName(prayer.userName)}
                   </span>
-                  <span className="text-xs px-2 py-0.5 bg-white/10 border border-white/15 rounded text-white/60 capitalize flex-shrink-0">
+                  <span className="text-xs px-2 py-0.5 bg-white/10 light:bg-black/10 border border-white/15 light:border-black/15 rounded text-white/60 light:text-black/60 capitalize flex-shrink-0">
                     {categoryEmojis[prayer.category]} {prayer.category}
                   </span>
                   {isMyPrayer && (
@@ -737,15 +737,15 @@ function CommunityPrayerList({
                   )}
                 </div>
                 {getState(prayer.userLocation) && (
-                  <div className="text-xs text-white/50">{getState(prayer.userLocation)}</div>
+                  <div className="text-xs text-white/50 light:text-black/50">{getState(prayer.userLocation)}</div>
                 )}
               </div>
-              <span className="text-xs text-white/50 flex-shrink-0">
+              <span className="text-xs text-white/50 light:text-black/50 flex-shrink-0">
                 {formatDate(prayer.createdAt)}
               </span>
             </div>
 
-            <p className={cn(typography.small, 'text-white/70 mb-3 line-clamp-3')}>{prayer.request}</p>
+            <p className={cn(typography.small, 'text-white/70 light:text-black/70 mb-3 line-clamp-3')}>{prayer.request}</p>
 
             <button
               onClick={() => onPray(prayer.id)}
@@ -753,10 +753,10 @@ function CommunityPrayerList({
               className={cn(
                 'px-3 py-1.5 rounded text-xs font-medium transition-all',
                 isMyPrayer
-                  ? 'bg-white/5 border border-white/10 text-white/40 cursor-not-allowed'
+                  ? 'bg-white/5 light:bg-black/5 border border-white/10 light:border-black/10 text-white/40 light:text-black/40 cursor-not-allowed'
                   : hasUserPrayed
                   ? 'bg-red-400/20 border border-red-400/30 text-red-400 cursor-default'
-                  : 'bg-white/5 border border-white/10 text-white/70 hover:bg-red-400/20 hover:border-red-400/30 hover:text-red-400'
+                  : 'bg-white/5 light:bg-black/5 border border-white/10 light:border-black/10 text-white/70 light:text-black/70 hover:bg-red-400/20 hover:border-red-400/30 hover:text-red-400'
               )}
             >
               ❤️ {isMyPrayer ? 'Your Prayer' : hasUserPrayed ? 'Prayed' : 'Pray'} ({prayer.heartCount})
@@ -781,7 +781,7 @@ interface PrivatePrayerListProps {
 function PrivatePrayerList({ prayers, onMarkAnswered, onDelete }: PrivatePrayerListProps) {
   if (prayers.length === 0) {
     return (
-      <div className={cn(typography.small, 'text-center py-20 text-white/50')}>
+      <div className={cn(typography.small, 'text-center py-20 text-white/50 light:text-black/50')}>
         No prayers yet? That's fine! God hears your heart even before the words come. Ready to start? Add one above.
       </div>
     );
@@ -795,16 +795,16 @@ function PrivatePrayerList({ prayers, onMarkAnswered, onDelete }: PrivatePrayerL
           className={card.default}
         >
           <div className="flex items-start justify-between gap-3 mb-2">
-            <h3 className={cn(typography.small, 'font-semibold text-white flex-1')}>{prayer.title}</h3>
+            <h3 className={cn(typography.small, 'font-semibold text-white light:text-black flex-1')}>{prayer.title}</h3>
             {prayer.tags.length > 0 && (
-              <span className="text-xs px-2 py-0.5 bg-white/10 border border-white/15 rounded text-white/60 capitalize">
+              <span className="text-xs px-2 py-0.5 bg-white/10 light:bg-black/10 border border-white/15 light:border-black/15 rounded text-white/60 light:text-black/60 capitalize">
                 {prayer.tags[0]}
               </span>
             )}
           </div>
 
           {prayer.description && (
-            <p className={cn(typography.small, 'text-white/70 mb-3 line-clamp-2')}>{prayer.description}</p>
+            <p className={cn(typography.small, 'text-white/70 light:text-black/70 mb-3 line-clamp-2')}>{prayer.description}</p>
           )}
 
           <div className="flex gap-2">

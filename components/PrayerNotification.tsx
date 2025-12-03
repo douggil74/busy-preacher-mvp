@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Notification {
@@ -15,41 +15,64 @@ interface PrayerNotificationProps {
   onClose: () => void;
 }
 
-export function PrayerNotification({ notification, onClose }: PrayerNotificationProps) {
-  const [soundEnabled, setSoundEnabled] = useState(true);
+// Global audio context that persists across component renders
+let globalAudioContext: AudioContext | null = null;
 
-  // Load sound preference from localStorage
+export function PrayerNotification({ notification, onClose }: PrayerNotificationProps) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Preload the audio on mount
   useEffect(() => {
-    const savedPref = localStorage.getItem('notificationSound');
-    if (savedPref !== null) {
-      setSoundEnabled(savedPref === 'true');
-    }
+    audioRef.current = new Audio('/notification.mp3');
+    audioRef.current.volume = 0.5;
+    audioRef.current.load();
   }, []);
 
   useEffect(() => {
-    if (notification && soundEnabled) {
-      playNotificationSound(notification.type);
-      // Vibrate on mobile as fallback (works even when sound blocked)
-      if (navigator.vibrate) {
-        navigator.vibrate([200, 100, 200]); // vibrate pattern
-      }
-      const timer = setTimeout(onClose, 5000);
-      return () => clearTimeout(timer);
-    } else if (notification) {
-      // Still vibrate even if sound is disabled (important for mobile)
+    if (notification) {
+      playNotificationSound();
+      // Vibrate on mobile
       if (navigator.vibrate) {
         navigator.vibrate([200, 100, 200]);
       }
-      // Still set timer to close even if sound is disabled
       const timer = setTimeout(onClose, 5000);
       return () => clearTimeout(timer);
     }
-  }, [notification, soundEnabled, onClose]);
+  }, [notification, onClose]);
 
-  const toggleSound = () => {
-    const newState = !soundEnabled;
-    setSoundEnabled(newState);
-    localStorage.setItem('notificationSound', String(newState));
+  const playNotificationSound = async () => {
+    // Check if sound was unlocked via the Enable Sound button
+    const soundUnlocked = localStorage.getItem('soundUnlocked') === 'true';
+    if (!soundUnlocked) {
+      console.log('Sound not unlocked yet - skipping notification sound');
+      return;
+    }
+
+    try {
+      // Get or create the global AudioContext
+      const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof window.AudioContext }).webkitAudioContext;
+      if (AudioContextClass) {
+        if (!globalAudioContext) {
+          globalAudioContext = new AudioContextClass();
+        }
+        if (globalAudioContext.state === 'suspended') {
+          await globalAudioContext.resume();
+        }
+      }
+
+      // Try to play the preloaded audio first
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        await audioRef.current.play();
+      } else {
+        // Fallback: create new audio
+        const audio = new Audio('/notification.mp3');
+        audio.volume = 0.5;
+        await audio.play();
+      }
+    } catch (error) {
+      console.warn('Could not play notification sound:', error);
+    }
   };
 
   return (
@@ -69,18 +92,6 @@ export function PrayerNotification({ notification, onClose }: PrayerNotification
             >
               <span className="text-slate-900 font-bold text-lg">×</span>
             </button>
-            
-            {/* Sound toggle button */}
-            <button
-              onClick={toggleSound}
-              className="absolute top-2 right-12 w-8 h-8 flex items-center justify-center rounded-full bg-black/10 hover:bg-black/20 transition-colors"
-              aria-label={soundEnabled ? 'Mute notifications' : 'Enable notification sound'}
-              title={soundEnabled ? 'Sound On' : 'Sound Off'}
-            >
-              <span className="text-slate-900 text-sm">
-                {soundEnabled ? '🔔' : '🔕'}
-              </span>
-            </button>
 
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0">
@@ -93,7 +104,7 @@ export function PrayerNotification({ notification, onClose }: PrayerNotification
                   Someone is praying for you!
                 </p>
                 <p className="text-slate-800 text-xs line-clamp-2">
-                  "{notification.prayerTitle}"
+                  &quot;{notification.prayerTitle}&quot;
                 </p>
                 <p className="text-slate-700 text-xs mt-2 font-medium">
                   ❤️ {notification.message}
@@ -105,62 +116,4 @@ export function PrayerNotification({ notification, onClose }: PrayerNotification
       )}
     </AnimatePresence>
   );
-}
-
-// Play notification sound based on type
-async function playNotificationSound(type?: string) {
-  // Check if sound was unlocked via the Enable Sound button
-  const soundUnlocked = localStorage.getItem('soundUnlocked') === 'true';
-  if (!soundUnlocked) {
-    console.log('Sound not unlocked yet - skipping notification sound');
-    return;
-  }
-
-  // Determine which sound file to use
-  let soundFile = '/notification.mp3'; // default
-
-  switch (type) {
-    case 'prayer_support':
-      soundFile = '/sounds/prayer-notification.mp3';
-      break;
-    case 'milestone':
-      soundFile = '/sounds/milestone-notification.mp3';
-      break;
-    case 'reminder':
-      soundFile = '/sounds/reminder-notification.mp3';
-      break;
-    default:
-      soundFile = '/notification.mp3';
-  }
-
-  try {
-    // Resume AudioContext if suspended (required for mobile)
-    const AudioContext = window.AudioContext || (window as unknown as { webkitAudioContext: typeof window.AudioContext }).webkitAudioContext;
-    if (AudioContext) {
-      const audioContext = new AudioContext();
-      if (audioContext.state === 'suspended') {
-        await audioContext.resume();
-      }
-    }
-
-    const audio = new Audio(soundFile);
-    audio.volume = 0.5;
-
-    // Play the sound and handle errors gracefully
-    audio.play().catch((error) => {
-      // If custom sound fails, try default sound as fallback
-      if (soundFile !== '/notification.mp3') {
-        console.warn(`Custom sound failed, using default:`, error);
-        const fallbackAudio = new Audio('/notification.mp3');
-        fallbackAudio.volume = 0.5;
-        fallbackAudio.play().catch(() => {
-          console.warn('Notification sound could not be played');
-        });
-      } else {
-        console.warn('Notification sound could not be played:', error);
-      }
-    });
-  } catch (error) {
-    console.warn('Failed to create audio element:', error);
-  }
 }

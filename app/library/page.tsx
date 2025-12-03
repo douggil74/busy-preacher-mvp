@@ -185,8 +185,6 @@ export default function LibraryPage() {
     <RequireAuth>
     <Paywall>
     <main className="mx-auto max-w-5xl px-4 py-8">
-      {pastorNote && <EncouragingBanner message={pastorNote} />}
-
       <div className="mb-6">
         <button
           onClick={() => window.history.back()}
@@ -205,6 +203,9 @@ export default function LibraryPage() {
       <p className={cn(typography.body, 'text-center text-white/70 mb-4')}>
         Everything you've been learning and discovering
       </p>
+
+      {pastorNote && <EncouragingBanner message={pastorNote} />}
+
       <div className="max-w-2xl mx-auto mb-8">
         <PastorNote />
       </div>

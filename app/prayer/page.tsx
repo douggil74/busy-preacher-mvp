@@ -400,6 +400,10 @@ export default function PrayerPage() {
     <Paywall>
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-color)', color: 'var(--text-primary)' }}>
       <div className="page-container">
+        <Header
+          userName={null}
+        />
+
         {pastorNote && <EncouragingBanner message={pastorNote} />}
 
         {/* Sound unlock banner for mobile */}
@@ -424,10 +428,6 @@ export default function PrayerPage() {
             </div>
           </div>
         )}
-
-        <Header
-          userName={null}
-        />
 
         <PrayerSubmissionForm
           isPrivate={isPrivate}

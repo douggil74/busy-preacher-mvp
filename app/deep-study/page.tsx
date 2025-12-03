@@ -971,8 +971,6 @@ export default function DeepStudyPage() {
     <RequireAuth>
     <Paywall>
     <main className="mx-auto max-w-5xl px-4 py-8">
-      {pastorNote && <EncouragingBanner message={pastorNote} />}
-
       <button
         onClick={() => window.history.back()}
         className="mb-6 flex items-center gap-2 text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}
@@ -989,6 +987,9 @@ export default function DeepStudyPage() {
       <p className={cn(typography.body, 'text-white/80 mb-4 text-center')}>
         Compare translations, read commentary, watch teaching videos, and dig deep into God's Word
       </p>
+
+      {pastorNote && <EncouragingBanner message={pastorNote} />}
+
       <div className="max-w-3xl mx-auto mb-8">
         <PastorNote />
       </div>

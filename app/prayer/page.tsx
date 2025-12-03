@@ -24,9 +24,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { PrayerNotification } from '@/components/PrayerNotification';
 import { PastorNote } from '@/components/PastorNote';
-import { EncouragingBanner } from '@/components/EncouragingBanner';
 import { card, button, input, typography, cn } from '@/lib/ui-constants';
-import { getPastorNote } from '@/lib/personalMessages';
 import RequireAuth from '@/components/RequireAuth';
 import { Paywall } from '@/components/Paywall';
 
@@ -123,17 +121,11 @@ export default function PrayerPage() {
   const [category, setCategory] = useState<Category>('other');
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [pastorNote, setPastorNote] = useState<string>("");
   const [soundUnlocked, setSoundUnlocked] = useState(false);
 
   // ========================================
   // EFFECTS
   // ========================================
-
-  // Generate dynamic pastor message
-  useEffect(() => {
-    setPastorNote(getPastorNote());
-  }, []);
 
   // Check if sound was already unlocked
   useEffect(() => {
@@ -403,8 +395,6 @@ export default function PrayerPage() {
         <Header
           userName={null}
         />
-
-        {pastorNote && <EncouragingBanner message={pastorNote} />}
 
         {/* Sound unlock banner for mobile */}
         {!soundUnlocked && typeof localStorage !== 'undefined' && !localStorage.getItem('soundUnlocked') && (

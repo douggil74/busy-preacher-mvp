@@ -346,18 +346,41 @@ export default function PrayerPage() {
     }
   };
 
-  const handleUnlockSound = () => {
-    // Play a short silent audio to unlock audio context on mobile
-    const audio = new Audio('/notification.mp3');
-    audio.volume = 0.3;
-    audio.play()
-      .then(() => {
-        console.log('🔊 Sound unlocked for mobile!');
-        setSoundUnlocked(true);
-        // Store in localStorage
-        localStorage.setItem('soundUnlocked', 'true');
-      })
-      .catch(err => console.warn('Could not unlock sound:', err));
+  const handleUnlockSound = async () => {
+    try {
+      // First unlock the AudioContext (required by iOS Safari)
+      const AudioContext = window.AudioContext || (window as unknown as { webkitAudioContext: typeof window.AudioContext }).webkitAudioContext;
+      if (AudioContext) {
+        const audioContext = new AudioContext();
+        await audioContext.resume();
+
+        // Create a short beep to confirm it works
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        gainNode.gain.value = 0.1;
+        oscillator.frequency.value = 440;
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.1);
+      }
+
+      // Also play the actual notification sound to preload it
+      const audio = new Audio('/notification.mp3');
+      audio.volume = 0.5;
+      await audio.play();
+
+      console.log('🔊 Sound unlocked for mobile!');
+      setSoundUnlocked(true);
+      localStorage.setItem('soundUnlocked', 'true');
+    } catch (err) {
+      console.warn('Could not unlock sound:', err);
+      // Still mark as unlocked so the banner goes away
+      // The user may have their phone on silent
+      setSoundUnlocked(true);
+      localStorage.setItem('soundUnlocked', 'true');
+      alert('Sound enabled! Make sure your device is not on silent mode.');
+    }
   };
 
   // ========================================

@@ -606,7 +606,7 @@ export default function PastoralGuidancePage() {
       {pastorNote && <EncouragingBanner message={pastorNote} />}
 
       {/* Header */}
-      <div className="max-w-4xl mx-auto px-4 md:pl-52 py-6">
+      <div className="max-w-4xl mx-auto px-4 py-6">
         <div className="mb-4">
           <button
             onClick={() => router.push('/')}

@@ -31,21 +31,14 @@ export default function CertificateButton({
     const name = localStorage.getItem('bc-user-name') || 'Student';
     setUserName(name);
 
-    // Get or set completion date
+    // Get completion date (use lastAccessedAt as completion date, or today)
     const progress = CourseTracker.getCourseProgress(courseId);
-    if (progress?.completedAt) {
-      setCompletionDate(new Date(progress.completedAt).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      }));
-    } else {
-      setCompletionDate(new Date().toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      }));
-    }
+    const dateToUse = progress?.lastAccessedAt ? new Date(progress.lastAccessedAt) : new Date();
+    setCompletionDate(dateToUse.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    }));
   }, [courseId]);
 
   const handleDownload = async () => {

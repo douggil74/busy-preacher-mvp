@@ -108,7 +108,14 @@ export function PrayerNotification({ notification, onClose }: PrayerNotification
 }
 
 // Play notification sound based on type
-function playNotificationSound(type?: string) {
+async function playNotificationSound(type?: string) {
+  // Check if sound was unlocked via the Enable Sound button
+  const soundUnlocked = localStorage.getItem('soundUnlocked') === 'true';
+  if (!soundUnlocked) {
+    console.log('Sound not unlocked yet - skipping notification sound');
+    return;
+  }
+
   // Determine which sound file to use
   let soundFile = '/notification.mp3'; // default
 
@@ -127,16 +134,25 @@ function playNotificationSound(type?: string) {
   }
 
   try {
+    // Resume AudioContext if suspended (required for mobile)
+    const AudioContext = window.AudioContext || (window as unknown as { webkitAudioContext: typeof window.AudioContext }).webkitAudioContext;
+    if (AudioContext) {
+      const audioContext = new AudioContext();
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
+    }
+
     const audio = new Audio(soundFile);
-    audio.volume = 0.3; // Keep your existing volume
-    
+    audio.volume = 0.5;
+
     // Play the sound and handle errors gracefully
     audio.play().catch((error) => {
       // If custom sound fails, try default sound as fallback
       if (soundFile !== '/notification.mp3') {
         console.warn(`Custom sound failed, using default:`, error);
         const fallbackAudio = new Audio('/notification.mp3');
-        fallbackAudio.volume = 0.3;
+        fallbackAudio.volume = 0.5;
         fallbackAudio.play().catch(() => {
           console.warn('Notification sound could not be played');
         });

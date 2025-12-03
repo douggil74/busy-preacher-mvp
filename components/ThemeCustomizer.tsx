@@ -206,26 +206,75 @@ interface ThemeCustomizerProps {
   onThemeChange?: () => void;
 }
 
+// Get time-based mode (light 6am-6pm, dark 6pm-6am)
+function getTimeBasedMode(): "light" | "dark" {
+  const hour = new Date().getHours();
+  return hour >= 6 && hour < 18 ? "light" : "dark";
+}
+
 export function ThemeCustomizer({ inMenu = false, onThemeChange }: ThemeCustomizerProps) {
   const [currentTheme, setCurrentTheme] = useState<string>("papyrus");
   const [currentMode, setCurrentMode] = useState<"light" | "dark">("light");
+  const [autoMode, setAutoMode] = useState<boolean>(true); // Default to auto
   const [showPicker, setShowPicker] = useState(false);
 
+  // Load saved preferences and apply theme
   useEffect(() => {
     const saved = localStorage.getItem("bc-theme-v2");
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
         setCurrentTheme(parsed.theme || "papyrus");
-        setCurrentMode(parsed.mode || "light");
+        setAutoMode(parsed.autoMode !== false); // Default to true if not set
+
+        if (parsed.autoMode !== false) {
+          // Auto mode - use time-based
+          setCurrentMode(getTimeBasedMode());
+        } else {
+          // Manual mode - use saved preference
+          setCurrentMode(parsed.mode || "light");
+        }
       } catch (e) {
-        // Default to papyrus light
+        // Default to papyrus with auto mode
+        setCurrentMode(getTimeBasedMode());
       }
+    } else {
+      // No saved preference - use auto mode
+      setCurrentMode(getTimeBasedMode());
     }
   }, []);
 
-  const applyTheme = (themeName: string, mode: "light" | "dark") => {
-    const theme = themes[themeName][mode];
+  // Check for time-based mode changes every minute when in auto mode
+  useEffect(() => {
+    if (!autoMode) return;
+
+    const checkTime = () => {
+      const newMode = getTimeBasedMode();
+      if (newMode !== currentMode) {
+        setCurrentMode(newMode);
+        // Apply the theme with new mode
+        const theme = themes[currentTheme][newMode];
+        const root = document.documentElement;
+        root.style.setProperty("--bg-color", theme.colors.background);
+        root.style.setProperty("--card-bg", theme.colors.cardBg);
+        root.style.setProperty("--card-border", theme.colors.cardBorder);
+        root.style.setProperty("--text-primary", theme.colors.textPrimary);
+        root.style.setProperty("--text-secondary", theme.colors.textSecondary);
+        root.style.setProperty("--accent-color", theme.colors.accent);
+      }
+    };
+
+    // Check immediately
+    checkTime();
+
+    // Then check every minute
+    const interval = setInterval(checkTime, 60000);
+    return () => clearInterval(interval);
+  }, [autoMode, currentTheme, currentMode]);
+
+  const applyTheme = (themeName: string, mode: "light" | "dark", useAutoMode: boolean = false) => {
+    const effectiveMode = useAutoMode ? getTimeBasedMode() : mode;
+    const theme = themes[themeName][effectiveMode];
     const root = document.documentElement;
 
     root.style.setProperty("--bg-color", theme.colors.background);
@@ -235,10 +284,15 @@ export function ThemeCustomizer({ inMenu = false, onThemeChange }: ThemeCustomiz
     root.style.setProperty("--text-secondary", theme.colors.textSecondary);
     root.style.setProperty("--accent-color", theme.colors.accent);
 
-    localStorage.setItem("bc-theme-v2", JSON.stringify({ theme: themeName, mode }));
+    localStorage.setItem("bc-theme-v2", JSON.stringify({
+      theme: themeName,
+      mode: effectiveMode,
+      autoMode: useAutoMode
+    }));
     setCurrentTheme(themeName);
-    setCurrentMode(mode);
-    
+    setCurrentMode(effectiveMode);
+    setAutoMode(useAutoMode);
+
     if (onThemeChange) {
       onThemeChange();
     }
@@ -256,32 +310,48 @@ export function ThemeCustomizer({ inMenu = false, onThemeChange }: ThemeCustomiz
           <span className="text-lg">🎨</span>
           <span>Change Theme</span>
           <span className="ml-auto text-xs" style={{ color: 'var(--text-secondary)' }}>
-            {themes[currentTheme][currentMode].emoji} {currentMode === "light" ? "☀️" : "🌙"}
+            {themes[currentTheme][currentMode].emoji} {autoMode ? "🌓" : (currentMode === "light" ? "☀️" : "🌙")}
           </span>
         </button>
 
         {showPicker && (
-          <div className="mt-2 space-y-2 pl-8">
+          <div className="mt-2 space-y-3 pl-8">
+            {/* Auto Mode Toggle */}
+            <div className="flex items-center gap-2 pb-2 mb-2" style={{ borderBottom: '1px solid var(--card-border)' }}>
+              <button
+                onClick={() => applyTheme(currentTheme, currentMode, true)}
+                className="flex-1 text-center rounded-lg px-2 py-2 text-xs font-medium transition-colors"
+                style={{
+                  color: autoMode ? 'white' : 'var(--text-primary)',
+                  backgroundColor: autoMode ? 'var(--accent-color)' : 'transparent',
+                  border: autoMode ? 'none' : '1px solid var(--card-border)'
+                }}
+              >
+                🌓 Auto (Time-based)
+              </button>
+            </div>
+
+            {/* Theme Options */}
             {Object.entries(themes).map(([key, { light, dark }]) => (
               <div key={key} className="flex items-center gap-2">
                 <button
-                  onClick={() => applyTheme(key, "light")}
+                  onClick={() => applyTheme(key, "light", false)}
                   className="flex-1 text-left rounded-lg px-2 py-1.5 text-xs hover:bg-white/10 transition-colors"
-                  style={{ 
+                  style={{
                     color: 'var(--text-primary)',
-                    backgroundColor: currentTheme === key && currentMode === "light" ? 'var(--accent-color)' : 'transparent',
-                    opacity: currentTheme === key && currentMode === "light" ? 1 : 0.7
+                    backgroundColor: currentTheme === key && currentMode === "light" && !autoMode ? 'var(--accent-color)' : 'transparent',
+                    opacity: currentTheme === key && currentMode === "light" && !autoMode ? 1 : 0.7
                   }}
                 >
                   {light.emoji} {key.charAt(0).toUpperCase() + key.slice(1)} ☀️
                 </button>
                 <button
-                  onClick={() => applyTheme(key, "dark")}
+                  onClick={() => applyTheme(key, "dark", false)}
                   className="flex-1 text-left rounded-lg px-2 py-1.5 text-xs hover:bg-white/10 transition-colors"
-                  style={{ 
+                  style={{
                     color: 'var(--text-primary)',
-                    backgroundColor: currentTheme === key && currentMode === "dark" ? 'var(--accent-color)' : 'transparent',
-                    opacity: currentTheme === key && currentMode === "dark" ? 1 : 0.7
+                    backgroundColor: currentTheme === key && currentMode === "dark" && !autoMode ? 'var(--accent-color)' : 'transparent',
+                    opacity: currentTheme === key && currentMode === "dark" && !autoMode ? 1 : 0.7
                   }}
                 >
                   {dark.emoji} {key.charAt(0).toUpperCase() + key.slice(1)} 🌙
@@ -324,31 +394,50 @@ export function ThemeCustomizer({ inMenu = false, onThemeChange }: ThemeCustomiz
           <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
             Choose Your Theme
           </h3>
-          <div className="space-y-2">
+          <div className="space-y-3">
+            {/* Auto Mode Toggle */}
+            <div className="flex items-center gap-2 pb-2 mb-2" style={{ borderBottom: '1px solid var(--card-border)' }}>
+              <button
+                onClick={() => {
+                  applyTheme(currentTheme, currentMode, true);
+                  setShowPicker(false);
+                }}
+                className="flex-1 text-center rounded-lg px-3 py-2 text-sm font-medium transition-colors"
+                style={{
+                  color: autoMode ? 'white' : 'var(--text-primary)',
+                  backgroundColor: autoMode ? 'var(--accent-color)' : 'transparent',
+                  border: autoMode ? 'none' : '1px solid var(--card-border)'
+                }}
+              >
+                🌓 Auto (Time-based)
+              </button>
+            </div>
+
+            {/* Theme Options */}
             {Object.entries(themes).map(([key, { light, dark }]) => (
               <div key={key} className="flex items-center gap-2">
                 <button
                   onClick={() => {
-                    applyTheme(key, "light");
+                    applyTheme(key, "light", false);
                     setShowPicker(false);
                   }}
                   className="flex-1 text-left rounded-lg px-3 py-2 text-sm hover:bg-white/10 transition-colors"
-                  style={{ 
+                  style={{
                     color: 'var(--text-primary)',
-                    backgroundColor: currentTheme === key && currentMode === "light" ? 'var(--accent-color)' : 'transparent'
+                    backgroundColor: currentTheme === key && currentMode === "light" && !autoMode ? 'var(--accent-color)' : 'transparent'
                   }}
                 >
                   {light.emoji} {key.charAt(0).toUpperCase() + key.slice(1)} ☀️
                 </button>
                 <button
                   onClick={() => {
-                    applyTheme(key, "dark");
+                    applyTheme(key, "dark", false);
                     setShowPicker(false);
                   }}
                   className="flex-1 text-left rounded-lg px-3 py-2 text-sm hover:bg-white/10 transition-colors"
-                  style={{ 
+                  style={{
                     color: 'var(--text-primary)',
-                    backgroundColor: currentTheme === key && currentMode === "dark" ? 'var(--accent-color)' : 'transparent'
+                    backgroundColor: currentTheme === key && currentMode === "dark" && !autoMode ? 'var(--accent-color)' : 'transparent'
                   }}
                 >
                   {dark.emoji} {key.charAt(0).toUpperCase() + key.slice(1)} 🌙

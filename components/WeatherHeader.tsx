@@ -4,11 +4,15 @@ import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
-// Weather types + holiday themes
+// Weather types + holiday themes + time-of-day variants
 type SceneType =
   | 'sunny' | 'partly-cloudy' | 'cloudy' | 'rainy' | 'stormy' | 'snowy'
   | 'night-clear' | 'night-cloudy' | 'tornado' | 'hurricane' | 'foggy'
-  | 'christmas' | 'thanksgiving' | 'easter' | 'new-years' | 'valentines';
+  | 'christmas' | 'thanksgiving' | 'easter' | 'new-years' | 'valentines'
+  // Morning variants (dawn/sunrise - 5am-8am)
+  | 'sunny-morning' | 'partly-cloudy-morning' | 'cloudy-morning' | 'rainy-morning' | 'snowy-morning' | 'foggy-morning'
+  // Evening variants (sunset/dusk - 5pm-8pm)
+  | 'sunny-evening' | 'partly-cloudy-evening' | 'cloudy-evening' | 'rainy-evening' | 'snowy-evening' | 'foggy-evening';
 
 interface SceneSettings {
   disabledScenes: SceneType[];
@@ -18,6 +22,7 @@ interface SceneSettings {
     expiresAt: string | null;
     customPrompt: string | null;
     customSvg: string | null;
+    customImageUrl: string | null;
   };
 }
 
@@ -42,10 +47,11 @@ function getInstantDefaultScene(): SceneType {
   return hour < 6 || hour >= 20 ? 'night-clear' : 'partly-cloudy';
 }
 
-export default function WeatherHeader({ onSceneReady }: { onSceneReady?: (scene: SceneType | 'custom') => void } = {}) {
+export default function WeatherHeader({ onSceneReady }: { onSceneReady?: (scene: SceneType | 'custom', tempF?: number | null) => void } = {}) {
   // Start with instant default scene - no blank loading state
   const [scene, setScene] = useState<SceneType | 'custom'>(getInstantDefaultScene());
   const [customSvg, setCustomSvg] = useState<string | null>(null);
+  const [customImageUrl, setCustomImageUrl] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [temperature, setTemperature] = useState<number | null>(null);
@@ -70,13 +76,24 @@ export default function WeatherHeader({ onSceneReady }: { onSceneReady?: (scene:
           settings.customOverride.expiresAt &&
           new Date(settings.customOverride.expiresAt) > new Date()) {
 
-        // Check if it's a custom AI-generated scene
-        if (settings.customOverride.sceneId === 'custom' && settings.customOverride.customSvg) {
-          setCustomSvg(settings.customOverride.customSvg);
-          setScene('custom');
-          setIsLoading(false);
-          onSceneReady?.('custom');
-          return;
+        // Check if it's a custom AI-generated scene (SVG or Image)
+        if (settings.customOverride.sceneId === 'custom') {
+          if (settings.customOverride.customSvg) {
+            setCustomSvg(settings.customOverride.customSvg);
+            setCustomImageUrl(null);
+            setScene('custom');
+            setIsLoading(false);
+            onSceneReady?.('custom');
+            return;
+          }
+          if (settings.customOverride.customImageUrl) {
+            setCustomImageUrl(settings.customOverride.customImageUrl);
+            setCustomSvg(null);
+            setScene('custom');
+            setIsLoading(false);
+            onSceneReady?.('custom');
+            return;
+          }
         }
 
         // Otherwise use the selected scene ID
@@ -95,6 +112,26 @@ export default function WeatherHeader({ onSceneReady }: { onSceneReady?: (scene:
         onSceneReady?.(holiday);
         return;
       }
+
+      // Helper to apply time-of-day variants (morning/evening)
+      const applyTimeOfDayVariant = (baseType: SceneType): SceneType => {
+        const hour = new Date().getHours();
+
+        // Types that have morning/evening variants
+        const variantTypes = ['sunny', 'partly-cloudy', 'cloudy', 'rainy', 'snowy', 'foggy'];
+
+        // Morning: 5am-8am (sunrise hours)
+        if (hour >= 5 && hour < 8 && variantTypes.includes(baseType)) {
+          return `${baseType}-morning` as SceneType;
+        }
+
+        // Evening: 5pm-8pm (sunset hours) - before it gets dark
+        if (hour >= 17 && hour < 20 && variantTypes.includes(baseType)) {
+          return `${baseType}-evening` as SceneType;
+        }
+
+        return baseType;
+      };
 
       // Helper to fetch weather and determine scene
       const fetchWeatherAndSetScene = async (lat: number, lon: number) => {
@@ -139,9 +176,20 @@ export default function WeatherHeader({ onSceneReady }: { onSceneReady?: (scene:
           type = 'partly-cloudy';
         }
 
-        console.log('Weather:', { lat, lon, code, isDay, type });
+        // Apply morning/evening variant if applicable
+        type = applyTimeOfDayVariant(type);
+
+        // Check if the variant is disabled, fall back to base type
+        if (settings?.disabledScenes?.includes(type)) {
+          // Get base type back (remove -morning or -evening suffix)
+          const baseType = type.replace(/-morning$|-evening$/, '') as SceneType;
+          type = baseType;
+        }
+
+        console.log('Weather:', { lat, lon, code, isDay, type, temp });
         setScene(type);
-        onSceneReady?.(type);
+        const roundedTemp = typeof temp === 'number' ? Math.round(temp) : null;
+        onSceneReady?.(type, roundedTemp);
       };
 
       // Try browser geolocation first (more accurate, no rate limits)
@@ -230,8 +278,9 @@ export default function WeatherHeader({ onSceneReady }: { onSceneReady?: (scene:
 
   // Always render scene immediately - no waiting for weather data
 
-  // Determine if it's a night scene for temperature styling
-  const isNightScene = scene === 'night-clear' || scene === 'night-cloudy' || scene === 'christmas' || scene === 'new-years';
+  // Determine if it's a night/evening scene for temperature styling
+  const isNightScene = scene === 'night-clear' || scene === 'night-cloudy' || scene === 'christmas' || scene === 'new-years'
+    || scene.endsWith('-evening');
 
   return (
     <div
@@ -239,13 +288,23 @@ export default function WeatherHeader({ onSceneReady }: { onSceneReady?: (scene:
       style={{ backgroundColor: 'var(--card-bg)' }}
     >
       <div className="absolute inset-0">
-        {scene === 'custom' && customSvg ? (
-          <div
-            className="w-full h-full"
-            dangerouslySetInnerHTML={{ __html: customSvg }}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          />
+        {scene === 'custom' && (customSvg || customImageUrl) ? (
+          // Custom override scene (SVG or DALL-E image)
+          customImageUrl ? (
+            <img
+              src={customImageUrl}
+              alt="Custom scene"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div
+              className="w-full h-full"
+              dangerouslySetInnerHTML={{ __html: customSvg! }}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            />
+          )
         ) : (
+          // Default to animated SVG scene
           <WeatherScene type={scene as SceneType} />
         )}
       </div>
@@ -401,6 +460,55 @@ function WeatherScene({ type }: { type: SceneType }) {
           <stop offset="50%" stopColor="#81D4FA" stopOpacity="0.5" />
           <stop offset="100%" stopColor="#B3E5FC" stopOpacity="0.3" />
         </linearGradient>
+
+        {/* Morning/Sunrise sky gradients */}
+        <linearGradient id="skyMorning" x1="0%" y1="100%" x2="0%" y2="0%">
+          <stop offset="0%" stopColor="#FF6B6B" stopOpacity="0.5" />
+          <stop offset="25%" stopColor="#FFB347" stopOpacity="0.45" />
+          <stop offset="50%" stopColor="#FFD93D" stopOpacity="0.4" />
+          <stop offset="75%" stopColor="#87CEEB" stopOpacity="0.35" />
+          <stop offset="100%" stopColor="#6BB3F0" stopOpacity="0.3" />
+        </linearGradient>
+
+        <linearGradient id="skyMorningCloudy" x1="0%" y1="100%" x2="0%" y2="0%">
+          <stop offset="0%" stopColor="#E8A87C" stopOpacity="0.4" />
+          <stop offset="40%" stopColor="#C9B8A8" stopOpacity="0.35" />
+          <stop offset="100%" stopColor="#B0C4DE" stopOpacity="0.25" />
+        </linearGradient>
+
+        {/* Evening/Sunset sky gradients */}
+        <linearGradient id="skyEvening" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#614385" stopOpacity="0.4" />
+          <stop offset="25%" stopColor="#516395" stopOpacity="0.35" />
+          <stop offset="50%" stopColor="#FF7E5F" stopOpacity="0.5" />
+          <stop offset="75%" stopColor="#FF6B35" stopOpacity="0.55" />
+          <stop offset="100%" stopColor="#F9A825" stopOpacity="0.5" />
+        </linearGradient>
+
+        <linearGradient id="skyEveningCloudy" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#4A4063" stopOpacity="0.35" />
+          <stop offset="50%" stopColor="#8E6B5A" stopOpacity="0.3" />
+          <stop offset="100%" stopColor="#C97B4A" stopOpacity="0.35" />
+        </linearGradient>
+
+        {/* Morning sun glow - softer, warmer */}
+        <radialGradient id="sunGlowMorning" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#FFEC8B" stopOpacity="1" />
+          <stop offset="30%" stopColor="#FFD700" stopOpacity="0.9" />
+          <stop offset="60%" stopColor="#FFA500" stopOpacity="0.5" />
+          <stop offset="85%" stopColor="#FF6347" stopOpacity="0.25" />
+          <stop offset="100%" stopColor="#FF4500" stopOpacity="0" />
+        </radialGradient>
+
+        {/* Evening sun glow - deeper, more orange/red */}
+        <radialGradient id="sunGlowEvening" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#FFFFFF" stopOpacity="1" />
+          <stop offset="20%" stopColor="#FFE4B5" stopOpacity="0.95" />
+          <stop offset="40%" stopColor="#FF8C00" stopOpacity="0.8" />
+          <stop offset="65%" stopColor="#FF4500" stopOpacity="0.5" />
+          <stop offset="85%" stopColor="#DC143C" stopOpacity="0.25" />
+          <stop offset="100%" stopColor="#8B0000" stopOpacity="0" />
+        </radialGradient>
 
         <linearGradient id="skyNight" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#0f0c29" stopOpacity="0.5" />
@@ -673,26 +781,39 @@ function WeatherScene({ type }: { type: SceneType }) {
             <StormCloud x={650} y={50} scale={1.1} opacity={0.92} />
           </g>
 
-          {/* Lightning bolt */}
-          <g className="animate-flash" style={{ animationDuration: '2.5s' }}>
+          {/* Zigzag Lightning bolt */}
+          <g className="animate-flash" style={{ animationDuration: '3s' }}>
+            {/* Outer glow */}
             <path
-              d="M380 50 L365 90 L385 90 L360 140 M372 105 L395 125"
+              d="M320 45 L335 75 L315 80 L340 115 L318 120 L350 170"
+              fill="none"
+              stroke="#FFF"
+              strokeWidth="8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              filter="url(#heavyBlur)"
+              opacity="0.6"
+            />
+            {/* White outline */}
+            <path
+              d="M320 45 L335 75 L315 80 L340 115 L318 120 L350 170"
               fill="none"
               stroke="#FFF"
               strokeWidth="5"
               strokeLinecap="round"
               strokeLinejoin="round"
-              filter="url(#glow)"
             />
+            {/* Yellow core */}
             <path
-              d="M380 50 L365 90 L385 90 L360 140 M372 105 L395 125"
+              d="M320 45 L335 75 L315 80 L340 115 L318 120 L350 170"
               fill="none"
               stroke="#FFEB3B"
               strokeWidth="3"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
-            <circle cx="375" cy="95" r="35" fill="#FFEB3B" opacity="0.12" filter="url(#heavyBlur)" className="animate-flash" />
+            {/* Flash glow behind bolt */}
+            <circle cx="330" cy="110" r="50" fill="#FFEB3B" opacity="0.15" filter="url(#heavyBlur)" className="animate-flash" />
           </g>
 
           {/* Heavy rain */}
@@ -1000,18 +1121,19 @@ function WeatherScene({ type }: { type: SceneType }) {
           <ellipse cx="300" cy="85" rx="120" ry="20" fill="#20B2AA" opacity="0.06" filter="url(#heavyBlur)" />
           <ellipse cx="300" cy="85" rx="120" ry="20" fill="#60efff" opacity="0.08" filter="url(#heavyBlur)" className="animate-pulse" style={{ animationDuration: '10s', animationDelay: '3s' }} />
 
-          {/* Crescent moon - positioned for mobile visibility */}
-          <circle cx="580" cy="55" r="50" fill="#FFF8E1" opacity="0.1" filter="url(#heavyBlur)" />
-          <circle cx="580" cy="55" r="30" fill="url(#moonGlow)" />
-          <circle cx="593" cy="55" r="26" fill="#0f0c29" opacity="0.95" />
+          {/* Crescent moon - moved left to avoid temp display overlap on mobile */}
+          <circle cx="480" cy="55" r="50" fill="#FFF8E1" opacity="0.1" filter="url(#heavyBlur)" />
+          <circle cx="480" cy="55" r="30" fill="url(#moonGlow)" />
+          <circle cx="493" cy="55" r="26" fill="#0f0c29" opacity="0.95" />
 
-          {/* Stars - stationary but twinkling with golden glow for light mode visibility */}
+          {/* Stars - scattered naturally to avoid straight lines */}
           {[
-            { x: 50, y: 28 }, { x: 120, y: 68 }, { x: 180, y: 38 }, { x: 250, y: 88 },
-            { x: 300, y: 32 }, { x: 360, y: 115 }, { x: 420, y: 52 }, { x: 480, y: 78 },
-            { x: 530, y: 25 }, { x: 580, y: 98 }, { x: 620, y: 125 }, { x: 760, y: 72 },
-            { x: 100, y: 128 }, { x: 200, y: 148 }, { x: 380, y: 138 }, { x: 550, y: 142 },
-            { x: 70, y: 95 }, { x: 160, y: 115 }, { x: 450, y: 35 }, { x: 720, y: 110 },
+            { x: 45, y: 32 }, { x: 118, y: 75 }, { x: 175, y: 22 }, { x: 247, y: 95 },
+            { x: 310, y: 48 }, { x: 365, y: 108 }, { x: 412, y: 18 }, { x: 485, y: 62 },
+            { x: 528, y: 135 }, { x: 595, y: 45 }, { x: 645, y: 118 }, { x: 755, y: 38 },
+            { x: 88, y: 142 }, { x: 215, y: 85 }, { x: 385, y: 155 }, { x: 555, y: 28 },
+            { x: 62, y: 58 }, { x: 148, y: 125 }, { x: 442, y: 72 }, { x: 708, y: 148 },
+            { x: 275, y: 12 }, { x: 335, y: 165 }, { x: 678, y: 85 }, { x: 22, y: 105 },
           ].map((star, i) => (
             <g key={i}>
               {/* Golden outer glow for light mode */}
@@ -1036,8 +1158,8 @@ function WeatherScene({ type }: { type: SceneType }) {
         <g>
           <rect width="800" height="200" fill="url(#skyNight)" />
 
-          {/* Moon glow behind clouds - positioned for mobile visibility */}
-          <circle cx="550" cy="55" r="55" fill="#FFF8E1" opacity="0.1" filter="url(#heavyBlur)" />
+          {/* Moon glow behind clouds - moved left to avoid temp display overlap on mobile */}
+          <circle cx="450" cy="55" r="55" fill="#FFF8E1" opacity="0.1" filter="url(#heavyBlur)" />
 
           {/* Night clouds - darker fluffy clouds */}
           <g className="animate-drift-slow">
@@ -1101,20 +1223,27 @@ function WeatherScene({ type }: { type: SceneType }) {
           {/* Night sky */}
           <rect width="800" height="200" fill="#0D1B2A" opacity="0.4" />
 
-          {/* Stars - stationary but twinkling with golden glow */}
-          {[...Array(25)].map((_, i) => (
+          {/* Stars - scattered naturally to avoid straight lines */}
+          {[
+            { x: 42, y: 18 }, { x: 95, y: 65 }, { x: 138, y: 28 }, { x: 182, y: 78 },
+            { x: 225, y: 12 }, { x: 278, y: 55 }, { x: 315, y: 92 }, { x: 358, y: 35 },
+            { x: 425, y: 68 }, { x: 468, y: 15 }, { x: 512, y: 82 }, { x: 565, y: 42 },
+            { x: 618, y: 72 }, { x: 658, y: 25 }, { x: 705, y: 58 }, { x: 748, y: 88 },
+            { x: 68, y: 45 }, { x: 155, y: 95 }, { x: 248, y: 38 }, { x: 345, y: 62 },
+            { x: 488, y: 48 }, { x: 582, y: 15 }, { x: 635, y: 95 }, { x: 772, y: 32 },
+          ].map((star, i) => (
             <g key={i}>
               <circle
-                cx={30 + i * 32}
-                cy={15 + (i % 5) * 18}
+                cx={star.x}
+                cy={star.y}
                 r={4}
                 fill="#FFD700"
                 opacity="0.1"
                 filter="url(#softBlur)"
               />
               <circle
-                cx={30 + i * 32}
-                cy={15 + (i % 5) * 18}
+                cx={star.x}
+                cy={star.y}
                 r={1 + (i % 2) * 0.8}
                 fill="#FFFDE7"
                 opacity={0.5 + (i % 3) * 0.15}
@@ -1363,20 +1492,27 @@ function WeatherScene({ type }: { type: SceneType }) {
             </g>
           ))}
 
-          {/* Background stars - stationary but twinkling with golden glow */}
-          {[...Array(22)].map((_, i) => (
+          {/* Background stars - scattered naturally to avoid straight lines */}
+          {[
+            { x: 38, y: 25 }, { x: 85, y: 72 }, { x: 125, y: 18 }, { x: 172, y: 88 },
+            { x: 215, y: 42 }, { x: 268, y: 95 }, { x: 305, y: 28 }, { x: 352, y: 68 },
+            { x: 398, y: 15 }, { x: 445, y: 82 }, { x: 492, y: 35 }, { x: 538, y: 72 },
+            { x: 585, y: 22 }, { x: 628, y: 58 }, { x: 672, y: 95 }, { x: 718, y: 38 },
+            { x: 55, y: 52 }, { x: 148, y: 45 }, { x: 242, y: 65 }, { x: 375, y: 48 },
+            { x: 508, y: 55 }, { x: 758, y: 75 },
+          ].map((star, i) => (
             <g key={i}>
               <circle
-                cx={35 + i * 35}
-                cy={20 + (i % 5) * 25}
+                cx={star.x}
+                cy={star.y}
                 r={4}
                 fill="#FFD700"
                 opacity="0.1"
                 filter="url(#softBlur)"
               />
               <circle
-                cx={35 + i * 35}
-                cy={20 + (i % 5) * 25}
+                cx={star.x}
+                cy={star.y}
                 r={1.5 + (i % 2)}
                 fill="#FFFDE7"
                 opacity={0.45 + (i % 3) * 0.1}
@@ -1465,6 +1601,414 @@ function WeatherScene({ type }: { type: SceneType }) {
               />
             </g>
           ))}
+        </g>
+      )}
+
+      {/* ============================================= */}
+      {/* === MORNING VARIANTS (SUNRISE 5AM-8AM) ===== */}
+      {/* ============================================= */}
+
+      {/* === SUNNY MORNING === */}
+      {type === 'sunny-morning' && (
+        <g>
+          <rect width="800" height="200" fill="url(#skyMorning)" />
+
+          {/* Rising sun on horizon - low position with warm glow */}
+          <ellipse cx="400" cy="185" rx="200" ry="60" fill="#FFE082" opacity="0.2" filter="url(#heavyBlur)" />
+          <circle cx="400" cy="165" r="80" fill="#FF8A65" opacity="0.3" filter="url(#heavyBlur)" />
+          <circle cx="400" cy="165" r="55" fill="#FFAB91" opacity="0.5" filter="url(#softBlur)" />
+          <circle cx="400" cy="165" r="40" fill="url(#sunGlowMorning)" />
+          <circle cx="400" cy="165" r="30" fill="#FFD54F" />
+          <circle cx="400" cy="165" r="22" fill="#FFECB3" opacity="0.95" />
+
+          {/* Morning light rays */}
+          {[...Array(10)].map((_, i) => (
+            <line
+              key={i}
+              x1="400" y1="165"
+              x2={400 + Math.cos((i * 18 - 90) * Math.PI / 180) * 180}
+              y2={165 + Math.sin((i * 18 - 90) * Math.PI / 180) * 180}
+              stroke="#FFE082"
+              strokeWidth={3 - (i % 2)}
+              opacity={0.2 + (i % 3) * 0.05}
+            />
+          ))}
+
+          {/* Early morning birds */}
+          <g className="animate-drift" style={{ animationDelay: '0s' }}>
+            <path d="M150 65 q6 -5 12 0 q6 5 12 0" fill="none" stroke="#5D4037" strokeWidth="1.5" opacity="0.4" />
+          </g>
+          <g className="animate-drift" style={{ animationDelay: '-25s' }}>
+            <path d="M320 45 q5 -4 10 0 q5 4 10 0" fill="none" stroke="#5D4037" strokeWidth="1.3" opacity="0.35" />
+          </g>
+          <g className="animate-drift" style={{ animationDelay: '-50s' }}>
+            <path d="M550 55 q7 -5 14 0 q7 5 14 0" fill="none" stroke="#5D4037" strokeWidth="1.6" opacity="0.38" />
+          </g>
+        </g>
+      )}
+
+      {/* === PARTLY CLOUDY MORNING === */}
+      {type === 'partly-cloudy-morning' && (
+        <g>
+          <rect width="800" height="200" fill="url(#skyMorning)" />
+
+          {/* Low sunrise */}
+          <circle cx="550" cy="150" r="70" fill="#FFB74D" opacity="0.3" filter="url(#heavyBlur)" />
+          <circle cx="550" cy="150" r="45" fill="#FFCC80" opacity="0.5" filter="url(#softBlur)" />
+          <circle cx="550" cy="150" r="35" fill="url(#sunGlowMorning)" opacity="0.9" />
+          <circle cx="550" cy="150" r="25" fill="#FFD54F" />
+
+          {/* Morning clouds - pink/orange tinted */}
+          <g className="animate-drift-slow">
+            <FluffyCloud x={100} y={55} scale={0.9} opacity={0.85} color="#FFE4E1" shadowColor="#E8B4B4" />
+          </g>
+          <g className="animate-drift-slow" style={{ animationDelay: '-35s' }}>
+            <FluffyCloud x={280} y={70} scale={0.75} opacity={0.8} color="#FFDAB9" shadowColor="#E8C4A4" />
+          </g>
+          <g className="animate-drift-slow" style={{ animationDelay: '-70s' }}>
+            <FluffyCloud x={450} y={50} scale={0.7} opacity={0.75} color="#FFE4E1" shadowColor="#E8B4B4" />
+          </g>
+          <g className="animate-drift-slow" style={{ animationDelay: '-100s' }}>
+            <FluffyCloud x={680} y={75} scale={0.55} opacity={0.7} color="#FFDAB9" shadowColor="#E8C4A4" />
+          </g>
+        </g>
+      )}
+
+      {/* === CLOUDY MORNING === */}
+      {type === 'cloudy-morning' && (
+        <g>
+          <rect width="800" height="200" fill="url(#skyMorningCloudy)" />
+
+          {/* Hidden sun glow */}
+          <circle cx="600" cy="120" r="60" fill="#FFE082" opacity="0.15" filter="url(#heavyBlur)" />
+
+          {/* Pink-grey morning clouds */}
+          <g className="animate-drift-slow">
+            <FluffyCloud x={50} y={50} scale={1.05} opacity={0.9} shadowColor="#B8A8A0" color="#E8DCD8" />
+          </g>
+          <g className="animate-drift-slow" style={{ animationDelay: '-30s' }}>
+            <FluffyCloud x={220} y={65} scale={0.95} opacity={0.85} shadowColor="#B8A8A0" color="#E0D4D0" />
+          </g>
+          <g className="animate-drift-slow" style={{ animationDelay: '-55s' }}>
+            <FluffyCloud x={400} y={45} scale={1.1} opacity={0.9} shadowColor="#B8A8A0" color="#E8DCD8" />
+          </g>
+          <g className="animate-drift-slow" style={{ animationDelay: '-80s' }}>
+            <FluffyCloud x={580} y={60} scale={0.9} opacity={0.85} shadowColor="#B8A8A0" color="#E0D4D0" />
+          </g>
+          <g className="animate-drift-slow" style={{ animationDelay: '-110s' }}>
+            <FluffyCloud x={750} y={55} scale={0.8} opacity={0.8} shadowColor="#B8A8A0" color="#E8DCD8" />
+          </g>
+        </g>
+      )}
+
+      {/* === RAINY MORNING === */}
+      {type === 'rainy-morning' && (
+        <g>
+          <rect width="800" height="200" fill="url(#skyMorningCloudy)" />
+          <rect width="800" height="200" fill="#6B7C8C" opacity="0.15" />
+
+          {/* Dark morning storm clouds */}
+          <g className="animate-drift-slow">
+            <StormCloud x={80} y={45} scale={0.95} opacity={0.85} />
+          </g>
+          <g className="animate-drift-slow" style={{ animationDelay: '-45s' }}>
+            <StormCloud x={320} y={40} scale={1.05} opacity={0.9} />
+          </g>
+          <g className="animate-drift-slow" style={{ animationDelay: '-90s' }}>
+            <StormCloud x={580} y={50} scale={0.9} opacity={0.85} />
+          </g>
+
+          {/* Morning rain - slightly warmer tint */}
+          {[...Array(45)].map((_, i) => {
+            const x = 18 + i * 17.5;
+            const delay = (i * 0.09) % 1.5;
+            return (
+              <line
+                key={i}
+                x1={x} y1={85 + (i % 5) * 12}
+                x2={x - 3} y2={85 + (i % 5) * 12 + 20}
+                stroke="#8FA8BD"
+                strokeWidth={1.5}
+                strokeLinecap="round"
+                opacity={0.4}
+                className="animate-rain"
+                style={{ animationDelay: `${delay}s` }}
+              />
+            );
+          })}
+        </g>
+      )}
+
+      {/* === SNOWY MORNING === */}
+      {type === 'snowy-morning' && (
+        <g>
+          <rect width="800" height="200" fill="url(#skyMorningCloudy)" />
+          <rect width="800" height="200" fill="#FFF0F5" opacity="0.08" />
+
+          {/* Soft pink morning glow */}
+          <ellipse cx="200" cy="180" rx="250" ry="80" fill="#FFB6C1" opacity="0.1" filter="url(#heavyBlur)" />
+
+          {/* Light pinkish morning clouds */}
+          <g className="animate-drift-slow">
+            <FluffyCloud x={100} y={50} scale={0.95} color="#F5E8EA" shadowColor="#D8C8CC" opacity={0.65} />
+          </g>
+          <g className="animate-drift-slow" style={{ animationDelay: '-45s' }}>
+            <FluffyCloud x={350} y={55} scale={0.85} color="#F5E8EA" shadowColor="#D8C8CC" opacity={0.6} />
+          </g>
+          <g className="animate-drift-slow" style={{ animationDelay: '-90s' }}>
+            <FluffyCloud x={600} y={45} scale={0.8} color="#F5E8EA" shadowColor="#D8C8CC" opacity={0.55} />
+          </g>
+
+          {/* Morning snowflakes */}
+          {[
+            { x: 50, y: 35, size: 1.1, rot: 10, delay: 0 },
+            { x: 130, y: 75, size: 0.85, rot: 25, delay: 2.5 },
+            { x: 200, y: 50, size: 1.3, rot: 5, delay: 4.8 },
+            { x: 280, y: 95, size: 0.95, rot: 40, delay: 1.3 },
+            { x: 360, y: 40, size: 1.2, rot: 15, delay: 3.5 },
+            { x: 440, y: 85, size: 0.75, rot: 55, delay: 5.5 },
+            { x: 520, y: 55, size: 1.4, rot: 20, delay: 0.9 },
+            { x: 600, y: 100, size: 1.0, rot: 30, delay: 6.2 },
+            { x: 680, y: 45, size: 0.85, rot: 45, delay: 2.8 },
+            { x: 760, y: 80, size: 1.15, rot: 8, delay: 4.0 },
+          ].map((flake, i) => (
+            <g key={i} className="animate-snow-float" style={{ animationDelay: `${flake.delay}s` }}>
+              <Snowflake x={flake.x} y={flake.y} size={flake.size} rotation={flake.rot} opacity={0.65 + (i % 3) * 0.1} />
+            </g>
+          ))}
+
+          {/* Ground snow with pink tint */}
+          <ellipse cx="400" cy="195" rx="420" ry="18" fill="#FFF5F7" opacity="0.25" filter="url(#softBlur)" />
+        </g>
+      )}
+
+      {/* === FOGGY MORNING === */}
+      {type === 'foggy-morning' && (
+        <g>
+          <rect width="800" height="200" fill="url(#skyMorningCloudy)" />
+
+          {/* Hidden sunrise glow */}
+          <ellipse cx="400" cy="160" rx="200" ry="80" fill="#FFCC80" opacity="0.15" filter="url(#heavyBlur)" />
+          <circle cx="400" cy="150" r="50" fill="#FFE082" opacity="0.1" filter="url(#heavyBlur)" />
+
+          {/* Morning fog layers - warmer tint */}
+          <g className="animate-drift-slow">
+            <ellipse cx="0" cy="100" rx="320" ry="80" fill="#F5E8E0" opacity="0.35" filter="url(#heavyBlur)" />
+          </g>
+          <g className="animate-drift-slow" style={{ animationDelay: '-50s' }}>
+            <ellipse cx="400" cy="110" rx="380" ry="70" fill="#FFF5E8" opacity="0.4" filter="url(#heavyBlur)" />
+          </g>
+          <g className="animate-drift-slow" style={{ animationDelay: '-100s' }}>
+            <ellipse cx="750" cy="95" rx="280" ry="65" fill="#F5E8E0" opacity="0.35" filter="url(#heavyBlur)" />
+          </g>
+
+          {/* Ground fog */}
+          <rect x="0" y="135" width="800" height="65" fill="#E8D8C8" opacity="0.3" filter="url(#softBlur)" />
+          <rect x="0" y="160" width="800" height="40" fill="#F5E8DC" opacity="0.4" filter="url(#softBlur)" />
+        </g>
+      )}
+
+      {/* ============================================= */}
+      {/* === EVENING VARIANTS (SUNSET 5PM-8PM) ====== */}
+      {/* ============================================= */}
+
+      {/* === SUNNY EVENING === */}
+      {type === 'sunny-evening' && (
+        <g>
+          <rect width="800" height="200" fill="url(#skyEvening)" />
+
+          {/* Setting sun - low position with dramatic orange/red glow */}
+          <ellipse cx="400" cy="185" rx="250" ry="80" fill="#FF6B35" opacity="0.25" filter="url(#heavyBlur)" />
+          <circle cx="400" cy="160" r="100" fill="#FF4500" opacity="0.2" filter="url(#heavyBlur)" />
+          <circle cx="400" cy="160" r="65" fill="#FF6347" opacity="0.4" filter="url(#softBlur)" />
+          <circle cx="400" cy="160" r="48" fill="url(#sunGlowEvening)" />
+          <circle cx="400" cy="160" r="35" fill="#FF8C00" />
+          <circle cx="400" cy="160" r="26" fill="#FFDB58" opacity="0.95" />
+
+          {/* Sunset rays - dramatic golden hour */}
+          {[...Array(14)].map((_, i) => (
+            <line
+              key={i}
+              x1="400" y1="160"
+              x2={400 + Math.cos((i * 12.85 - 90) * Math.PI / 180) * 200}
+              y2={160 + Math.sin((i * 12.85 - 90) * Math.PI / 180) * 200}
+              stroke="#FFB347"
+              strokeWidth={4 - (i % 3)}
+              opacity={0.15 + (i % 4) * 0.03}
+            />
+          ))}
+
+          {/* Silhouette birds heading home */}
+          <g className="animate-drift" style={{ animationDelay: '-10s' }}>
+            <path d="M620 65 q8 -6 16 0 q8 6 16 0" fill="none" stroke="#1A1A1A" strokeWidth="2" opacity="0.5" />
+          </g>
+          <g className="animate-drift" style={{ animationDelay: '-40s' }}>
+            <path d="M520 85 q6 -5 12 0 q6 5 12 0" fill="none" stroke="#1A1A1A" strokeWidth="1.5" opacity="0.45" />
+          </g>
+          <g className="animate-drift" style={{ animationDelay: '-70s' }}>
+            <path d="M580 55 q7 -5 14 0 q7 5 14 0" fill="none" stroke="#1A1A1A" strokeWidth="1.8" opacity="0.48" />
+          </g>
+        </g>
+      )}
+
+      {/* === PARTLY CLOUDY EVENING === */}
+      {type === 'partly-cloudy-evening' && (
+        <g>
+          <rect width="800" height="200" fill="url(#skyEvening)" />
+
+          {/* Low sunset behind clouds */}
+          <circle cx="200" cy="145" r="80" fill="#FF6347" opacity="0.25" filter="url(#heavyBlur)" />
+          <circle cx="200" cy="145" r="55" fill="#FF7F50" opacity="0.4" filter="url(#softBlur)" />
+          <circle cx="200" cy="145" r="40" fill="url(#sunGlowEvening)" opacity="0.85" />
+          <circle cx="200" cy="145" r="28" fill="#FFA500" />
+
+          {/* Evening clouds - purple/orange tinted */}
+          <g className="animate-drift-slow">
+            <FluffyCloud x={80} y={60} scale={0.95} opacity={0.8} color="#E8C8D8" shadowColor="#8B6B7B" />
+          </g>
+          <g className="animate-drift-slow" style={{ animationDelay: '-35s' }}>
+            <FluffyCloud x={260} y={50} scale={0.8} opacity={0.75} color="#FFD4B8" shadowColor="#B8846B" />
+          </g>
+          <g className="animate-drift-slow" style={{ animationDelay: '-65s' }}>
+            <FluffyCloud x={420} y={70} scale={0.7} opacity={0.7} color="#E8C8D8" shadowColor="#8B6B7B" />
+          </g>
+          <g className="animate-drift-slow" style={{ animationDelay: '-95s' }}>
+            <FluffyCloud x={620} y={55} scale={0.6} opacity={0.65} color="#FFD4B8" shadowColor="#B8846B" />
+          </g>
+        </g>
+      )}
+
+      {/* === CLOUDY EVENING === */}
+      {type === 'cloudy-evening' && (
+        <g>
+          <rect width="800" height="200" fill="url(#skyEveningCloudy)" />
+
+          {/* Hidden sun glow */}
+          <circle cx="150" cy="140" r="70" fill="#FF8C00" opacity="0.12" filter="url(#heavyBlur)" />
+
+          {/* Purple-grey evening clouds */}
+          <g className="animate-drift-slow">
+            <FluffyCloud x={50} y={55} scale={1.0} opacity={0.85} shadowColor="#5D4A5D" color="#9B8B9B" />
+          </g>
+          <g className="animate-drift-slow" style={{ animationDelay: '-28s' }}>
+            <FluffyCloud x={220} y={70} scale={0.9} opacity={0.8} shadowColor="#5D4A5D" color="#A89BA8" />
+          </g>
+          <g className="animate-drift-slow" style={{ animationDelay: '-56s' }}>
+            <FluffyCloud x={400} y={50} scale={1.05} opacity={0.85} shadowColor="#5D4A5D" color="#9B8B9B" />
+          </g>
+          <g className="animate-drift-slow" style={{ animationDelay: '-84s' }}>
+            <FluffyCloud x={580} y={65} scale={0.85} opacity={0.8} shadowColor="#5D4A5D" color="#A89BA8" />
+          </g>
+          <g className="animate-drift-slow" style={{ animationDelay: '-112s' }}>
+            <FluffyCloud x={740} y={58} scale={0.75} opacity={0.75} shadowColor="#5D4A5D" color="#9B8B9B" />
+          </g>
+        </g>
+      )}
+
+      {/* === RAINY EVENING === */}
+      {type === 'rainy-evening' && (
+        <g>
+          <rect width="800" height="200" fill="url(#skyEveningCloudy)" />
+          <rect width="800" height="200" fill="#3D3D5C" opacity="0.15" />
+
+          {/* Dark evening storm clouds */}
+          <g className="animate-drift-slow">
+            <StormCloud x={80} y={48} scale={1.0} opacity={0.9} />
+          </g>
+          <g className="animate-drift-slow" style={{ animationDelay: '-42s' }}>
+            <StormCloud x={330} y={42} scale={1.1} opacity={0.95} />
+          </g>
+          <g className="animate-drift-slow" style={{ animationDelay: '-84s' }}>
+            <StormCloud x={590} y={52} scale={0.95} opacity={0.88} />
+          </g>
+
+          {/* Evening rain - cooler tint */}
+          {[...Array(48)].map((_, i) => {
+            const x = 16 + i * 16.5;
+            const delay = (i * 0.08) % 1.5;
+            return (
+              <line
+                key={i}
+                x1={x} y1={82 + (i % 5) * 12}
+                x2={x - 3} y2={82 + (i % 5) * 12 + 20}
+                stroke="#6B7B8B"
+                strokeWidth={1.5}
+                strokeLinecap="round"
+                opacity={0.42}
+                className="animate-rain"
+                style={{ animationDelay: `${delay}s` }}
+              />
+            );
+          })}
+        </g>
+      )}
+
+      {/* === SNOWY EVENING === */}
+      {type === 'snowy-evening' && (
+        <g>
+          <rect width="800" height="200" fill="url(#skyEveningCloudy)" />
+          <rect width="800" height="200" fill="#E8E0F0" opacity="0.1" />
+
+          {/* Soft purple evening glow */}
+          <ellipse cx="600" cy="175" rx="250" ry="80" fill="#9370DB" opacity="0.12" filter="url(#heavyBlur)" />
+
+          {/* Purple-grey evening clouds */}
+          <g className="animate-drift-slow">
+            <FluffyCloud x={100} y={52} scale={0.9} color="#D8D0E8" shadowColor="#8B7BAB" opacity={0.6} />
+          </g>
+          <g className="animate-drift-slow" style={{ animationDelay: '-42s' }}>
+            <FluffyCloud x={350} y={58} scale={0.8} color="#D8D0E8" shadowColor="#8B7BAB" opacity={0.55} />
+          </g>
+          <g className="animate-drift-slow" style={{ animationDelay: '-84s' }}>
+            <FluffyCloud x={600} y={48} scale={0.75} color="#D8D0E8" shadowColor="#8B7BAB" opacity={0.5} />
+          </g>
+
+          {/* Evening snowflakes */}
+          {[
+            { x: 55, y: 38, size: 1.05, rot: 12, delay: 0.2 },
+            { x: 140, y: 78, size: 0.8, rot: 28, delay: 2.8 },
+            { x: 220, y: 52, size: 1.25, rot: 8, delay: 5.2 },
+            { x: 300, y: 98, size: 0.9, rot: 42, delay: 1.5 },
+            { x: 380, y: 42, size: 1.15, rot: 18, delay: 3.8 },
+            { x: 460, y: 88, size: 0.7, rot: 52, delay: 5.8 },
+            { x: 540, y: 58, size: 1.35, rot: 22, delay: 1.0 },
+            { x: 620, y: 102, size: 0.95, rot: 32, delay: 6.5 },
+            { x: 700, y: 48, size: 0.8, rot: 48, delay: 3.0 },
+            { x: 780, y: 82, size: 1.1, rot: 10, delay: 4.2 },
+          ].map((flake, i) => (
+            <g key={i} className="animate-snow-float" style={{ animationDelay: `${flake.delay}s` }}>
+              <Snowflake x={flake.x} y={flake.y} size={flake.size} rotation={flake.rot} opacity={0.6 + (i % 3) * 0.1} />
+            </g>
+          ))}
+
+          {/* Ground snow with purple tint */}
+          <ellipse cx="400" cy="195" rx="420" ry="18" fill="#F5F0FA" opacity="0.25" filter="url(#softBlur)" />
+        </g>
+      )}
+
+      {/* === FOGGY EVENING === */}
+      {type === 'foggy-evening' && (
+        <g>
+          <rect width="800" height="200" fill="url(#skyEveningCloudy)" />
+
+          {/* Hidden sunset glow */}
+          <ellipse cx="200" cy="155" rx="180" ry="70" fill="#FF8C00" opacity="0.12" filter="url(#heavyBlur)" />
+          <circle cx="200" cy="145" r="45" fill="#FFA500" opacity="0.08" filter="url(#heavyBlur)" />
+
+          {/* Evening fog layers - purple/grey tint */}
+          <g className="animate-drift-slow">
+            <ellipse cx="0" cy="100" rx="320" ry="80" fill="#D8D0E0" opacity="0.3" filter="url(#heavyBlur)" />
+          </g>
+          <g className="animate-drift-slow" style={{ animationDelay: '-50s' }}>
+            <ellipse cx="400" cy="110" rx="380" ry="70" fill="#E0D8E8" opacity="0.35" filter="url(#heavyBlur)" />
+          </g>
+          <g className="animate-drift-slow" style={{ animationDelay: '-100s' }}>
+            <ellipse cx="750" cy="95" rx="280" ry="65" fill="#D8D0E0" opacity="0.3" filter="url(#heavyBlur)" />
+          </g>
+
+          {/* Ground fog */}
+          <rect x="0" y="135" width="800" height="65" fill="#A898B8" opacity="0.25" filter="url(#softBlur)" />
+          <rect x="0" y="160" width="800" height="40" fill="#C8B8D8" opacity="0.35" filter="url(#softBlur)" />
         </g>
       )}
     </svg>

@@ -85,90 +85,151 @@ export function getTimeBasedGreeting(): string {
 export function getTimeGreetingPrefix(): string {
   const hour = new Date().getHours();
 
-  if (hour < 6) return "Early morning";
+  if (hour < 6) {
+    const options = ["Up early", "Rise and shine", "Good early morning"];
+    return options[Math.floor(Math.random() * options.length)];
+  }
   if (hour < 12) return "Good morning";
   if (hour < 17) return "Good afternoon";
   if (hour < 22) return "Good evening";
-  return "Late night";
+  // Late night (after 10pm)
+  const lateOptions = ["Up late", "Still up", "Burning the midnight oil"];
+  return lateOptions[Math.floor(Math.random() * lateOptions.length)];
 }
 
 // Weather-aware greetings - returns null if shouldn't show (random ~35% chance)
-export function getWeatherAwareGreeting(scene: string | null): string | null {
+export function getWeatherAwareGreeting(scene: string | null, tempF?: number | null): string | null {
   // Only show weather greeting about 35% of the time
   if (Math.random() > 0.35) return null;
   if (!scene) return null;
 
+  // Check if it's Christmas week (Dec 20-26)
+  const now = new Date();
+  const month = now.getMonth(); // 0-indexed
+  const day = now.getDate();
+  const isChristmasWeek = month === 11 && day >= 20 && day <= 26;
+  const isChristmasDay = month === 11 && day === 25;
+
+  // Cold weather greetings (temp below 45°F)
+  const coldGreetings = [
+    "Brrrr, it's cold out there! Warm up with some time in the Word.",
+    "Bundle up! It's chilly outside. Perfect time to cozy up with Scripture.",
+    "It's freezing out there! Good thing God's love warms the heart.",
+    "Cold one today! Hot coffee and God's Word — that's the combo.",
+    "Chilly day! Stay warm. God's got you covered.",
+  ];
+
+  // Christmas week cold greetings
+  const christmasColdGreetings = [
+    "Baby, it's cold outside! But God's love keeps us warm this Christmas.",
+    "Brrrr! It's beginning to feel a lot like Christmas!",
+    "Cold outside, but the Christmas spirit is warm. Emmanuel is with us!",
+    "It's cold, but Christmas joy warms the soul!",
+    "Baby, it's cold outside! Perfect weather for the Christmas season.",
+  ];
+
+  // Hot weather greetings (temp above 85°F)
+  const hotGreetings = [
+    "Whew, it's hot out there! Stay cool and hydrated.",
+    "Summer heat is no joke! Take it easy out there.",
+    "Hot one today! God's refreshing presence is what we need.",
+    "Scorcher! Stay in the shade and in the Word.",
+  ];
+
+  // If we have temperature data, use it
+  if (tempF !== undefined && tempF !== null) {
+    if (tempF < 45) {
+      if (isChristmasWeek) {
+        return christmasColdGreetings[Math.floor(Math.random() * christmasColdGreetings.length)];
+      }
+      return coldGreetings[Math.floor(Math.random() * coldGreetings.length)];
+    }
+    if (tempF > 85) {
+      return hotGreetings[Math.floor(Math.random() * hotGreetings.length)];
+    }
+  }
+
   const weatherGreetings: Record<string, string[]> = {
     'sunny': [
-      "Beautiful day outside. Even better day to grow closer to God.",
+      "Beautiful day outside! Soak up that sunshine.",
       "The sun is shining. So is God's love for you.",
-      "Clear skies today. A perfect reminder of God's faithfulness.",
+      "Clear skies today! What a gift.",
+      "Gorgeous day out there! Enjoy it.",
     ],
     'partly-cloudy': [
-      "Partly cloudy outside. Let God clear your mind today.",
-      "A few clouds in the sky. God sees clearly through them all.",
+      "Nice day out there. A few clouds, but mostly good vibes.",
+      "Partly cloudy — could be worse, could be better. Just like life sometimes!",
       "Mixed skies today. God's love remains constant through it all.",
     ],
     'cloudy': [
-      "Overcast today. But nothing clouds God's view of you.",
-      "Gray skies outside. God's light still breaks through.",
+      "Overcast today. Cozy weather for some quiet time.",
+      "Gray skies outside. Good day to stay in.",
       "Cloudy day. Sometimes we need the clouds to appreciate the sun.",
     ],
     'rainy': [
-      "It's raining outside. Let God's Word wash over you today.",
-      "Rain is falling. Growth often comes in the rainy seasons.",
-      "Wet weather out there. A good day to stay in and stay close to God.",
+      "It's raining! Perfect excuse to stay in with a good book (hint: the Bible).",
+      "Rain is falling. Cozy up and let God's Word wash over you.",
+      "Wet weather out there. Good day to stay in and stay close to God.",
+      "Rainy day vibes. Time for some indoor soul care.",
     ],
     'stormy': [
-      "Storms outside. Let's find shelter in God's Word together.",
+      "Storms outside! Stay safe in there.",
       "Wild weather today. The One who calms storms is with you.",
-      "It's storming. Perfect time to remember who controls the wind and waves.",
+      "It's storming! Perfect time to remember who controls the wind and waves.",
+      "Rough weather out there. You're safe here.",
     ],
     'snowy': [
-      "Snow falling outside. God makes all things white as snow.",
-      "A snowy day. There's something peaceful about it, isn't there?",
-      "Winter weather. A good day to be warm with God's presence.",
+      "Snow day! There's something magical about it.",
+      "It's snowing! Enjoy the wonder.",
+      "Winter wonderland outside. Stay warm!",
+      "Snow falling. God makes all things white as snow.",
     ],
     'night-clear': [
-      "Clear night sky. The same God who placed the stars knows your name.",
-      "Stars are out tonight. Each one placed by the same hands that hold you.",
-      "Beautiful night. God's wonders are on full display.",
+      "Clear night sky. The stars are putting on a show!",
+      "Stars are out tonight. Beautiful night.",
+      "Gorgeous night. God's wonders are on full display.",
     ],
     'night-cloudy': [
-      "Quiet night outside. God is awake, even when the world sleeps.",
-      "Cloudy evening. God sees through the darkness just fine.",
+      "Quiet night outside. Hope you're winding down well.",
+      "Cloudy evening. Peaceful in its own way.",
     ],
     'foggy': [
-      "Foggy outside. Sometimes life feels that way too. God sees clearly.",
-      "Hazy day. When the path seems unclear, God still knows the way.",
+      "Foggy out there. Mysterious kind of day.",
+      "Hazy day. Drive careful if you're heading out!",
     ],
     'tornado': [
-      "Dangerous weather outside. Stay safe. God is your refuge.",
-      "Severe weather warning. Let this be a moment to trust the One who protects.",
+      "Dangerous weather! Stay safe. God is your refuge.",
+      "Severe weather warning. Stay sheltered and stay safe.",
     ],
     'hurricane': [
-      "Storm warnings out there. You're safe here with God.",
-      "Major storm approaching. Our God is bigger than any hurricane.",
+      "Major storm approaching. Stay safe out there!",
+      "Storm warnings. Praying for everyone in the path.",
     ],
     'christmas': [
-      "Christmas season. The Light of the World came for you.",
-      "Merry Christmas. Emmanuel — God with us.",
+      "Merry Christmas! The Light of the World came for you.",
+      "It's Christmastime! Emmanuel — God with us.",
+      "Christmas vibes! The greatest gift ever given.",
+      "Merry Christmas! Hope your day is full of joy.",
+      ...(isChristmasDay ? ["Merry Christmas Day! He is born!", "It's Christmas! Celebrate the Savior!"] : []),
     ],
     'thanksgiving': [
-      "Thanksgiving time. Gratitude changes everything.",
-      "Season of thanks. What's one thing you're grateful for today?",
+      "Happy Thanksgiving! What are you grateful for today?",
+      "Thanksgiving vibes. Gratitude changes everything.",
+      "Turkey day! Hope you're with people you love.",
     ],
     'easter': [
-      "Easter season. He is risen. That changes everything.",
-      "Resurrection time. Because He lives, we have hope.",
+      "Happy Easter! He is risen!",
+      "Easter Sunday! That changes everything.",
+      "Resurrection day! Because He lives, we have hope.",
     ],
     'new-years': [
-      "New year energy. Fresh mercies are waiting.",
+      "Happy New Year! Fresh start energy.",
+      "New year, new mercies! Here we go.",
       "New beginnings. God makes all things new.",
     ],
     'valentines': [
+      "Happy Valentine's Day! You are deeply loved.",
       "Love is in the air. God's love is the greatest of all.",
-      "Valentine's season. You are deeply loved by God.",
     ],
   };
 

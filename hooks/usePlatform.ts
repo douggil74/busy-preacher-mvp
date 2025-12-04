@@ -101,9 +101,10 @@ export function usePlatform() {
         hasPromoAccess = await hasActivePromoAccess(user.uid);
       }
 
-      // Check free trial status
-      const inTrial = user?.createdAt ? isWithinFreeTrial(user.createdAt) : true;
-      const daysRemaining = user?.createdAt ? getDaysRemainingInTrial(user.createdAt) : FREE_TRIAL_DAYS;
+      // Check free trial status - only applies to authenticated users
+      // If no user is logged in, they don't get trial access (must sign up first)
+      const inTrial = user?.uid ? isWithinFreeTrial(user.createdAt) : false;
+      const daysRemaining = user?.uid ? getDaysRemainingInTrial(user.createdAt) : 0;
 
       // User has paid access if:
       // 1. They're from iOS app (paid $2.99)

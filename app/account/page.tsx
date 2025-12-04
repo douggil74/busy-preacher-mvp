@@ -321,8 +321,9 @@ export default function AccountPage() {
   }
 
   // Determine access type - iOS app users can be in trial or subscribed
-  const hasIosSubscription = subscription?.source === 'ios_iap' && subscription?.status === 'active';
-  const hasAccess = isPaid || isWhitelisted || hasIosSubscription || (subscription?.status === 'active') || isInTrial;
+  // isPaid from usePlatform already checks iOS IAP via hasActiveIosSubscription
+  const hasIosSubscription = isPaid && isNative && !isInTrial; // Paid iOS user who's not just in trial
+  const hasActiveAccess = isPaid || isWhitelisted || (subscription?.status === 'active');
   const accessType = isWhitelisted ? 'Admin' : hasIosSubscription ? 'iOS Subscriber' : subscription?.status === 'active' ? 'Subscriber' : isInTrial ? `Free Trial (${trialDaysRemaining} days left)` : 'None';
 
   return (
@@ -429,16 +430,16 @@ export default function AccountPage() {
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Status</span>
               <span className={`text-sm font-medium px-2.5 py-1 rounded-full ${
-                hasAccess
+                hasActiveAccess
                   ? 'bg-green-500/20 text-green-400'
                   : 'bg-white/10'
-              }`} style={!hasAccess ? { color: 'var(--text-secondary)' } : undefined}>
+              }`} style={!hasActiveAccess ? { color: 'var(--text-secondary)' } : undefined}>
                 {accessType}
               </span>
             </div>
 
             {/* Trial Info */}
-            {isInTrial && !hasAccess && (
+            {isInTrial && !hasActiveAccess && (
               <div className="mb-4 p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-blue-400" />
@@ -517,7 +518,7 @@ export default function AccountPage() {
             )}
 
             {/* Subscribe Button */}
-            {!hasAccess && !isInTrial && (
+            {!hasActiveAccess && !isInTrial && (
               <button
                 onClick={handleSubscribe}
                 disabled={isCheckingOut}
@@ -529,7 +530,7 @@ export default function AccountPage() {
             )}
 
             {/* Trial Subscribe Button */}
-            {isInTrial && !hasAccess && (
+            {isInTrial && !hasActiveAccess && (
               <button
                 onClick={handleSubscribe}
                 disabled={isCheckingOut}
@@ -664,7 +665,7 @@ export default function AccountPage() {
         </section>
 
         {/* Promo Code Section */}
-        {!hasAccess && (
+        {!hasActiveAccess && (
           <section className="mb-6">
             <div className="rounded-xl p-5" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
               <h3 className="text-sm font-medium mb-3" style={{ color: 'var(--text-primary)' }}>Have a promo code?</h3>

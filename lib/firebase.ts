@@ -53,16 +53,19 @@ if (!getApps().length) {
 db = getFirestore(app);
 auth = getAuth(app);
 
-// Set persistence to indexedDB for iOS/Capacitor compatibility
-// This fixes "storage-partitioned browser environment" errors
-if (typeof window !== 'undefined') {
+// Check if running in Capacitor/iOS native app
+const isCapacitor = typeof window !== 'undefined' && !!(window as any).Capacitor?.isNativePlatform?.();
+
+// Set persistence - skip on Capacitor iOS to prevent lockups
+if (typeof window !== 'undefined' && !isCapacitor) {
+  // Only use indexedDB persistence on web (not iOS Capacitor)
   setPersistence(auth, indexedDBLocalPersistence).catch((error) => {
     console.warn('Failed to set auth persistence:', error);
   });
 }
 
-// Messaging only works in browser
-if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+// Messaging only works in browser (not Capacitor iOS)
+if (typeof window !== 'undefined' && 'serviceWorker' in navigator && !isCapacitor) {
   try {
     messaging = getMessaging(app);
   } catch (err) {

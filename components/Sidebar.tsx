@@ -157,7 +157,8 @@ export default function Sidebar() {
         </Link>
       )}
 
-      {/* Top Right Controls - Theme Toggle & Hamburger */}
+      {/* Top Right Controls - Theme Toggle & Hamburger (Desktop only - HeaderBar handles mobile) */}
+      {!isMobile && (
       <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
         {/* Theme Toggle */}
         <button
@@ -305,6 +306,7 @@ export default function Sidebar() {
           )}
         </div>
       </div>
+      )}
 
       {/* Left Sidebar - Hidden on Mobile */}
       {!isMobile && (

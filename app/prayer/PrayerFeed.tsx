@@ -251,14 +251,22 @@ function PrayerCard({ prayer, currentUserId, currentUserName }: PrayerCardProps)
       <div className="flex items-center justify-between pt-4 border-t border-white/10">
         <button
           onClick={handlePray}
+          onTouchEnd={(e) => {
+            // Better iOS touch handling
+            if (!hasUserPrayed && !isPraying && !isAnswered) {
+              e.preventDefault();
+              handlePray();
+            }
+          }}
           disabled={hasUserPrayed || isPraying || isAnswered}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all select-none ${
             hasUserPrayed
               ? 'bg-yellow-400/20 text-yellow-400 cursor-default'
               : isAnswered
               ? 'bg-white/5 text-white/40 cursor-not-allowed'
-              : 'bg-white/10 text-white/80 hover:bg-yellow-400/20 hover:text-yellow-400'
+              : 'bg-white/10 text-white/80 hover:bg-yellow-400/20 hover:text-yellow-400 active:bg-yellow-400/30 cursor-pointer'
           }`}
+          style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}
         >
           <span className={isPraying ? 'animate-pulse' : ''}>
             {hasUserPrayed ? '❤️' : '🤍'}

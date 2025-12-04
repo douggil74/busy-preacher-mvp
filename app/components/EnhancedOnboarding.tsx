@@ -107,7 +107,7 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
 
   if (!isOpen) return null;
 
-  const totalSteps = 5;
+  const totalSteps = 4; // Removed style selection - now a popup after home loads
 
   const updateData = (updates: Partial<OnboardingData>) => {
     setData({ ...data, ...updates });
@@ -287,12 +287,10 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
       case 1:
         return data.name.trim().length > 0;
       case 2:
-        return true;
-      case 3:
         return data.studyGoal.trim().length > 0;
-      case 4:
+      case 3:
         return true;
-      case 5:
+      case 4:
         return true;
       default:
         return false;
@@ -624,67 +622,8 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
             </div>
           )}
 
-          {/* Step 2: Study Style */}
+          {/* Step 2: Study Goal */}
           {step === 2 && (
-            <div className="space-y-6">
-              <div className="text-center mb-6">
-                <h2 className={`${playfair.className} text-2xl font-bold text-yellow-400 mb-3`}>
-                  Choose Your Study Style
-                </h2>
-                <p className="text-white/70">
-                  This helps us personalize the depth and tone of your Bible studies
-                </p>
-              </div>
-
-              <div className="space-y-4">
-                {[
-                  {
-                    style: "Casual Devotional" as const,
-                    emoji: "☕",
-                    description: "Quick, encouraging insights for daily reflection",
-                    details: "5-10 minute studies • Practical applications • Conversational tone",
-                  },
-                  {
-                    style: "Bible Student" as const,
-                    emoji: "📖",
-                    description: "Deeper exploration with cross-references and context",
-                    details: "15-20 minute studies • Word studies • Historical background",
-                  },
-                  {
-                    style: "Pastor/Teacher" as const,
-                    emoji: "👨‍🏫",
-                    description: "Comprehensive analysis for teaching and preaching",
-                    details: "20-30 minute studies • Exegesis • Sermon prep resources",
-                  },
-                ].map((option) => (
-                  <button
-                    key={option.style}
-                    onClick={() => updateData({ studyStyle: option.style })}
-                    className={`w-full text-left rounded-xl border-2 p-5 transition-all ${
-                      data.studyStyle === option.style
-                        ? "border-yellow-400 bg-yellow-400/10"
-                        : "border-white/10 bg-white/5 hover:bg-white/10"
-                    }`}
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className="text-3xl">{option.emoji}</div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-lg mb-1">{option.style}</h3>
-                        <p className="text-white/70 text-sm mb-2">{option.description}</p>
-                        <p className="text-white/50 text-xs">{option.details}</p>
-                      </div>
-                      {data.studyStyle === option.style && (
-                        <div className="text-yellow-400 text-2xl">✓</div>
-                      )}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Step 3: Study Goal */}
-          {step === 3 && (
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <div className="text-5xl mb-4">🎯</div>
@@ -734,8 +673,8 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
             </div>
           )}
 
-          {/* Step 4: Frequency */}
-          {step === 4 && (
+          {/* Step 3: Frequency */}
+          {step === 3 && (
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <div className="text-5xl mb-4">📅</div>
@@ -774,8 +713,8 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
             </div>
           )}
 
-          {/* Step 5: Confirmation */}
-          {step === 5 && (
+          {/* Step 4: Confirmation */}
+          {step === 4 && (
             <div className="space-y-6 text-center">
               <div className="text-5xl mb-4">🎉</div>
               <h2 className={`${playfair.className} text-2xl font-bold text-yellow-400 mb-3`}>
@@ -785,10 +724,6 @@ export function EnhancedOnboarding({ isOpen, onComplete }: EnhancedOnboardingPro
               <div className="max-w-md mx-auto p-6 rounded-xl bg-white/5 border border-white/10 text-left">
                 <h3 className="font-semibold text-lg mb-3 text-yellow-400">Your Preferences:</h3>
                 <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-white/60">Study Style:</span>
-                    <span className="font-semibold">{data.studyStyle}</span>
-                  </div>
                   <div className="flex justify-between">
                     <span className="text-white/60">Goal:</span>
                     <span className="font-semibold">{data.studyGoal}</span>

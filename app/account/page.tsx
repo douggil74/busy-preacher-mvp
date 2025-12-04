@@ -364,26 +364,31 @@ export default function AccountPage() {
                     </span>
                   )}
                 </div>
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploadingPhoto}
-                  className="absolute bottom-0 right-0 w-7 h-7 rounded-full flex items-center justify-center transition-colors"
-                  style={{ backgroundColor: 'var(--card-bg)', border: '2px solid var(--card-border)' }}
-                  title="Change photo"
-                >
-                  {uploadingPhoto ? (
-                    <div className="animate-spin rounded-full h-3 w-3 border-b-2" style={{ borderColor: 'var(--accent-color)' }} />
-                  ) : (
-                    <Camera className="w-3.5 h-3.5" style={{ color: 'var(--text-secondary)' }} />
-                  )}
-                </button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoUpload}
-                  className="hidden"
-                />
+                {/* Hide photo upload on iOS native - file picker causes lockup */}
+                {!isNative && (
+                  <>
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadingPhoto}
+                      className="absolute bottom-0 right-0 w-7 h-7 rounded-full flex items-center justify-center transition-colors"
+                      style={{ backgroundColor: 'var(--card-bg)', border: '2px solid var(--card-border)' }}
+                      title="Change photo"
+                    >
+                      {uploadingPhoto ? (
+                        <div className="animate-spin rounded-full h-3 w-3 border-b-2" style={{ borderColor: 'var(--accent-color)' }} />
+                      ) : (
+                        <Camera className="w-3.5 h-3.5" style={{ color: 'var(--text-secondary)' }} />
+                      )}
+                    </button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoUpload}
+                      className="hidden"
+                    />
+                  </>
+                )}
               </div>
 
               {/* Profile Info */}

@@ -1189,3 +1189,27 @@ html.light .input::placeholder {
   animation: float 3s ease-in-out infinite;
 }
 
+/* ========================================
+   iOS WEBVIEW PERFORMANCE FIX
+   Disable backdrop-blur on iOS to prevent input freeze
+   ======================================== */
+body.ios-app .backdrop-blur,
+body.ios-app .backdrop-blur-sm,
+body.ios-app .backdrop-blur-md,
+body.ios-app .backdrop-blur-lg,
+body.ios-app .backdrop-blur-xl,
+body.ios-app [style*="backdrop-filter"],
+body.ios-app [style*="backdropFilter"] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Also target specific modal/overlay classes on iOS */
+body.ios-app .card,
+body.ios-app .btn,
+body.ios-app .modal,
+body.ios-app [role="dialog"] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+

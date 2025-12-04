@@ -2,9 +2,38 @@
 
 import { usePlatform } from '@/hooks/usePlatform';
 import { useAuth } from '@/contexts/AuthContext';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { isFromIOSApp } from '@/lib/platform-detector';
 import { X, Check, CreditCard, Sparkles } from 'lucide-react';
+
+// Haptic feedback helper for iOS
+async function triggerHaptic(style: 'light' | 'medium' | 'heavy' = 'light') {
+  if (!isFromIOSApp()) return;
+  try {
+    const { Haptics, ImpactStyle } = await import('@capacitor/haptics');
+    await Haptics.impact({
+      style: style === 'heavy' ? ImpactStyle.Heavy :
+             style === 'light' ? ImpactStyle.Light :
+             ImpactStyle.Medium
+    });
+  } catch (error) {
+    // Silently fail
+  }
+}
+
+async function triggerNotificationHaptic(type: 'success' | 'warning' | 'error' = 'success') {
+  if (!isFromIOSApp()) return;
+  try {
+    const { Haptics, NotificationType } = await import('@capacitor/haptics');
+    await Haptics.notification({
+      type: type === 'error' ? NotificationType.Error :
+            type === 'warning' ? NotificationType.Warning :
+            NotificationType.Success
+    });
+  } catch (error) {
+    // Silently fail
+  }
+}
 
 interface PaywallProps {
   children: React.ReactNode;
@@ -328,7 +357,7 @@ export function Paywall({ children, showPreview = false }: PaywallProps) {
                     {annualPackage && (
                       <button
                         type="button"
-                        onClick={() => setSelectedPlan('annual')}
+                        onClick={() => { triggerHaptic('light'); setSelectedPlan('annual'); }}
                         className="w-full p-4 rounded-xl transition-all text-left relative"
                         style={{
                           backgroundColor: selectedPlan === 'annual'
@@ -369,7 +398,7 @@ export function Paywall({ children, showPreview = false }: PaywallProps) {
                     {monthlyPackage && (
                       <button
                         type="button"
-                        onClick={() => setSelectedPlan('monthly')}
+                        onClick={() => { triggerHaptic('light'); setSelectedPlan('monthly'); }}
                         className="w-full p-4 rounded-xl transition-all text-left relative"
                         style={{
                           backgroundColor: selectedPlan === 'monthly'
@@ -405,6 +434,7 @@ export function Paywall({ children, showPreview = false }: PaywallProps) {
                   {/* Subscribe button - iOS */}
                   <button
                     onClick={() => {
+                      triggerHaptic('medium');
                       const pkg = selectedPlan === 'annual' ? annualPackage : monthlyPackage;
                       if (pkg) handleIOSPurchase(pkg);
                     }}
@@ -427,7 +457,7 @@ export function Paywall({ children, showPreview = false }: PaywallProps) {
 
                   {/* Restore purchases button */}
                   <button
-                    onClick={handleRestorePurchases}
+                    onClick={() => { triggerHaptic('light'); handleRestorePurchases(); }}
                     disabled={isRestoring}
                     className="w-full text-sm py-2 transition-colors mb-4"
                     style={{ color: 'var(--text-secondary)' }}

@@ -8,6 +8,19 @@ import { hasActiveSubscription, hasActiveIosSubscription, hasActivePromoAccess }
 
 const FREE_TRIAL_DAYS = 7;
 
+// Check if running in Capacitor/iOS native app
+const isCapacitor = typeof window !== 'undefined' && !!(window as any).Capacitor?.isNativePlatform?.();
+
+/**
+ * Wrap an async function with a timeout
+ */
+function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms))
+  ]);
+}
+
 /**
  * Check if user is still within their free trial period
  */
@@ -81,30 +94,45 @@ export function usePlatform() {
       const detectedPlatform = getPlatform();
       const fromApp = isFromIOSApp();
       const paidUser = isPaidAppUser();
-      const whitelisted = user?.email ? await isWhitelistedAsync(user.email) : false;
 
-      // Check for active web subscription (Square)
-      let hasWebSubscription = false;
-      if (user?.uid && !fromApp) {
-        hasWebSubscription = await hasActiveSubscription(user.uid);
-      }
-
-      // Check for active iOS IAP subscription (RevenueCat)
-      let hasIosSubscription = false;
-      if (user?.uid) {
-        hasIosSubscription = await hasActiveIosSubscription(user.uid);
-      }
-
-      // Check for promo code access (free forever, etc.)
-      let hasPromoAccess = false;
-      if (user?.uid) {
-        hasPromoAccess = await hasActivePromoAccess(user.uid);
-      }
-
-      // Check free trial status - only applies to authenticated users
-      // If no user is logged in, they don't get trial access (must sign up first)
+      // Check free trial status FIRST - this is synchronous and fast
+      // If user is in trial, grant access immediately without waiting for slow Firestore calls
       const inTrial = user?.uid ? isWithinFreeTrial(user.createdAt) : false;
       const daysRemaining = user?.uid ? getDaysRemainingInTrial(user.createdAt) : 0;
+
+      // For iOS native app (Capacitor), grant immediate access if in trial
+      // This prevents lockups from slow Firestore calls on iOS WKWebView
+      if (isCapacitor && inTrial) {
+        console.log('iOS Capacitor: Granting immediate trial access');
+        setPlatform(detectedPlatform);
+        setIsApp(fromApp);
+        setIsPaid(true);
+        setShowPaywall(false);
+        setIsInTrial(true);
+        setTrialDaysRemaining(daysRemaining);
+        setIsUserWhitelisted(false);
+        setIsLoading(false);
+        return;
+      }
+
+      // Use short timeout (3s) for Firestore calls on iOS to prevent lockups
+      const timeout = isCapacitor ? 3000 : 10000;
+
+      // Run all checks in parallel with timeouts to prevent blocking
+      const [whitelisted, hasWebSubscription, hasIosSubscription, hasPromoAccess] = await Promise.all([
+        user?.email
+          ? withTimeout(isWhitelistedAsync(user.email), timeout, false)
+          : Promise.resolve(false),
+        user?.uid && !fromApp
+          ? withTimeout(hasActiveSubscription(user.uid), timeout, false)
+          : Promise.resolve(false),
+        user?.uid
+          ? withTimeout(hasActiveIosSubscription(user.uid), timeout, false)
+          : Promise.resolve(false),
+        user?.uid
+          ? withTimeout(hasActivePromoAccess(user.uid), timeout, false)
+          : Promise.resolve(false),
+      ]);
 
       // User has paid access if:
       // 1. They're from iOS app (paid $2.99)
@@ -125,10 +153,11 @@ export function usePlatform() {
       setIsUserWhitelisted(whitelisted);
       setIsLoading(false);
 
-      // Log for debugging (remove in production)
+      // Log for debugging
       console.log('Platform detected:', {
         platform: detectedPlatform,
         isApp: fromApp,
+        isCapacitor,
         isPaidUser: paidUser,
         whitelisted,
         hasWebSubscription,

@@ -48,6 +48,22 @@ export default function RootLayout({
             __html: `
             (function() {
               try {
+                // iOS WebView Detection - add class to body for CSS targeting
+                const isIOSApp = (function() {
+                  if (typeof window === 'undefined') return false;
+                  const capacitor = window.Capacitor;
+                  const isNative = capacitor?.isNativePlatform?.() === true;
+                  const platform = capacitor?.getPlatform?.();
+                  const isIOSPlatform = platform === 'ios';
+                  const hasAppUA = navigator.userAgent.includes('Capacitor') || navigator.userAgent.includes('The Busy Christian App');
+                  const fromAppParam = new URLSearchParams(window.location.search).get('source') === 'ios-app';
+                  return isNative || isIOSPlatform || hasAppUA || fromAppParam;
+                })();
+
+                if (isIOSApp) {
+                  document.body.classList.add('ios-app');
+                }
+
                 // Sophisticated time-based theme detection
                 const getTimeBasedTheme = () => {
                   const hour = new Date().getHours();

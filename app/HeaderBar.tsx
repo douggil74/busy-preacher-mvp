@@ -1,13 +1,29 @@
 // app/HeaderBar.tsx
 "use client";
 
-import { Suspense, useEffect, useState, useRef } from "react";
+import { Suspense, useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Playfair_Display } from "next/font/google";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { SignInModal } from "@/components/SignInModal";
+import { isFromIOSApp } from "@/lib/platform-detector";
+
+// Haptic feedback helper for iOS
+async function triggerHaptic(style: 'light' | 'medium' | 'heavy' = 'light') {
+  if (!isFromIOSApp()) return;
+  try {
+    const { Haptics, ImpactStyle } = await import('@capacitor/haptics');
+    await Haptics.impact({
+      style: style === 'heavy' ? ImpactStyle.Heavy :
+             style === 'light' ? ImpactStyle.Light :
+             ImpactStyle.Medium
+    });
+  } catch (error) {
+    // Silently fail
+  }
+}
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -117,9 +133,9 @@ function HeaderBarContent() {
         borderColor: 'var(--card-border)'
       }}
     >
-      <div className="mx-auto max-w-3xl px-4 py-4 flex items-center justify-between">
+      <div className="mx-auto max-w-3xl px-4 md:pr-8 lg:pr-12 py-4 flex items-center">
         {/* Brand */}
-        <Link href="/" className="flex items-center gap-3">
+        <Link href="/" className="flex items-center gap-2 sm:gap-3 shrink-0">
           <Image
             src="/logo.png"
             alt="The Busy Christian logo"
@@ -128,28 +144,37 @@ function HeaderBarContent() {
             className="object-contain translate-y-[1px] no-invert"
             priority
           />
+          {/* Hide full title on small mobile, show abbreviated on medium mobile, full on larger */}
           <h1
-            className={`${playfair.className} font-semibold tracking-tight`}
+            className={`${playfair.className} font-semibold tracking-tight whitespace-nowrap`}
             style={{
-              fontSize: "calc(1.75rem * var(--bc-font-scale))",
+              fontSize: "calc(1.5rem * var(--bc-font-scale))",
               lineHeight: "1.2",
               color: 'var(--text-primary)'
             }}
           >
-            <span className="italic font-medium text-[calc(1.25rem*var(--bc-font-scale))]">
-              The
-            </span>{" "}
-            Busy Christian
+            {/* Very small screens: just "Busy Christian" */}
+            <span className="sm:hidden">Busy Christian</span>
+            {/* Small+ screens: full title */}
+            <span className="hidden sm:inline">
+              <span className="italic font-medium text-[calc(1.25rem*var(--bc-font-scale))]">
+                The
+              </span>{" "}
+              Busy Christian
+            </span>
             {reference && (
-              <span className="ml-2 text-[calc(1.05rem*var(--bc-font-scale))]" style={{ color: 'var(--text-secondary)' }}>
+              <span className="ml-2 text-[calc(1.05rem*var(--bc-font-scale))] hidden md:inline" style={{ color: 'var(--text-secondary)' }}>
                 · {reference}
               </span>
             )}
           </h1>
         </Link>
 
+        {/* Spacer to push controls right */}
+        <div className="flex-1" />
+
         {/* Controls */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           {/* Font resize */}
           <div 
             className="hidden sm:flex rounded-xl overflow-hidden"
@@ -180,8 +205,8 @@ function HeaderBarContent() {
 
           {/* Light/Dark toggle */}
           <button
-            onClick={() => setIsDark((v) => !v)}
-            className="rounded-xl px-3 h-9 hover:bg-white/10 text-sm flex items-center gap-1 transition-colors"
+            onClick={() => { triggerHaptic('light'); setIsDark((v) => !v); }}
+            className="rounded-xl px-2 sm:px-3 h-9 hover:bg-white/10 text-sm flex items-center gap-1 transition-colors"
             style={{
               borderWidth: '1px',
               borderStyle: 'solid',
@@ -190,13 +215,14 @@ function HeaderBarContent() {
             }}
             title={isDark ? "Switch to Papyrus Light" : "Switch to Blue Dark"}
           >
-            <span suppressHydrationWarning>{isDark ? "☀️ Light" : "🌙 Dark"}</span>
+            <span suppressHydrationWarning>{isDark ? "☀️" : "🌙"}</span>
+            <span className="hidden sm:inline" suppressHydrationWarning>{isDark ? "Light" : "Dark"}</span>
           </button>
 
           {/* Settings gear icon */}
           <button
             onClick={handleSettingsClick}
-            className="rounded-xl px-3 h-9 hover:bg-white/10 transition-colors"
+            className="rounded-xl px-2 sm:px-3 h-9 hover:bg-white/10 transition-colors"
             style={{
               borderWidth: '1px',
               borderStyle: 'solid',
@@ -234,7 +260,7 @@ function HeaderBarContent() {
                   signOut();
                 }
               }}
-              className="rounded-xl px-3 h-9 hover:bg-white/10 transition-colors flex items-center gap-2 text-sm font-medium"
+              className="rounded-xl px-2 sm:px-3 h-9 hover:bg-white/10 transition-colors flex items-center gap-2 text-sm font-medium"
               style={{
                 borderWidth: '1px',
                 borderStyle: 'solid',
@@ -255,7 +281,7 @@ function HeaderBarContent() {
           ) : (
             <button
               onClick={() => setShowSignInModal(true)}
-              className="rounded-xl px-3 h-9 hover:bg-white/10 transition-colors flex items-center gap-1 text-sm font-medium"
+              className="rounded-xl px-2 sm:px-3 h-9 hover:bg-white/10 transition-colors flex items-center gap-1 text-sm font-medium"
               style={{
                 borderWidth: '1px',
                 borderStyle: 'solid',
@@ -273,16 +299,16 @@ function HeaderBarContent() {
           )}
 
           {/* Navigation Menu (Hamburger) */}
-          <div className="relative" ref={menuRef}>
+          <div className="relative shrink-0" ref={menuRef}>
             <button
-              className="text-3xl leading-none rounded-xl px-3 h-9 hover:bg-white/10 transition-colors"
+              className="text-2xl sm:text-3xl leading-none rounded-xl px-2 sm:px-3 h-9 hover:bg-white/10 transition-colors"
               style={{
                 borderWidth: '1px',
                 borderStyle: 'solid',
                 borderColor: 'var(--card-border)',
                 color: 'var(--text-primary)'
               }}
-              onClick={() => setOpen((o) => !o)}
+              onClick={() => { triggerHaptic('light'); setOpen((o) => !o); }}
               aria-haspopup="menu"
               aria-expanded={open}
               aria-label="Toggle navigation menu"
@@ -409,9 +435,9 @@ export default function HeaderBar() {
   return (
     <Suspense
       fallback={
-        <header 
+        <header
           className="sticky top-0 z-40 backdrop-blur border-b"
-          style={{ 
+          style={{
             backgroundColor: 'color-mix(in srgb, var(--bg-color) 90%, transparent)',
             borderColor: 'var(--card-border)'
           }}

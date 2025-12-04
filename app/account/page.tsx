@@ -10,6 +10,7 @@ import { APP_VERSION } from '@/lib/version';
 import { Camera, User, Mail, Calendar, CreditCard, FileText, HelpCircle, Shield, LogOut, ChevronRight, Clock, CheckCircle, XCircle, AlertCircle, RotateCcw, Settings, Trash2 } from 'lucide-react';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { isFromIOSApp } from '@/lib/platform-detector';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 interface PaymentRecord {
@@ -46,6 +47,14 @@ export default function AccountPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [deletingAccount, setDeletingAccount] = useState(false);
+
+  // iOS native state
+  const [isNative, setIsNative] = useState(false);
+
+  // Detect iOS native on mount
+  useEffect(() => {
+    setIsNative(isFromIOSApp());
+  }, []);
 
   useEffect(() => {
     async function loadData() {
@@ -199,6 +208,39 @@ export default function AccountPage() {
   const handleSubscribe = async () => {
     if (!user) return;
 
+    // On iOS, use RevenueCat for In-App Purchase
+    if (isNative) {
+      setIsCheckingOut(true);
+      try {
+        const { initializeRevenueCat, getOfferings, purchasePackage } = await import('@/lib/revenuecat');
+        await initializeRevenueCat(user.uid);
+        const offerings = await getOfferings();
+
+        // Find annual package (preferred) or monthly
+        const annualPkg = offerings.find((p: any) => p.product.identifier.includes('annual'));
+        const monthlyPkg = offerings.find((p: any) => p.product.identifier.includes('monthly'));
+        const pkgToPurchase = annualPkg || monthlyPkg;
+
+        if (!pkgToPurchase) {
+          alert('Unable to load subscription options. Please try again.');
+          setIsCheckingOut(false);
+          return;
+        }
+
+        const customerInfo = await purchasePackage(pkgToPurchase);
+        if (customerInfo) {
+          alert('Subscription successful!');
+          window.location.reload();
+        }
+      } catch (error) {
+        console.error('iOS purchase failed:', error);
+        alert('Purchase failed. Please try again.');
+        setIsCheckingOut(false);
+      }
+      return;
+    }
+
+    // On web, use Square
     setIsCheckingOut(true);
     try {
       const response = await fetch('/api/checkout/square', {

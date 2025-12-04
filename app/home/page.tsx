@@ -456,7 +456,7 @@ useEffect(() => {
     }
   }, []);
   
-  // Check onboarding status - wait for auth to load if user is signed in
+  // Check onboarding status - show for new users who haven't completed it
   useEffect(() => {
     // Check localStorage first
     const savedName = localStorage.getItem("bc-user-name");
@@ -473,8 +473,9 @@ useEffect(() => {
       // Still check localStorage first, then fall back to Firebase name
       setUserName(savedName || user.firstName || "Friend");
       setIsOnboarded(true);
-    } else if (!user) {
-      // No user and no local preferences - show onboarding
+    } else {
+      // No local or Firestore preferences - show onboarding
+      // This applies to both new users and users who haven't completed onboarding
       setShowOnboarding(true);
     }
   }, [user]);
@@ -1194,9 +1195,9 @@ const handleKeywordResultSelect = (reference: string) => {
         >
           {/* Weather-aware animated art - visible at top */}
           <div className="relative h-40 md:h-48 overflow-hidden rounded-t-2xl">
-            <WeatherHeader onSceneReady={(scene) => {
+            <WeatherHeader onSceneReady={(scene, tempF) => {
               setSceneReady(true);
-              const weatherMsg = getWeatherAwareGreeting(scene);
+              const weatherMsg = getWeatherAwareGreeting(scene, tempF);
               if (weatherMsg) setWeatherGreeting(weatherMsg);
             }} />
             {/* Gradient fade to blend into content below */}

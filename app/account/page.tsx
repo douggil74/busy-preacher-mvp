@@ -320,9 +320,10 @@ export default function AccountPage() {
     );
   }
 
-  // Determine access type
-  const hasAccess = isPaid || isWhitelisted || isApp || (subscription?.status === 'active');
-  const accessType = isWhitelisted ? 'Admin' : isApp ? 'iOS App' : subscription?.status === 'active' ? 'Subscriber' : isInTrial ? 'Free Trial' : 'None';
+  // Determine access type - iOS app users can be in trial or subscribed
+  const hasIosSubscription = subscription?.source === 'ios_iap' && subscription?.status === 'active';
+  const hasAccess = isPaid || isWhitelisted || hasIosSubscription || (subscription?.status === 'active') || isInTrial;
+  const accessType = isWhitelisted ? 'Admin' : hasIosSubscription ? 'iOS Subscriber' : subscription?.status === 'active' ? 'Subscriber' : isInTrial ? `Free Trial (${trialDaysRemaining} days left)` : 'None';
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
@@ -472,8 +473,37 @@ export default function AccountPage() {
               </div>
             )}
 
-            {/* iOS App Message */}
-            {isApp && (
+            {/* iOS App - Trial Info */}
+            {isNative && isInTrial && !hasIosSubscription && (
+              <div className="mb-4 p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                <div className="flex items-center gap-2 mb-2">
+                  <Clock className="w-4 h-4 text-blue-400" />
+                  <p className="text-blue-400 text-sm font-medium">
+                    {trialDaysRemaining > 0
+                      ? `${trialDaysRemaining} day${trialDaysRemaining === 1 ? '' : 's'} left in free trial`
+                      : 'Your free trial has ended'}
+                  </p>
+                </div>
+                <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                  Subscribe to continue enjoying all features after your trial ends.
+                </p>
+              </div>
+            )}
+
+            {/* iOS App Subscribe Button */}
+            {isNative && !hasIosSubscription && (
+              <button
+                onClick={handleSubscribe}
+                disabled={isCheckingOut}
+                className="w-full py-3 font-medium rounded-lg transition-colors disabled:opacity-50 mb-4"
+                style={{ backgroundColor: 'var(--accent-color)', color: 'var(--bg-color)' }}
+              >
+                {isCheckingOut ? 'Loading...' : 'Subscribe - $2.99/mo'}
+              </button>
+            )}
+
+            {/* iOS App Subscription Management */}
+            {isNative && hasIosSubscription && (
               <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
                 Manage your subscription in iOS Settings &gt; Apple ID &gt; Subscriptions
               </p>

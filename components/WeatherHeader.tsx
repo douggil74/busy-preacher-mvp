@@ -225,14 +225,17 @@ export default function WeatherHeader({ onSceneReady }: { onSceneReady?: (scene:
         }
 
         try {
-          // Backup: ip-api.com (no API key needed, 45 requests/min)
-          const res = await fetch('http://ip-api.com/json/?fields=lat,lon');
+          // Backup: ipinfo.io (HTTPS, no API key for basic usage)
+          const res = await fetch('https://ipinfo.io/json');
           const data = await res.json();
-          if (data.lat && data.lon) {
-            return { lat: data.lat, lon: data.lon };
+          if (data.loc) {
+            const [lat, lon] = data.loc.split(',').map(Number);
+            if (!isNaN(lat) && !isNaN(lon)) {
+              return { lat, lon };
+            }
           }
         } catch (e) {
-          console.log('ip-api.com also failed');
+          console.log('ipinfo.io also failed');
         }
 
         return null;

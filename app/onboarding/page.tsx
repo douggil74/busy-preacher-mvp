@@ -61,7 +61,7 @@ export default function OnboardingPage() {
 
     if (currentSlide === slides.length - 1) {
       localStorage.setItem("onboarding_completed", "true");
-      router.push("/personalize");
+      router.push("/home");
     } else {
       setIsAnimating(true);
       setCurrentSlide((prev) => prev + 1);
@@ -78,7 +78,7 @@ export default function OnboardingPage() {
 
   const skipOnboarding = () => {
     localStorage.setItem("onboarding_completed", "true");
-    router.push("/personalize");
+    router.push("/home");
   };
 
   const slide = slides[currentSlide];

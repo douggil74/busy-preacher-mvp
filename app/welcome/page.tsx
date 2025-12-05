@@ -286,7 +286,7 @@ export default function WelcomePage() {
   // Auth form (signin or signup)
   return (
     <main
-      className="min-h-screen flex flex-col items-center justify-center p-6"
+      className="min-h-screen flex flex-col items-center justify-start pt-12 p-6 overflow-y-auto"
       style={{ backgroundColor: "var(--bg-color)" }}
     >
       {/* Logo */}

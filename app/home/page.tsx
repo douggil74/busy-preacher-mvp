@@ -1124,7 +1124,9 @@ const handleEnhancedOnboardingComplete = async (data: {
   }
 
   // Handle email signup if provided AND not already subscribed
-  const alreadySubscribed = localStorage.getItem("bc-subscribed") === "true";
+  // Check both localStorage AND Firestore onboardingComplete to prevent duplicate emails
+  // If user already had onboardingComplete in Firestore, they're an existing user who already subscribed
+  const alreadySubscribed = localStorage.getItem("bc-subscribed") === "true" || user?.preferences?.onboardingComplete;
   if (data.email && data.email.trim() && !alreadySubscribed) {
     try {
       await fetch("/api/subscribe", {

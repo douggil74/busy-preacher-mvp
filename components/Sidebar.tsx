@@ -144,18 +144,7 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Mobile Logo - Top Left (only on home page to avoid overlapping back buttons) */}
-      {isMobile && (pathname === '/home' || pathname === '/') && (
-        <Link href="/home" className="fixed top-4 left-4 z-50">
-          <Image
-            src="/logo.png"
-            alt="Logo"
-            width={36}
-            height={36}
-            className="object-contain"
-          />
-        </Link>
-      )}
+      {/* Mobile Logo removed - HeaderBar handles mobile header */}
 
       {/* Top Right Controls - Theme Toggle & Hamburger (Desktop only - HeaderBar handles mobile) */}
       {!isMobile && (

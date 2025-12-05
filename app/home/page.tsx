@@ -1,7 +1,5 @@
 // app/home/page.tsx
 "use client";
-// app/home/page.tsx
-"use client";
 
 import type { JSX } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -1179,8 +1177,7 @@ const handleKeywordResultSelect = (reference: string) => {
   };
 
   return (
-    <RequireAuth>
-    <Paywall>
+    <>
     <InAppToast />
     <main className="px-6 pt-10 pb-8 max-w-4xl mx-auto relative">
 
@@ -2103,7 +2100,6 @@ const handleKeywordResultSelect = (reference: string) => {
         />
       )}
 </main>
-</Paywall>
-</RequireAuth>
+</>
   );
 }

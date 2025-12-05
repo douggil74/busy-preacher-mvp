@@ -315,6 +315,19 @@ export default function Page(): JSX.Element {
   const { user } = useAuth();
   const { isInTrial, trialDaysRemaining, isApp, isPaid } = usePlatform();
   const [showTrialModal, setShowTrialModal] = useState(false);
+  const [isIOSCapacitor, setIsIOSCapacitor] = useState(false);
+
+  // Detect iOS Capacitor for testing (skip auth on iOS)
+  useEffect(() => {
+    const checkCapacitor = () => {
+      try {
+        return !!(window as any).Capacitor?.isNativePlatform?.();
+      } catch {
+        return false;
+      }
+    };
+    setIsIOSCapacitor(checkCapacitor());
+  }, []);
   const [savedStudies, setSavedStudies] = useState<SavedStudy[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [notes, setNotes] = useState<StudyNote[]>([]);
@@ -1178,7 +1191,8 @@ const handleKeywordResultSelect = (reference: string) => {
     localStorage.setItem("bc-show-reading-plan", "false");
   };
 
-  return (
+  // Content to render (same for iOS and web)
+  const pageContent = (
     <>
     <InAppToast />
     <main className="px-6 pt-10 pb-8 max-w-4xl mx-auto relative">
@@ -2103,5 +2117,19 @@ const handleKeywordResultSelect = (reference: string) => {
       )}
 </main>
 </>
+  );
+
+  // iOS Capacitor: Skip auth for testing
+  if (isIOSCapacitor) {
+    return pageContent;
+  }
+
+  // Web: Require authentication
+  return (
+    <RequireAuth>
+      <Paywall>
+        {pageContent}
+      </Paywall>
+    </RequireAuth>
   );
 }

@@ -1191,8 +1191,10 @@ html.light .input::placeholder {
 
 /* ========================================
    iOS WEBVIEW PERFORMANCE FIX
-   Disable backdrop-blur on iOS to prevent input freeze
+   Critical fixes for WKWebView input freeze issue
    ======================================== */
+
+/* Disable backdrop-blur on iOS - causes rendering freeze */
 body.ios-app .backdrop-blur,
 body.ios-app .backdrop-blur-sm,
 body.ios-app .backdrop-blur-md,
@@ -1211,5 +1213,70 @@ body.ios-app .modal,
 body.ios-app [role="dialog"] {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
+}
+
+/* iOS INPUT FIX - Prevent zoom and rendering issues */
+body.ios-app input,
+body.ios-app textarea,
+body.ios-app select {
+  font-size: 16px !important; /* Prevents iOS zoom on focus */
+  -webkit-appearance: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+  touch-action: manipulation !important;
+  transform: translateZ(0) !important; /* Hardware acceleration */
+  -webkit-transform: translateZ(0) !important;
+}
+
+/* Disable all transitions on iOS inputs - causes freeze */
+body.ios-app input,
+body.ios-app input:focus,
+body.ios-app input:active,
+body.ios-app textarea,
+body.ios-app textarea:focus,
+body.ios-app textarea:active {
+  transition: none !important;
+  -webkit-transition: none !important;
+  animation: none !important;
+  -webkit-animation: none !important;
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
+}
+
+/* Fix input container scrolling on iOS */
+body.ios-app form,
+body.ios-app .auth-form,
+body.ios-app [class*="form"],
+body.ios-app main {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+}
+
+/* Prevent body from locking when keyboard appears */
+body.ios-app {
+  position: fixed !important;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden !important;
+}
+
+body.ios-app #__next,
+body.ios-app main {
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Disable complex transitions/animations globally on iOS */
+body.ios-app * {
+  will-change: auto !important;
+}
+
+/* Fix for keyboard covering inputs */
+@supports (-webkit-touch-callout: none) {
+  body.ios-app input:focus,
+  body.ios-app textarea:focus {
+    position: relative !important;
+    z-index: 1000 !important;
+  }
 }
 

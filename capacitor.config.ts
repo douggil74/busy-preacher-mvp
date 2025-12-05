@@ -47,6 +47,11 @@ const config: CapacitorConfig = {
       scopes: ['profile', 'email'],
       serverClientId: '689195108551-8v3f7e0l9q4h4k6h5j6f7g8h9j0k1l2m.apps.googleusercontent.com',
       forceCodeForRefreshToken: true
+    },
+    Keyboard: {
+      resize: 'body',           // Resize the webview when keyboard appears
+      style: 'dark',            // Match dark theme
+      resizeOnFullScreen: true  // Resize even when fullscreen
     }
   }
 };

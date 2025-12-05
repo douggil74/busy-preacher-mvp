@@ -8,6 +8,10 @@ import { hasActiveSubscription, hasActiveIosSubscription, hasActivePromoAccess }
 
 const FREE_TRIAL_DAYS = 7;
 
+// LAUNCH MODE: Set to true to launch as free app (no paywall)
+// Change to false when ready to enable subscriptions
+const LAUNCH_AS_FREE = true;
+
 /**
  * Check if running in Capacitor/iOS native app (must be called on client)
  */
@@ -99,6 +103,20 @@ export function usePlatform() {
 
   useEffect(() => {
     async function checkAccess() {
+      // FREE LAUNCH MODE - skip all paywall logic
+      if (LAUNCH_AS_FREE) {
+        setPlatform('web');
+        setIsApp(false);
+        setIsPaid(true);         // Everyone gets paid access
+        setShowPaywall(false);   // Never show paywall
+        setIsInTrial(false);
+        setTrialDaysRemaining(0);
+        setIsUserWhitelisted(true);
+        setIsLoading(false);
+        console.log('LAUNCH_AS_FREE mode: All users get free access');
+        return;
+      }
+
       // Detect platform on client side only
       const detectedPlatform = getPlatform();
       const fromApp = isFromIOSApp();

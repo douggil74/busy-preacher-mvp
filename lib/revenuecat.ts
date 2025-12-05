@@ -6,10 +6,12 @@
 import { Capacitor } from '@capacitor/core';
 import { Purchases, LOG_LEVEL, PurchasesPackage, CustomerInfo } from '@revenuecat/purchases-capacitor';
 
-// Product IDs - these must match what you create in App Store Connect
+// Product IDs - these must match EXACTLY what you create in App Store Connect
+// Pricing: $6.99/month (competitive with market)
+// Annual: $39.99/year when ready (saves ~50%)
 export const PRODUCT_IDS = {
-  MONTHLY: 'busy_christian_monthly',
-  ANNUAL: 'busy_christian_annual',
+  MONTHLY: 'busy_christian_monthly',    // $6.99/month
+  ANNUAL: 'busy_christian_annual',      // $39.99/year (add later)
 };
 
 // RevenueCat API Key - will be set from environment (trim to handle any trailing newlines)

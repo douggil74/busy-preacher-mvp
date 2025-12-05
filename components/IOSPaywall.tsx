@@ -42,10 +42,11 @@ export function IOSPaywall({ isOpen, onClose, onPurchaseComplete, trialDaysRemai
       const availablePackages = await getOfferings();
       setPackages(availablePackages);
 
-      // Select annual by default
-      const annualPkg = availablePackages.find(p => getPackageType(p) === 'annual');
-      if (annualPkg) {
-        setSelectedPackage(annualPkg);
+      // Select monthly by default (most common option)
+      // Annual will show automatically when configured in App Store Connect
+      const monthlyPkg = availablePackages.find(p => getPackageType(p) === 'monthly');
+      if (monthlyPkg) {
+        setSelectedPackage(monthlyPkg);
       } else if (availablePackages.length > 0) {
         setSelectedPackage(availablePackages[0]);
       }

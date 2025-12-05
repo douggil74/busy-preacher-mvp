@@ -62,6 +62,16 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Check if running in Capacitor/iOS native app
+function checkIsCapacitor(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    return !!(window as any).Capacitor?.isNativePlatform?.();
+  } catch {
+    return false;
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
@@ -70,15 +80,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Listen to Firebase auth state
   useEffect(() => {
     console.log('Auth state listener initialized');
+    const isNativeApp = checkIsCapacitor();
+
+    // On iOS Capacitor, set a timeout to prevent lockups
+    // If auth doesn't respond within 3 seconds, assume no user
+    let timeoutId: NodeJS.Timeout | null = null;
+    if (isNativeApp) {
+      timeoutId = setTimeout(() => {
+        console.log('iOS Capacitor: Auth timeout - assuming no authenticated user');
+        setIsLoading(false);
+      }, 3000);
+    }
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      // Clear timeout since auth responded
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+
       console.log('Auth state changed:', firebaseUser ? `User: ${firebaseUser.email}` : 'No user');
       setFirebaseUser(firebaseUser);
 
       if (firebaseUser) {
-        // Load user profile from Firestore
+        // Load user profile from Firestore (with timeout on iOS)
         try {
-          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+          // Use shorter timeout on iOS Capacitor to prevent lockups
+          const firestoreTimeout = isNativeApp ? 3000 : 10000;
+          const userDocPromise = getDoc(doc(db, 'users', firebaseUser.uid));
+          const timeoutPromise = new Promise<null>((resolve) =>
+            setTimeout(() => resolve(null), firestoreTimeout)
+          );
+
+          const userDoc = await Promise.race([userDocPromise, timeoutPromise]);
+
+          // If timeout occurred (userDoc is null), use basic info
+          if (!userDoc) {
+            console.log('Firestore timeout - using basic user info');
+            setUser({
+              uid: firebaseUser.uid,
+              firstName: firebaseUser.email?.split('@')[0] || 'User',
+              fullName: firebaseUser.email?.split('@')[0] || 'User',
+              email: firebaseUser.email || '',
+              createdAt: null,
+              lastSignIn: null
+            });
+            setIsLoading(false);
+            return;
+          }
+
           if (userDoc.exists()) {
             const profileData = userDoc.data();
             const userWithId = {
@@ -181,7 +231,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, []);
 
   const signInWithEmail = async (email: string, password: string) => {

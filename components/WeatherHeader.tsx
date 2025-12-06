@@ -186,7 +186,7 @@ export default function WeatherHeader({ onSceneReady }: { onSceneReady?: (scene:
           type = baseType;
         }
 
-        console.log('Weather:', { lat, lon, code, isDay, type, temp });
+        console.log('🌤️ Weather detected:', { lat: lat.toFixed(2), lon: lon.toFixed(2), weatherCode: code, isDay, sceneType: type, tempF: temp });
         setScene(type);
         const roundedTemp = typeof temp === 'number' ? Math.round(temp) : null;
         onSceneReady?.(type, roundedTemp);
@@ -201,9 +201,11 @@ export default function WeatherHeader({ onSceneReady }: { onSceneReady?: (scene:
           }
           navigator.geolocation.getCurrentPosition(
             (position) => {
+              console.log('📍 Using browser geolocation');
               resolve({ lat: position.coords.latitude, lon: position.coords.longitude });
             },
-            () => {
+            (err) => {
+              console.log('📍 Browser geolocation failed:', err.message);
               resolve(null);
             },
             { timeout: 5000, maximumAge: 300000 } // 5s timeout, cache for 5 min
@@ -218,6 +220,7 @@ export default function WeatherHeader({ onSceneReady }: { onSceneReady?: (scene:
           const res = await fetch('https://ipapi.co/json/');
           const data = await res.json();
           if (data.latitude && data.longitude) {
+            console.log('📍 Using ipapi.co:', data.city, data.region);
             return { lat: data.latitude, lon: data.longitude };
           }
         } catch (e) {
@@ -231,6 +234,7 @@ export default function WeatherHeader({ onSceneReady }: { onSceneReady?: (scene:
           if (data.loc) {
             const [lat, lon] = data.loc.split(',').map(Number);
             if (!isNaN(lat) && !isNaN(lon)) {
+              console.log('📍 Using ipinfo.io:', data.city, data.region);
               return { lat, lon };
             }
           }

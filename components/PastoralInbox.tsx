@@ -87,7 +87,7 @@ export default function PastoralInbox({ sessionId, firstName }: PastoralInboxPro
           className="fixed bottom-24 right-6 z-40 flex items-center gap-2 px-4 py-3 bg-gradient-to-br from-amber-500 to-amber-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all animate-pulse"
         >
           <MessageCircle className="w-5 h-5" />
-          <span className="font-semibold">Pastor Doug sent you a message!</span>
+          <span className="font-semibold">Virtual Pastor sent you a message!</span>
         </button>
       )}
 
@@ -106,7 +106,7 @@ export default function PastoralInbox({ sessionId, firstName }: PastoralInboxPro
                 P
               </div>
               <div>
-                <h3 className="font-bold text-white">Pastor Doug</h3>
+                <h3 className="font-bold text-white">Virtual Pastor</h3>
                 <p className="text-xs text-white/80">Private conversation</p>
               </div>
             </div>
@@ -155,7 +155,7 @@ export default function PastoralInbox({ sessionId, firstName }: PastoralInboxPro
                 type="text"
                 value={reply}
                 onChange={(e) => setReply(e.target.value)}
-                placeholder="Reply to Pastor Doug..."
+                placeholder="Reply to Virtual Pastor..."
                 disabled={sending}
                 className="flex-1 px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
                 style={{

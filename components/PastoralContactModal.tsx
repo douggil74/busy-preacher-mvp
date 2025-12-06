@@ -179,7 +179,7 @@ export default function PastoralContactModal({
               borderColor: 'color-mix(in srgb, var(--accent-color) 30%, transparent)'
             }}>
               <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                🔒 Your contact info is kept private and only shared with Pastor Doug.
+                🔒 Your contact info is kept private and only shared with the pastor.
                 You'll also be able to message back and forth through the app.
               </p>
             </div>

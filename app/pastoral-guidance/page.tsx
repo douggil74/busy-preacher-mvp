@@ -155,7 +155,7 @@ export default function PastoralGuidancePage() {
       // Messages
       messages.forEach((msg, index) => {
         const isUser = msg.role === 'user';
-        const label = isUser ? (firstName || 'You') : 'Pastor Doug';
+        const label = isUser ? (firstName || 'You') : 'Pastor';
         const timestamp = new Date(msg.timestamp).toLocaleString('en-US', {
           hour: 'numeric',
           minute: '2-digit',

@@ -141,7 +141,7 @@ export function CrisisModal({ isOpen, userName, onClose }: CrisisModalProps) {
               You are deeply loved. You are seen. And this world is better with you in it.
             </p>
             <p className="text-xs text-white/70 mt-2 italic">
-              — Pastor Doug
+              — Your Pastor
             </p>
           </div>
 

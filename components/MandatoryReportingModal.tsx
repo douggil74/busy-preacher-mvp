@@ -128,7 +128,7 @@ export default function MandatoryReportingModal({
             borderColor: 'color-mix(in srgb, #10b981 30%, transparent)'
           }}>
             <p className="text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-              <strong>✅ Pastor Doug has been notified</strong>
+              <strong>✅ The pastor has been notified</strong>
             </p>
             <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
               He already has your conversation and technical information for authorities.

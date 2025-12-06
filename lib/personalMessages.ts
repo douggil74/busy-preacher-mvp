@@ -285,7 +285,7 @@ export function getPastorNote(): string {
     "💪 Truth: Your past doesn't define you. God's grace does.",
     "❤️ From my heart: God's love for you isn't based on your performance.",
     "🔥 Don't forget: Your worst day doesn't change God's best promise.",
-    // Pastor Doug's encouraging words from Spiritual Foundations
+    // Encouraging words from Spiritual Foundations course
     "Salvation is God's free gift, received by grace through faith.",
     "In Christ you are a new creation and a child of God.",
     "You have been born again into abundant life in God's family as His child.",

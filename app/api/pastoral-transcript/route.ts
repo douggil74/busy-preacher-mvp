@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     let conversationHtml = '';
     messages.forEach((msg: Message) => {
       const isUser = msg.role === 'user';
-      const name = isUser ? (firstName || 'You') : 'Pastor Doug';
+      const name = isUser ? (firstName || 'You') : 'Pastor';
       const bgColor = isUser ? '#ebe5d9' : '#f5f1e8';
       const time = new Date(msg.timestamp).toLocaleString('en-US', {
         month: 'short',
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
             </h1>
             <div style="height: 2px; width: 60px; background: linear-gradient(to right, #fbbf24, #b8860b); margin: 0 auto 16px;"></div>
             <p style="color: #5a4f46; font-size: 14px;">
-              A transcript of your conversation with Pastor Doug
+              A transcript of your conversation with the Virtual Pastor
             </p>
           </div>
 

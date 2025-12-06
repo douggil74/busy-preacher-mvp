@@ -318,7 +318,7 @@ export const spiritualFoundationsCourse: TopicalCourse = {
     }
   ],
   totalSessions: 16,
-  source: 'Pastor Doug Gilford',
+  source: 'Cornerstone Church',
   sourceUrl: '',
   difficulty: 'beginner'
 };

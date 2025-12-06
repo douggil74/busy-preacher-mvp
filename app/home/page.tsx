@@ -26,11 +26,11 @@ import { KeywordSearchResults } from "@/components/KeywordSearchResults";
 import WordStudyModal from "@/components/WordStudyModal";
 import { getTimeBasedGreeting, getTimeGreetingPrefix, getWeatherAwareGreeting, getLoadingMessage, getPastorNote } from "@/lib/personalMessages";
 import RequireAuth from '@/components/RequireAuth';
-import { Paywall } from '@/components/Paywall';
+// import { Paywall } from '@/components/Paywall'; // Paused
 import { TrialWelcomeModal } from '@/components/TrialWelcomeModal';
 import { usePlatform } from '@/hooks/usePlatform';
 import { useAuth } from '@/contexts/AuthContext';
-import WeatherHeader from '@/components/WeatherHeader';
+// import WeatherHeader from '@/components/WeatherHeader'; // Removed
 import InAppToast from '@/components/InAppToast';
 
 function copyToClipboard(text: string) {
@@ -1206,25 +1206,9 @@ const handleKeywordResultSelect = (reference: string) => {
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
           }}
         >
-          {/* Weather-aware animated art - visible at top */}
-          <div className="relative h-40 md:h-48 overflow-hidden rounded-t-2xl">
-            <WeatherHeader onSceneReady={(scene, tempF) => {
-              setSceneReady(true);
-              const weatherMsg = getWeatherAwareGreeting(scene, tempF);
-              if (weatherMsg) setWeatherGreeting(weatherMsg);
-            }} />
-            {/* Gradient fade to blend into content below */}
-            <div
-              className="absolute bottom-0 left-0 right-0 h-16 pointer-events-none"
-              style={{
-                background: 'linear-gradient(to bottom, transparent 0%, var(--card-bg) 100%)'
-              }}
-            />
-          </div>
-
           {/* Content area with padding */}
           <div
-            className="px-6 pb-4 relative rounded-b-2xl"
+            className="px-6 py-4 relative rounded-2xl"
             style={{ backgroundColor: 'var(--card-bg)' }}
           >
             <div className="relative text-center mb-6 pt-2" style={{ zIndex: 5 }}>
@@ -2124,12 +2108,10 @@ const handleKeywordResultSelect = (reference: string) => {
     return pageContent;
   }
 
-  // Web: Require authentication
+  // Web: Require authentication (paywall paused)
   return (
     <RequireAuth>
-      <Paywall>
-        {pageContent}
-      </Paywall>
+      {pageContent}
     </RequireAuth>
   );
 }

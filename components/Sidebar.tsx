@@ -328,7 +328,7 @@ export default function Sidebar() {
               className={`font-bold text-lg whitespace-nowrap transition-opacity duration-200 ${sidebarOpen ? 'opacity-100' : 'opacity-0'}`}
               style={{ color: 'var(--text-primary)' }}
             >
-              Busy Christian
+              The Busy Christian
             </span>
           </Link>
         </div>

@@ -189,7 +189,7 @@ export default function SplashPage() {
               : "0 2px 10px rgba(255,255,255,0.8)",
           }}
         >
-          <span className="block text-lg font-normal opacity-70">the</span>
+          <span className="block text-lg font-normal opacity-70">The</span>
           <span className="block text-3xl font-bold -mt-1">Busy Christian</span>
         </h1>
 

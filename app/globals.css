@@ -106,10 +106,22 @@ body {
 }
 
 /* Better text wrapping */
-h1, h2, h3 { 
-  text-wrap: balance; 
-  hyphens: auto; 
+h1, h2, h3 {
+  text-wrap: balance;
+  hyphens: auto;
   color: var(--text-primary);
+}
+
+/* Standardize all fonts to modern Inter throughout the app */
+/* Only exception: main header logo (.header-logo) can use decorative Playfair font */
+h1:not(.header-logo), h2, h3, h4, h5, h6, p, li, a, button, input, textarea, select, label {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif !important;
+}
+
+/* Preserve decorative font for header logo and its children */
+.header-logo,
+.header-logo * {
+  font-family: inherit;
 }
 
 /* ========================================

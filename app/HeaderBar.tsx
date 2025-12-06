@@ -146,15 +146,15 @@ function HeaderBarContent() {
           />
           {/* Hide full title on small mobile, show abbreviated on medium mobile, full on larger */}
           <h1
-            className={`${playfair.className} font-semibold tracking-tight whitespace-nowrap`}
+            className={`${playfair.className} header-logo font-semibold tracking-tight whitespace-nowrap`}
             style={{
               fontSize: "calc(1.5rem * var(--bc-font-scale))",
               lineHeight: "1.2",
               color: 'var(--text-primary)'
             }}
           >
-            {/* Very small screens: just "Busy Christian" */}
-            <span className="sm:hidden">Busy Christian</span>
+            {/* Very small screens: just "The Busy Christian" */}
+            <span className="sm:hidden">The Busy Christian</span>
             {/* Small+ screens: full title */}
             <span className="hidden sm:inline">
               <span className="italic font-medium text-[calc(1.25rem*var(--bc-font-scale))]">

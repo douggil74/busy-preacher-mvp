@@ -3,6 +3,682 @@ import { TopicalCourse } from './courseTypes';
 import { spiritualFoundationsCourse } from '@/data/courses';
 
 export const TOPICAL_COURSES: TopicalCourse[] = [
+  // === NEW COURSES ===
+  {
+    id: 'how-to-study-the-bible',
+    title: 'How to Study the Bible',
+    subtitle: 'Discovering God\'s Word for Yourself',
+    category: 'doctrine',
+    description: 'Learn practical methods for reading, understanding, and applying Scripture. Master the basics of inductive Bible study to hear God speak through His Word.',
+    coveragePassages: [
+      '2 Timothy 2:15',
+      '2 Timothy 3:16-17',
+      'Psalm 119:105',
+      'Hebrews 4:12',
+      'James 1:22-25',
+      'Acts 17:11',
+      'Joshua 1:8'
+    ],
+    themes: ['bible study', 'scripture', 'interpretation', 'hermeneutics', 'application', 'meditation'],
+    lessons: [
+      {
+        number: 1,
+        title: 'Why Study the Bible?',
+        keyPassages: ['2 Timothy 3:16-17', 'Hebrews 4:12', 'Psalm 119:105'],
+        questions: [
+          'What does it mean that Scripture is "God-breathed"?',
+          'How has the Bible shaped your life so far?',
+          'What barriers keep you from regular Bible study?'
+        ],
+        application: 'Commit to reading the Bible daily for at least 15 minutes this week.',
+        estimatedMinutes: 40
+      },
+      {
+        number: 2,
+        title: 'Observation: What Does It Say?',
+        keyPassages: ['Acts 17:11', '2 Timothy 2:15', 'Proverbs 2:1-5'],
+        questions: [
+          'What questions should you ask when reading a passage?',
+          'Why is context so important in Bible study?',
+          'What details do you often overlook when reading quickly?'
+        ],
+        application: 'Practice observation by reading Mark 4:35-41 and writing down everything you notice.',
+        estimatedMinutes: 45
+      },
+      {
+        number: 3,
+        title: 'Interpretation: What Does It Mean?',
+        keyPassages: ['2 Peter 1:20-21', 'Nehemiah 8:8', '1 Corinthians 2:12-14'],
+        questions: [
+          'How do we determine the author\'s intended meaning?',
+          'Why is it important to compare Scripture with Scripture?',
+          'How does the Holy Spirit help us understand the Bible?'
+        ],
+        application: 'Take a familiar verse and research its historical and literary context.',
+        estimatedMinutes: 50
+      },
+      {
+        number: 4,
+        title: 'Application: How Should I Respond?',
+        keyPassages: ['James 1:22-25', 'Joshua 1:8', 'Matthew 7:24-27'],
+        questions: [
+          'What is the danger of hearing without doing?',
+          'How do you move from head knowledge to heart obedience?',
+          'What specific change is God calling you to make?'
+        ],
+        application: 'Choose one truth from your recent Bible reading and create a specific action plan.',
+        estimatedMinutes: 40
+      }
+    ],
+    totalSessions: 4,
+    source: 'The Busy Christian App',
+    sourceUrl: '',
+    difficulty: 'beginner'
+  },
+  {
+    id: 'sermon-on-the-mount',
+    title: 'The Sermon on the Mount',
+    subtitle: 'Living the Kingdom Life',
+    category: 'doctrine',
+    description: 'Explore Jesus\' most famous teaching in Matthew 5-7. Discover what it means to live as citizens of God\'s kingdom in a world that follows different values.',
+    coveragePassages: [
+      'Matthew 5:1-12',
+      'Matthew 5:13-16',
+      'Matthew 5:17-48',
+      'Matthew 6:1-18',
+      'Matthew 6:19-34',
+      'Matthew 7:1-12',
+      'Matthew 7:13-29'
+    ],
+    themes: ['kingdom', 'beatitudes', 'righteousness', 'prayer', 'sermon', 'Jesus teaching'],
+    lessons: [
+      {
+        number: 1,
+        title: 'The Beatitudes: Kingdom Character',
+        keyPassages: ['Matthew 5:1-12'],
+        questions: [
+          'Which beatitude challenges you most?',
+          'How is Jesus\' definition of "blessed" different from the world\'s?',
+          'What does it mean to hunger and thirst for righteousness?'
+        ],
+        application: 'Identify which beatitude you need to grow in and pray about it daily this week.',
+        estimatedMinutes: 45
+      },
+      {
+        number: 2,
+        title: 'Salt and Light: Kingdom Influence',
+        keyPassages: ['Matthew 5:13-16', 'Matthew 5:17-20'],
+        questions: [
+          'How can salt lose its saltiness? How might we?',
+          'Where has God placed you to be light?',
+          'What does righteousness that surpasses the Pharisees look like?'
+        ],
+        application: 'Look for one opportunity this week to let your light shine through loving action.',
+        estimatedMinutes: 40
+      },
+      {
+        number: 3,
+        title: 'Heart Righteousness',
+        keyPassages: ['Matthew 5:21-48'],
+        questions: [
+          'Why does Jesus go deeper than external behavior?',
+          'How does anger relate to murder? Lust to adultery?',
+          'What does it mean to love your enemies?'
+        ],
+        application: 'Ask God to reveal any hidden anger, lust, or bitterness you need to address.',
+        estimatedMinutes: 50
+      },
+      {
+        number: 4,
+        title: 'Secret Disciplines',
+        keyPassages: ['Matthew 6:1-18'],
+        questions: [
+          'Why is motive so important in spiritual practices?',
+          'What does the Lord\'s Prayer teach about priorities?',
+          'How can you practice giving, praying, and fasting in secret?'
+        ],
+        application: 'Practice one spiritual discipline this week without telling anyone.',
+        estimatedMinutes: 45
+      },
+      {
+        number: 5,
+        title: 'Kingdom Priorities',
+        keyPassages: ['Matthew 6:19-34'],
+        questions: [
+          'Where is your treasure? How do you know?',
+          'What anxieties reveal about where you\'ve placed your trust?',
+          'What does seeking God\'s kingdom first look like practically?'
+        ],
+        application: 'Identify one area of worry and consciously entrust it to God each day.',
+        estimatedMinutes: 40
+      },
+      {
+        number: 6,
+        title: 'Building on the Rock',
+        keyPassages: ['Matthew 7:1-29'],
+        questions: [
+          'What is the difference between judging and discerning?',
+          'Why is the gate narrow and the road hard?',
+          'What separates wise builders from foolish ones?'
+        ],
+        application: 'Choose one teaching from the Sermon to put into practice this week.',
+        estimatedMinutes: 45
+      }
+    ],
+    totalSessions: 6,
+    source: 'The Busy Christian App',
+    sourceUrl: '',
+    difficulty: 'intermediate'
+  },
+  {
+    id: 'fruit-of-the-spirit',
+    title: 'Fruit of the Spirit',
+    subtitle: 'Growing in Christlike Character',
+    category: 'character',
+    description: 'Explore the nine characteristics of the Spirit-filled life in Galatians 5. Learn how to cooperate with the Holy Spirit as He produces His fruit in you.',
+    coveragePassages: [
+      'Galatians 5:16-26',
+      'John 15:1-8',
+      'Romans 8:5-14',
+      'Colossians 3:12-17',
+      '2 Peter 1:5-8'
+    ],
+    themes: ['fruit', 'spirit', 'character', 'love', 'joy', 'peace', 'patience', 'kindness', 'goodness', 'faithfulness', 'gentleness', 'self-control'],
+    lessons: [
+      {
+        number: 1,
+        title: 'Walking by the Spirit',
+        keyPassages: ['Galatians 5:16-18', 'Galatians 5:24-26', 'Romans 8:5-14'],
+        questions: [
+          'What does it mean to "walk by the Spirit"?',
+          'How do the flesh and Spirit war against each other?',
+          'How do we crucify the flesh with its passions?'
+        ],
+        application: 'Each morning this week, ask the Holy Spirit to lead your day.',
+        estimatedMinutes: 40
+      },
+      {
+        number: 2,
+        title: 'Love, Joy, Peace',
+        keyPassages: ['Galatians 5:22', '1 Corinthians 13:4-7', 'Philippians 4:4-7', 'John 14:27'],
+        questions: [
+          'How is the Spirit\'s love different from human affection?',
+          'Can you have joy in suffering? How?',
+          'What is the peace that passes understanding?'
+        ],
+        application: 'Practice love by serving someone who cannot repay you.',
+        estimatedMinutes: 45
+      },
+      {
+        number: 3,
+        title: 'Patience, Kindness, Goodness',
+        keyPassages: ['Galatians 5:22', 'James 5:7-11', 'Ephesians 4:32', 'Romans 2:4'],
+        questions: [
+          'Where do you struggle most with patience?',
+          'How has God\'s kindness led you to repentance?',
+          'What is the difference between being nice and being good?'
+        ],
+        application: 'Show unexpected kindness to someone difficult this week.',
+        estimatedMinutes: 45
+      },
+      {
+        number: 4,
+        title: 'Faithfulness, Gentleness, Self-Control',
+        keyPassages: ['Galatians 5:22-23', 'Proverbs 3:3-4', 'Matthew 11:29', '1 Corinthians 9:24-27'],
+        questions: [
+          'What does faithfulness look like in small things?',
+          'How is gentleness strength under control?',
+          'Where do you need more self-control?'
+        ],
+        application: 'Identify one area needing self-control and create a plan with accountability.',
+        estimatedMinutes: 45
+      },
+      {
+        number: 5,
+        title: 'Abiding in the Vine',
+        keyPassages: ['John 15:1-8', '2 Peter 1:5-8', 'Colossians 3:12-17'],
+        questions: [
+          'What does abiding in Christ look like daily?',
+          'Why can\'t we produce fruit apart from Him?',
+          'How do we cooperate with the Spirit\'s work?'
+        ],
+        application: 'Spend 10 minutes daily in quiet communion with Jesus this week.',
+        estimatedMinutes: 40
+      }
+    ],
+    totalSessions: 5,
+    source: 'The Busy Christian App',
+    sourceUrl: '',
+    difficulty: 'beginner'
+  },
+  {
+    id: 'spiritual-disciplines',
+    title: 'Spiritual Disciplines',
+    subtitle: 'Practices That Transform',
+    category: 'spiritual-growth',
+    description: 'Discover time-tested practices that open us to God\'s transforming grace. Learn to incorporate prayer, fasting, solitude, and other disciplines into your busy life.',
+    coveragePassages: [
+      '1 Timothy 4:7-8',
+      'Matthew 6:5-18',
+      'Mark 1:35',
+      'Luke 4:1-2',
+      'Psalm 46:10',
+      'Psalm 1:1-3',
+      'Hebrews 10:24-25'
+    ],
+    themes: ['disciplines', 'prayer', 'fasting', 'solitude', 'meditation', 'study', 'worship', 'service'],
+    lessons: [
+      {
+        number: 1,
+        title: 'Why Spiritual Disciplines?',
+        keyPassages: ['1 Timothy 4:7-8', '1 Corinthians 9:24-27', '2 Peter 1:3-8'],
+        questions: [
+          'How are spiritual disciplines like physical training?',
+          'What is the goal of spiritual disciplines?',
+          'What discipline do you most need to develop?'
+        ],
+        application: 'Choose one discipline to focus on for the next month.',
+        estimatedMinutes: 35
+      },
+      {
+        number: 2,
+        title: 'The Discipline of Prayer',
+        keyPassages: ['Matthew 6:5-15', 'Mark 1:35', 'Luke 18:1-8', '1 Thessalonians 5:17'],
+        questions: [
+          'What made Jesus\' prayer life so powerful?',
+          'How can you develop a consistent prayer rhythm?',
+          'What hinders your prayers?'
+        ],
+        application: 'Set a specific time and place for daily prayer this week.',
+        estimatedMinutes: 45
+      },
+      {
+        number: 3,
+        title: 'The Discipline of Fasting',
+        keyPassages: ['Matthew 6:16-18', 'Luke 4:1-2', 'Isaiah 58:6-9', 'Acts 13:2-3'],
+        questions: [
+          'What is the purpose of fasting?',
+          'How do you fast with the right motives?',
+          'What type of fast might God be calling you to?'
+        ],
+        application: 'Plan a one-day fast focused on seeking God for a specific need.',
+        estimatedMinutes: 40
+      },
+      {
+        number: 4,
+        title: 'Solitude and Silence',
+        keyPassages: ['Psalm 46:10', 'Mark 6:31', 'Luke 5:16', '1 Kings 19:11-13'],
+        questions: [
+          'Why is silence so difficult in our noisy world?',
+          'How did Jesus practice solitude?',
+          'What might God say to you in the quiet?'
+        ],
+        application: 'Schedule 30 minutes of solitude with no phone, music, or distractions.',
+        estimatedMinutes: 35
+      },
+      {
+        number: 5,
+        title: 'Scripture Meditation',
+        keyPassages: ['Psalm 1:1-3', 'Joshua 1:8', 'Psalm 119:15-16', 'Psalm 119:97'],
+        questions: [
+          'How is meditation different from just reading?',
+          'What does it mean to "chew" on Scripture?',
+          'Which passage will you meditate on this week?'
+        ],
+        application: 'Choose one verse and meditate on it for 10 minutes daily.',
+        estimatedMinutes: 40
+      },
+      {
+        number: 6,
+        title: 'Community and Service',
+        keyPassages: ['Hebrews 10:24-25', 'Galatians 6:2', 'Mark 10:43-45', 'John 13:14-15'],
+        questions: [
+          'Why can\'t we grow alone?',
+          'How does serving others transform us?',
+          'Where is God calling you to serve?'
+        ],
+        application: 'Commit to a regular gathering with believers and one act of service.',
+        estimatedMinutes: 40
+      }
+    ],
+    totalSessions: 6,
+    source: 'The Busy Christian App',
+    sourceUrl: '',
+    difficulty: 'intermediate'
+  },
+  {
+    id: 'healing-and-wholeness',
+    title: 'Healing & Wholeness',
+    subtitle: 'God\'s Heart for Your Restoration',
+    category: 'difficult-times',
+    description: 'Explore what Scripture teaches about healing—physical, emotional, and spiritual. Discover how God wants to bring wholeness to every area of your life.',
+    coveragePassages: [
+      'Isaiah 53:4-5',
+      'James 5:14-16',
+      'Psalm 103:2-5',
+      'Matthew 8:16-17',
+      '3 John 1:2',
+      'Psalm 147:3',
+      'Jeremiah 17:14'
+    ],
+    themes: ['healing', 'wholeness', 'restoration', 'prayer', 'faith', 'hope', 'suffering'],
+    lessons: [
+      {
+        number: 1,
+        title: 'God\'s Heart for Healing',
+        keyPassages: ['Psalm 103:2-5', 'Exodus 15:26', 'Jeremiah 30:17'],
+        questions: [
+          'What do God\'s names reveal about His desire to heal?',
+          'How does Jesus\' ministry demonstrate God\'s heart?',
+          'What healing do you need from God?'
+        ],
+        application: 'Bring your need for healing to God in honest prayer.',
+        estimatedMinutes: 40
+      },
+      {
+        number: 2,
+        title: 'Healing in the Atonement',
+        keyPassages: ['Isaiah 53:4-5', 'Matthew 8:16-17', '1 Peter 2:24'],
+        questions: [
+          'What did Jesus accomplish on the cross for our healing?',
+          'How do we appropriate what Christ has provided?',
+          'Why isn\'t everyone healed immediately?'
+        ],
+        application: 'Thank Jesus specifically for bearing your sicknesses and pains.',
+        estimatedMinutes: 45
+      },
+      {
+        number: 3,
+        title: 'Emotional and Inner Healing',
+        keyPassages: ['Psalm 147:3', 'Isaiah 61:1-3', 'Luke 4:18-19'],
+        questions: [
+          'What emotional wounds need God\'s healing touch?',
+          'How does God heal the brokenhearted?',
+          'What lies do you believe that need to be replaced with truth?'
+        ],
+        application: 'Invite the Holy Spirit to reveal and heal one area of inner pain.',
+        estimatedMinutes: 50
+      },
+      {
+        number: 4,
+        title: 'The Prayer of Faith',
+        keyPassages: ['James 5:14-16', 'Mark 11:22-24', 'Matthew 17:20'],
+        questions: [
+          'What role does faith play in healing?',
+          'How do we pray with confidence without presuming on God?',
+          'Who can you ask to pray with you for healing?'
+        ],
+        application: 'Ask elders or mature believers to pray over you for a specific need.',
+        estimatedMinutes: 40
+      },
+      {
+        number: 5,
+        title: 'When Healing Tarries',
+        keyPassages: ['2 Corinthians 12:7-10', 'Romans 8:28', 'Hebrews 11:35-40'],
+        questions: [
+          'How do we trust God when healing doesn\'t come?',
+          'What did Paul learn through his thorn?',
+          'How can suffering produce deeper faith?'
+        ],
+        application: 'Write out your honest feelings to God about any unanswered prayers.',
+        estimatedMinutes: 45
+      }
+    ],
+    totalSessions: 5,
+    source: 'The Busy Christian App',
+    sourceUrl: '',
+    difficulty: 'intermediate'
+  },
+  {
+    id: 'walking-in-holiness',
+    title: 'Walking in Holiness',
+    subtitle: 'Becoming Who God Made You to Be',
+    category: 'character',
+    description: 'Discover what it means to be holy as God is holy. Learn how the Holy Spirit sanctifies us and empowers us to live lives that honor God.',
+    coveragePassages: [
+      '1 Peter 1:15-16',
+      '1 Thessalonians 4:3-8',
+      'Hebrews 12:14',
+      'Romans 6:1-14',
+      '2 Corinthians 7:1',
+      'Leviticus 19:2',
+      'Romans 12:1-2'
+    ],
+    themes: ['holiness', 'sanctification', 'purity', 'obedience', 'transformation', 'sin', 'righteousness'],
+    lessons: [
+      {
+        number: 1,
+        title: 'Called to Be Holy',
+        keyPassages: ['1 Peter 1:15-16', 'Leviticus 19:2', 'Hebrews 12:14'],
+        questions: [
+          'What does holiness mean?',
+          'Why does God call us to be holy?',
+          'How is holiness possible for ordinary people?'
+        ],
+        application: 'Ask God to show you one area where He\'s calling you to greater holiness.',
+        estimatedMinutes: 40
+      },
+      {
+        number: 2,
+        title: 'Dead to Sin, Alive to God',
+        keyPassages: ['Romans 6:1-14', 'Galatians 2:20', 'Colossians 3:1-5'],
+        questions: [
+          'What does it mean that we died with Christ?',
+          'How do we "reckon" ourselves dead to sin?',
+          'What sin patterns still have a grip on you?'
+        ],
+        application: 'Identify one sin pattern and declare your freedom from it in Christ.',
+        estimatedMinutes: 45
+      },
+      {
+        number: 3,
+        title: 'The Work of Sanctification',
+        keyPassages: ['1 Thessalonians 4:3-8', '1 Thessalonians 5:23-24', 'Philippians 2:12-13'],
+        questions: [
+          'What is God\'s role in sanctification? What is ours?',
+          'How does the Spirit empower us to live holy lives?',
+          'What does progressive sanctification look like?'
+        ],
+        application: 'Work out your salvation by taking one step of obedience this week.',
+        estimatedMinutes: 45
+      },
+      {
+        number: 4,
+        title: 'Purity of Heart',
+        keyPassages: ['Matthew 5:8', 'Psalm 51:10', 'Psalm 24:3-4', '2 Corinthians 7:1'],
+        questions: [
+          'What does it mean to be pure in heart?',
+          'How do we cleanse ourselves from defilement?',
+          'What impurities need to be addressed in your life?'
+        ],
+        application: 'Pray Psalm 51 as your own prayer for a clean heart.',
+        estimatedMinutes: 40
+      },
+      {
+        number: 5,
+        title: 'Living Sacrifices',
+        keyPassages: ['Romans 12:1-2', '1 Corinthians 6:19-20', '2 Timothy 2:21'],
+        questions: [
+          'What does it mean to offer your body as a living sacrifice?',
+          'How do we renew our minds?',
+          'What worldly patterns need to be transformed?'
+        ],
+        application: 'Present yourself to God as a living sacrifice, holding nothing back.',
+        estimatedMinutes: 45
+      }
+    ],
+    totalSessions: 5,
+    source: 'The Busy Christian App',
+    sourceUrl: '',
+    difficulty: 'intermediate'
+  },
+  {
+    id: 'heart-of-worship',
+    title: 'The Heart of Worship',
+    subtitle: 'Encountering God in Spirit and Truth',
+    category: 'spiritual-growth',
+    description: 'Go beyond singing songs to discover what true worship means. Learn to worship God with your whole life, in spirit and in truth.',
+    coveragePassages: [
+      'John 4:23-24',
+      'Psalm 95:1-7',
+      'Romans 12:1',
+      'Psalm 100',
+      'Revelation 4:8-11',
+      'Hebrews 13:15',
+      'Psalm 150'
+    ],
+    themes: ['worship', 'praise', 'adoration', 'thanksgiving', 'music', 'lifestyle', 'presence'],
+    lessons: [
+      {
+        number: 1,
+        title: 'What Is True Worship?',
+        keyPassages: ['John 4:23-24', 'Romans 12:1', 'Psalm 29:2'],
+        questions: [
+          'What does it mean to worship in spirit and truth?',
+          'How is worship more than music?',
+          'What does God seek in worshipers?'
+        ],
+        application: 'Worship God through an act of service or obedience, not just singing.',
+        estimatedMinutes: 40
+      },
+      {
+        number: 2,
+        title: 'The God We Worship',
+        keyPassages: ['Revelation 4:8-11', 'Isaiah 6:1-5', 'Psalm 145'],
+        questions: [
+          'What attributes of God move you to worship?',
+          'How does understanding who God is transform our worship?',
+          'When did you last stand in awe of God?'
+        ],
+        application: 'Spend time meditating on God\'s attributes and respond in praise.',
+        estimatedMinutes: 45
+      },
+      {
+        number: 3,
+        title: 'Expressions of Worship',
+        keyPassages: ['Psalm 150', 'Psalm 95:1-7', 'Psalm 47:1', '2 Samuel 6:14'],
+        questions: [
+          'What biblical expressions of worship are you comfortable with?',
+          'Which ones stretch you? Why?',
+          'How can you worship with your whole being?'
+        ],
+        application: 'Try one new expression of worship (lifting hands, kneeling, etc.).',
+        estimatedMinutes: 40
+      },
+      {
+        number: 4,
+        title: 'A Lifestyle of Worship',
+        keyPassages: ['Romans 12:1-2', '1 Corinthians 10:31', 'Colossians 3:17', 'Hebrews 13:15-16'],
+        questions: [
+          'How can ordinary activities become worship?',
+          'What does 24/7 worship look like?',
+          'Where is your worship lacking in your daily life?'
+        ],
+        application: 'Choose three daily activities and turn them into acts of worship.',
+        estimatedMinutes: 40
+      },
+      {
+        number: 5,
+        title: 'Corporate Worship',
+        keyPassages: ['Psalm 100', 'Hebrews 10:24-25', 'Psalm 122:1', 'Acts 2:42-47'],
+        questions: [
+          'Why is gathering to worship so important?',
+          'How can you prepare your heart before worship services?',
+          'How can you contribute to the worship of your church?'
+        ],
+        application: 'Come to church this week prepared and expectant to meet with God.',
+        estimatedMinutes: 40
+      }
+    ],
+    totalSessions: 5,
+    source: 'The Busy Christian App',
+    sourceUrl: '',
+    difficulty: 'beginner'
+  },
+  {
+    id: 'sharing-your-faith',
+    title: 'Sharing Your Faith',
+    subtitle: 'Practical Evangelism for Everyday Life',
+    category: 'mission',
+    description: 'Learn to share the good news naturally and effectively. Overcome fear and discover how God can use you to lead others to Christ.',
+    coveragePassages: [
+      '1 Peter 3:15',
+      'Matthew 28:19-20',
+      'Acts 1:8',
+      'Romans 1:16',
+      '2 Corinthians 5:18-20',
+      'Colossians 4:5-6',
+      'Mark 5:19'
+    ],
+    themes: ['evangelism', 'witnessing', 'gospel', 'testimony', 'mission', 'outreach', 'salvation'],
+    lessons: [
+      {
+        number: 1,
+        title: 'Why Share Your Faith?',
+        keyPassages: ['Matthew 28:19-20', 'Romans 10:14-15', '2 Corinthians 5:18-20'],
+        questions: [
+          'What motivates you to share the gospel?',
+          'How can love for others overcome fear?',
+          'Who in your life needs to hear about Jesus?'
+        ],
+        application: 'Write down three people you want to share the gospel with and pray for them.',
+        estimatedMinutes: 40
+      },
+      {
+        number: 2,
+        title: 'Your Testimony',
+        keyPassages: ['Mark 5:19', 'John 9:25', 'Acts 26:1-23', '1 John 1:1-3'],
+        questions: [
+          'What was your life like before Christ?',
+          'How did you come to know Jesus?',
+          'How has He changed your life?'
+        ],
+        application: 'Write out your testimony in 3 minutes or less and practice sharing it.',
+        estimatedMinutes: 50
+      },
+      {
+        number: 3,
+        title: 'The Gospel Message',
+        keyPassages: ['Romans 3:23', 'Romans 6:23', 'Romans 5:8', 'Romans 10:9-10', 'Ephesians 2:8-9'],
+        questions: [
+          'What are the essential elements of the gospel?',
+          'How do you explain salvation simply?',
+          'What questions do people commonly ask?'
+        ],
+        application: 'Practice explaining the gospel in your own words to a Christian friend.',
+        estimatedMinutes: 45
+      },
+      {
+        number: 4,
+        title: 'Overcoming Fear',
+        keyPassages: ['2 Timothy 1:7', 'Acts 4:29-31', 'Romans 1:16', 'Isaiah 41:10'],
+        questions: [
+          'What fears hold you back from sharing?',
+          'How did the early church pray for boldness?',
+          'What is the worst that could happen? The best?'
+        ],
+        application: 'Pray for boldness and look for one opportunity to share this week.',
+        estimatedMinutes: 40
+      },
+      {
+        number: 5,
+        title: 'Lifestyle Evangelism',
+        keyPassages: ['Colossians 4:5-6', '1 Peter 3:15', 'Matthew 5:16', 'Titus 2:7-8'],
+        questions: [
+          'How does your life attract people to Jesus?',
+          'How do you make the most of every opportunity?',
+          'What conversations can you turn toward spiritual things?'
+        ],
+        application: 'Identify one relationship where you can be more intentional about your faith.',
+        estimatedMinutes: 45
+      }
+    ],
+    totalSessions: 5,
+    source: 'The Busy Christian App',
+    sourceUrl: '',
+    difficulty: 'beginner'
+  },
+  // === ORIGINAL COURSES ===
   {
     id: 'when-life-hurts',
     title: 'When Life Hurts',
